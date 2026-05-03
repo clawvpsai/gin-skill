@@ -153,14 +153,14 @@ go list -m all
 | Dependency | Min Version | Notes |
 |---|---|---|
 | Go | 1.21+ | |
-| golang-jwt/jwt/v5 | v5.x | |
+| golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | |
 | go-redis/redis/v9 | v9.x | |
 | bcrypt | golang.org/x/crypto | |
 
 ### Common Compatibility Issues
 
-1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` not `github.com/golang-jwt/jwt/v4`
+1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
 2. **old Gin binding** — `binding:"required"` not `validate:""` on Gin v1.9+
 3. **context typo** — `c.Request.Context()` not `c.Content` (that doesn't exist)
 

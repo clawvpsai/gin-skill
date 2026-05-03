@@ -38,6 +38,8 @@ r.Use(RequestID())
 ## Logging Middleware
 
 ```go
+import "log/slog"
+
 func Logger() gin.HandlerFunc {
     return func(c *gin.Context) {
         start := time.Now()
@@ -57,8 +59,33 @@ func Logger() gin.HandlerFunc {
             path = path + "?" + raw
         }
         
-        log.Printf("[%d] %s %s %s %v", 
-            status, method, clientIP, path, latency)
+        slog.Info("request",
+            "status", status,
+            "method", method,
+            "ip", clientIP,
+            "path", path,
+            "latency", latency,
+        )
+    }
+}
+```
+
+**Pre-Go 1.21 (fallback):**
+```go
+import "log"
+
+
+func Logger() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        start := time.Now()
+        c.Next()
+        log.Printf("[%d] %s %s %s %v",
+            c.Writer.Status(),
+            c.Request.Method,
+            c.ClientIP(),
+            c.Request.URL.Path,
+            time.Since(start),
+        )
     }
 }
 ```
