@@ -249,3 +249,15 @@ func BenchmarkGetPosts(b *testing.B) {
 4. **Using real HTTP client** — use `httptest.NewRecorder()` instead
 5. **Mocking the wrong interface** — match actual interface signature
 6. **Not asserting on all important fields** — check status, body, headers
+
+
+## Updated from Research (2026-05)
+
+- **Testing | Gin Web Framework** (https://gin-gonic.com/en/docs/testing/)
+  The net/http/httptest package is the preferred way for HTTP testing. Call gin.SetMode(gin.TestMode) before creating the router in your tests. This suppresses the debug-level route registration logs that Gin prints by default, keeping your test output clean. You can place this in TestMain so it applies to all tests in the package: ... Table-driven tests let you cover many input/output combinations without duplicating test logic. This pattern
+
+- **Testing in Go Best Practices and Tips** (https://grid.gg/testing-in-go-best-practices-and-tips/)
+  Subtests called by the same testing function will, generally, run in series, and will run through all subtests even if an earlier subtest has failed. In the cases where one would prefer the tests to run in parallel there’s instead the ... t.Run is a good practice as it allows the testing framework to better utilize its available resources.
+
+- **r/golang on Reddit: Best practice testing** (https://www.reddit.com/r/golang/comments/1dvecs4/best_practice_testing/)
+  21 votes, 56 comments. I&#x27;ve built an application in go. I&#x27;m now writing tests for it. To mock functions, it seems I need to refactor to use func
