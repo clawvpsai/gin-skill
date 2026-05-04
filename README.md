@@ -1,12 +1,36 @@
-# Gin (Go) Developer Skill
+# 🐹 Gin (Go) Developer Skill
 
-Production-grade Gin web framework skill for OpenClaw agents.
+> Production-grade Gin web framework skill for OpenClaw agents — build robust APIs and web apps without common pitfalls.
 
-## Overview
+[![Go 1.26](https://img.shields.io/badge/Go-1.26-blue?style=flat-square)](https://go.dev)
+[![Gin v1.12](https://img.shields.io/badge/Gin-v1.12-blue?style=flat-square)](https://github.com/gin-gonic/gin)
+[![MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Auto-updated](https://img.shields.io/badge/Auto--updated-6h-blue?style=flat-square)](#auto-updater)
 
-This skill provides comprehensive guidance for building robust APIs and web applications with Gin (Go). It covers routing, middleware, database integration, authentication, and production deployment.
+---
 
-## Navigation
+## Why This Skill Exists
+
+Go/Gin is fast-moving — HTTP/3, QUIC, Protocol Buffers, new concurrency patterns. Most AI assistants still suggest `golang-jwt/jwt/v4` (deprecated!) or `c.QueryInt()` (doesn't exist in Gin). This skill is the ground truth — auto-updated and version-current.
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# Check Go version
+go version
+
+# Check Gin version
+go list -m github.com/gin-gonic/gin
+
+# Load SKILL.md first for navigation
+# Then dive into the topic you need
+```
+
+---
+
+## 📚 Topics Covered (15 files)
 
 | Topic | File | When to Use |
 |---|---|---|
@@ -14,44 +38,84 @@ This skill provides comprehensive guidance for building robust APIs and web appl
 | HTTP methods, JSON binding, validation | `handlers.md` | Building endpoints |
 | JSON, XML, YAML, streaming responses | `responses.md` | API response patterns |
 | JWT, session, bcrypt, auth middleware | `auth.md` | User auth & permissions |
-| MySQL, PostgreSQL, Redis, GORM | `database.md` | Data access |
+| MySQL, PostgreSQL, Redis, GORM, migrations | `database.md` + `migrations.md` | Data access |
 | Structured logging, middleware, recovery | `middleware.md` | Cross-cutting concerns |
 | Goroutines, sync.WaitGroup, context | `concurrency.md` | Parallel processing |
+| Context propagation, cancellation, values | `context.md` | Context usage |
+| File uploads, multipart, S3, presigned | `file-uploads.md` | Media handling |
 | Deployment, Docker, systemd, signals | `deployment.md` | Going live |
 | Unit tests, httptest, mocking | `testing.md` | Test-driven dev |
 | Security headers, CORS, rate limiting | `security.md` | Hardening |
+| Go module versioning, best practices | `versions.md` | Version management |
 
-## Critical Rules
+---
 
-- **`context.Context` is mandatory** — pass it through every function that does I/O
-- **Never spawn goroutines without `sync.WaitGroup` or context cancellation**
-- **Check errors always** — `if err != nil { return err }` is not optional
-- **`gin.H{}` is just `map[string]interface{}`** — no magic, no hidden behavior
-- **Route order matters** — first match wins, put specific routes BEFORE generic ones
-- **Binding tags use `validate:""`** not `binding:""` for validator v10+
-- **`c.Next()` in middleware** — call it to execute downstream handlers
-- **Abort early** with `c.AbortWithStatusJSON()` when auth fails
-- **Use `c.Copy()` if you need to access context after async work**
-- **Environment variables** — use `os.Getenv()` or `viper`/`envconfig`, never hardcode
+## ⚠️ Critical Rules (Never Forget)
 
-## Version Support
+| Rule | Why |
+|---|---|
+| `context.Context` is mandatory | Pass through every I/O function — DB, HTTP, file ops |
+| Never spawn goroutines without `sync.WaitGroup` or context cancellation | Memory leaks and race conditions |
+| Check errors always | `if err != nil { return err }` — not optional |
+| `gin.H{}` is just `map[string]interface{}` | No magic, no hidden behavior |
+| Route order matters | First match wins — specific routes BEFORE generic |
+| Use `validate:""` not `binding:""` | Gin v1.9+ changed binding tags |
+| Use `c.Copy()` for context after async work | Original context may be cancelled |
+| Never use `jwt/v4` | Deprecated — always use `jwt/v5` |
 
-- **Go 1.26** (latest — 2026)
-- **Gin v1.12** (stable)
-- **Go 1.25, 1.24** — Previous versions still supported
+---
 
-## Auto-Updater
+## 📦 Version Support
 
-This skill is auto-updated every 2 hours via a cron job that:
-1. Rotates through topic areas (routing, handlers, auth, etc.)
-2. Scans for gaps and deprecations in current content
-3. Performs web research via Parallel AI Search API on latest best practices
-4. Commits improvements directly to this repository
+| Version | Status | Key Features |
+|---|---|---|
+| **Go 1.26** | ✅ Latest (2026) | Improved toolchain, slices/maps packages |
+| Go 1.25 | Previous stable | Toolchain refinements |
+| Go 1.24 | Minimum for Gin v1.12 | Generic type aliases, math/rand/v2 |
+| **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseRouters() |
 
-## Contributing
+---
 
-Edits to skill files are automatically picked up by the updater. To make structural changes, submit a PR to this repository.
+## 🔄 Auto-Updater
 
-## License
+The skill is **auto-updated every 6 hours** via a cron job. The agent decides whether to update based on whether it finds meaningful gaps — no forced updates.
 
-MIT
+**How it works:**
+1. Checks current state of all 15 topic files
+2. Identifies weak or outdated areas via web research
+3. Checks for new Go/Gin/dependency releases
+4. Updates files with new patterns + source URLs
+5. Commits and pushes to `main` branch automatically
+
+---
+
+## 🛠️ Contributing
+
+```bash
+# Clone
+git clone git@github.com:clawvpsai/gin-skill.git
+cd gin-skill
+
+# Edit any .md file — updater picks up changes
+# For structural changes, submit a PR
+```
+
+All skill files are `.md` — no code generation needed. Just update patterns, add examples, or fix deprecations.
+
+---
+
+## 📊 Skill Stats
+
+- **15 topic files** covering full Gin/Go development lifecycle
+- **Version-aware** — Go 1.26, 1.25, 1.24 + Gin v1.12 covered
+- **~5,800+ lines** of production-ready content
+- **Auto-updated** via OpenClaw cron — never stale
+- **MIT licensed** — free for everyone
+
+---
+
+<p align="center">
+  <a href="https://github.com/clawvpsai/gin-skill">📂 GitHub Repo</a>
+  · <a href="https://gin-gonic.com/docs">📖 Gin Docs</a>
+  · <a href="https://go.dev/dl">📋 Go Downloads</a>
+</p>
