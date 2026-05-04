@@ -18,6 +18,8 @@ metadata:
 | MySQL, PostgreSQL, Redis, GORM | `database.md` | Data access |
 | Structured logging, middleware, recovery | `middleware.md` | Cross-cutting concerns |
 | Goroutines, sync.WaitGroup, context | `concurrency.md` | Parallel processing |
+| Context propagation, cancellation, values | `context.md` | Context usage |
+| File uploads, multipart, S3, presigned URLs | `file-uploads.md` | Media handling |
 | Deployment, Docker, systemd, signals | `deployment.md` | Going live |
 | Unit tests, httptest, mocking | `testing.md` | Test-driven dev |
 | Security headers, CORS, rate limiting | `security.md` | Hardening |
