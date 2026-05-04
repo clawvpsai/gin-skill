@@ -63,6 +63,46 @@ func login(c *gin.Context) {
 }
 ```
 
+## Query Binding vs Body Binding
+
+| Method | Source | Use When |
+|--------|--------|----------|
+| `ShouldBindQuery` | URL query params (`?foo=bar`) | GET requests, filters |
+| `ShouldBind` | Request body (JSON/form) | POST/PUT with body |
+| `ShouldBindJSON` | JSON body only | Explicit JSON POST |
+| `ShouldBindUri` | Path params (`:id`) | Route parameters |
+| `ShouldBindHeader` | Request headers | Header extraction |
+
+```go
+// Query binding — reads from ?email=...&password=...
+type SearchRequest struct {
+    Query  string `form:"q"`
+    Page   int    `form:"page,default=1"`
+    Limit  int    `form:"limit,default=20"`
+}
+
+func search(c *gin.Context) {
+    var req SearchRequest
+    if err := c.ShouldBindQuery(&req); err != nil {
+        c.JSON(400, gin.H{"error": err.Error()})
+        return
+    }
+    // req.Query, req.Page, req.Limit are populated
+}
+
+// WRONG: ShouldBindQuery for POST body
+func wrong(c *gin.Context) {
+    var req struct { Email string `form:"email"` }
+    c.ShouldBindQuery(&req) // Binds from URL query, NOT body — likely wrong for POST
+}
+
+// RIGHT: ShouldBind for POST body
+func right(c *gin.Context) {
+    var req struct { Email string `json:"email"` }
+    c.ShouldBindJSON(&req) // Binds from JSON body
+}
+```
+
 ## URI Parameters (path binding)
 
 ```go
@@ -85,6 +125,39 @@ func getPost(c *gin.Context) {
     c.JSON(200, post)
 }
 ```
+
+## Multiple Body Reads — ShouldBindBodyWith
+
+Gin's `ShouldBind*` methods consume `c.Request.Body`. If you need to bind the same body multiple times (e.g., logging + processing), use `ShouldBindBodyWith`:
+
+```go
+func createPost(c *gin.Context) {
+    var req CreatePostRequest
+    
+    // First bind attempt
+    if err := c.ShouldBindBodyWith(&req, binding.JSON); err != nil {
+        c.JSON(400, gin.H{"error": err.Error()})
+        return
+    }
+    
+    // Body is still available for subsequent reads
+    // (underlying buffer is restored)
+    
+    // You can also bind to a different type
+    var raw map[string]interface{}
+    c.ShouldBindBodyWith(&raw, binding.JSON)
+    
+    c.JSON(201, gin.H{"created": true})
+}
+```
+
+**Supported content types for `ShouldBindBodyWith`:**
+- `binding.JSON` — `application/json`
+- `binding.XML` — `application/xml`
+- `binding.Form` — `application/x-www-form-urlencoded`
+- `binding.FormMultipart` — `multipart/form-data`
+- `binding.YAML` — `application/yaml`
+- `binding.ProtoBuf` — `application/protobuf`
 
 ## Validation Tags (go-playground/validator)
 
@@ -147,8 +220,9 @@ c.ShouldBindBodyWith(&req, binding.JSON)
 
 ## Common Mistakes
 
-1. **Using `c.Query()` for POST body** — use `ShouldBind` for JSON/form data
+1. **Using `ShouldBindQuery` for POST body** — binds from URL query params, not body
 2. **Not checking binding errors** — always validate `err != nil`
 3. **Returning after `c.JSON()`** — Gin handlers don't auto-return, but you should return after sending response
 4. **Wrong HTTP status codes** — 201 for create, 204 for delete with no body, 400 for bad request
 5. **Not handling `c.Request.Body` EOF** — `ShouldBind` already handles this
+6. **Multiple `ShouldBind` calls without `ShouldBindBodyWith`** — body is consumed on first bind
