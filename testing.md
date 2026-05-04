@@ -191,6 +191,40 @@ func TestGetUser(t *testing.T) {
     assert.Equal(t, "John", user.Name)
     mockDB.AssertExpectations(t)
 }
+
+// Using testify/mock with setup/teardown
+func TestWithMockRepo(t *testing.T) {
+    mockRepo := new(MockUserRepository)
+    handler := NewUserHandler(mockRepo)
+    
+    t.Run("user found", func(t *testing.T) {
+        mockRepo.On("FindByID", 1).Return(&User{ID: 1, Name: "Alice"}, nil)
+        
+        req, _ := http.NewRequest("GET", "/users/1", nil)
+        w := httptest.NewRecorder()
+        
+        router := gin.New()
+        router.GET("/users/:id", handler.GetUser)
+        router.ServeHTTP(w, req)
+        
+        assert.Equal(t, http.StatusOK, w.Code)
+        mockRepo.AssertExpectations(t)
+    })
+    
+    t.Run("user not found", func(t *testing.T) {
+        mockRepo.On("FindByID", 999).Return(nil, ErrNotFound)
+        
+        req, _ := http.NewRequest("GET", "/users/999", nil)
+        w := httptest.NewRecorder()
+        
+        router := gin.New()
+        router.GET("/users/:id", handler.GetUser)
+        router.ServeHTTP(w, req)
+        
+        assert.Equal(t, http.StatusNotFound, w.Code)
+        mockRepo.AssertExpectations(t)
+    })
+}
 ```
 
 ## Integration Tests (Test Database)
@@ -227,8 +261,10 @@ func TestIntegration_CreateAndFetchUser(t *testing.T) {
     assert.NoError(t, err)
     assert.Equal(t, "test@example.com", fetched.Email)
     
-    // Cleanup
-    db.Exec("DELETE FROM users WHERE id = ?", user.ID)
+    // Cleanup — use transactions that rollback
+    tx := db.Begin()
+    tx.Exec("DELETE FROM users WHERE id = ?", user.ID)
+    tx.Rollback() // ensures no leftover data even if test fails
 }
 ```
 
@@ -324,6 +360,10 @@ func TestAssertions(t *testing.T) {
     assert.NoError(t, err)
     assert.Error(t, err)
     assert.EqualError(t, err, "expected error message")
+    
+    // Collections (Go 1.21+ with slices)
+    assert.EqualExportedValues(t, User{ID: 1, Name: "Alice"}, User{ID: 1, Name: "Alice"})
+    assert.Subset(t, []int{1, 2, 3, 4}, []int{2, 3})
 }
 ```
 
@@ -341,6 +381,10 @@ func BenchmarkGetPosts(b *testing.B) {
         r.ServeHTTP(w, req)
     }
 }
+
+// Run benchmarks with: go test -bench=. -benchmem
+// Compare with: go test -bench=. -benchmem -cpuprofile=cpu.out
+// Then: go tool pprof -http=:8080 cpu.out
 ```
 
 ## Common Mistakes
@@ -354,6 +398,8 @@ func BenchmarkGetPosts(b *testing.B) {
 7. **Not running subtests in parallel** — `t.Run` with `t.Parallel()` for faster test suites
 8. **No integration test skip** — use `testing.Short()` to skip slow integration tests
 9. **Sharing state between tests** — each test should be independent, no shared `var db *gorm.DB`
+10. **Not rolling back test transactions** — tests can leave stale data in the DB
+11. **Using `assert.Equal` on slices with different order** — use `assert.ElementsMatch` or sort before comparing
 
 ---
 
@@ -361,18 +407,26 @@ func BenchmarkGetPosts(b *testing.B) {
 
 ### Integration Tests Best Practices
 - Use `testing.Short()` to skip integration tests with `go test -short`
+- Use transactions that rollback — `tx.Begin()`, `tx.Rollback()` — so tests don't pollute the DB
 - Keep integration tests in `_test.go` files with `_integration` suffix if needed
-- Test database should be isolated per test — use transactions that rollback or fresh DB per test suite
+- Test database should be isolated per test — fresh DB per test suite or transactional rollback
 
 ### Table-Driven Tests with Subtests
 - Subtests called by the same testing function run in series by default
 - Use `t.Parallel()` inside `t.Run()` to parallelize subtests
-- Subtests continue even if earlier subtest fails — catch all failures in one run
+- Subtests continue even if earlier subtest failed — catch all failures in one run
 
 ### Mocking Functions (not interfaces)
 - For mocking individual functions, use interface wrappers or refactor to accept interfaces
 - `go-sqlmock` for SQL testing, `go-redismock` for Redis
+- Use `testify/mock` for cleaner setup/teardown with `.On()` / `.Return()` chains
+
+### Benchmark Profiling
+- Run benchmarks with `go test -bench=. -benchmem`
+- Use `-cpuprofile` and `-memprofile` to identify bottlenecks
+- `go tool pprof -http=:8080 cpu.out` provides an interactive web UI
 
 ### Sources
 - https://gin-gonic.com/en/docs/testing/
-- https://grid.gg/testing-in-go-best-practices-and-tips/
+- https://pkg.go.dev/testing
+- https://github.com/stretchr/testify

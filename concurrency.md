@@ -48,13 +48,17 @@ func processWithContext(ctx context.Context, items []string) error {
 
 // Context with timeout
 func handler(c *gin.Context) {
-    ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+    ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
     defer cancel()
     
     result, err := fetchDataWithContext(ctx, "some-url")
     if err != nil {
+        if ctx.Err() == context.Canceled {
+            c.JSON(499, gin.H{"error": "client cancelled"})
+            return
+        }
         if ctx.Err() == context.DeadlineExceeded {
-            c.JSON(504, gin.H{"error": "request timeout"})
+            c.JSON(504, gin.H{"error": "operation timed out"})
             return
         }
         c.JSON(500, gin.H{"error": err.Error()})
@@ -226,6 +230,110 @@ func fetchAll(ctx context.Context, urls []string) ([]string, error) {
     
     return results, nil
 }
+
+// errgroup in Gin handler — parallel DB queries with shared context
+func getUserDashboard(c *gin.Context) {
+    userID := c.GetString("user_id")
+    
+    g, ctx := errgroup.WithContext(c.Request.Context())
+    var user *User
+    var posts []Post
+    var notifications []Notification
+    
+    g.Go(func() error {
+        var err error
+        user, err = userRepo.GetByID(ctx, userID)
+        return err
+    })
+    g.Go(func() error {
+        var err error
+        posts, err = postRepo.GetByUserID(ctx, userID, 10)
+        return err
+    })
+    g.Go(func() error {
+        var err error
+        notifications, err = notificationRepo.GetUnread(ctx, userID)
+        return err
+    })
+    
+    if err := g.Wait(); err != nil {
+        c.JSON(500, gin.H{"error": "failed to load dashboard"})
+        return
+    }
+    
+    c.JSON(200, gin.H{
+        "user":          user,
+        "posts":         posts,
+        "notifications": notifications,
+    })
+}
+```
+
+## slices and maps (Go 1.21+) — Concurrent-Friendly Patterns
+
+Go 1.21+ added `maps` and `slices` packages with thread-safe copy utilities:
+
+```go
+import (
+    "maps"
+    "slices"
+)
+
+// Clone slices safely — better than manual copy
+func getActiveUsers(users []User) []*User {
+    active := slices.Filter(users, func(u User) bool {
+        return u.Active
+    })
+    // slices are already value types — no race if read-only
+    return slices.Clone(active)
+}
+
+// Clone maps for safe read-only copies
+func getPermissionsMap(roles map[string][]string) map[string][]string {
+    return maps.Clone(roles)
+}
+
+// Search/sort patterns
+func findUser(users []User, id uint) *User {
+    idx := slices.IndexFunc(users, func(u User) bool { return u.ID == id })
+    if idx < 0 {
+        return nil
+    }
+    return &users[idx]
+}
+
+// Batch process with worker pool using slices
+func processBatches(items []Item, workers int) []Result {
+    jobs := make(chan Item, len(items))
+    results := make(chan Result, len(items))
+    
+    for _, item := range items {
+        jobs <- item
+    }
+    close(jobs)
+    
+    var wg sync.WaitGroup
+    for range workers {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            for job := range jobs {
+                results <- process(job)
+            }
+        }()
+    }
+    
+    wg.Wait()
+    close(results)
+    
+    // Collect results — slices.Concat for joining result batches
+    var allResults []Result
+    for r := range results {
+        allResults = append(allResults, r)
+    }
+    
+    return allResults
+}
 ```
 
 ## Goroutine Leak Profiler (Go 1.26+)
@@ -269,3 +377,23 @@ func main() {
 4. **Closing channels twice** — panic, only close in sender (or use `defer close()` in sender goroutine)
 5. **Sending to nil channel** — blocks forever, causes deadlock
 6. **Not using `errgroup`** — errors from goroutines silently lost
+7. **Cloning slices with pre-allocated copy manually** — use `slices.Clone()` instead (Go 1.21+)
+8. **Manually copying maps in loops** — use `maps.Clone()` instead (Go 1.21+)
+
+---
+
+## Updated from Research (2026-05)
+
+### Go 1.21+ slices/maps Packages
+- `slices.Clone()` and `maps.Clone()` are the idiomatic way to copy collections (safer, cleaner than manual loops)
+- `slices.Filter`, `slices.IndexFunc`, `slices.Concat` reduce boilerplate in concurrent data processing
+- errgroup with Gin handlers is a clean pattern for parallel I/O (DB queries, external API calls)
+
+### Go 1.26 Goroutine Leak Profiler
+- Enable with `GOEXPERIMENT=goroutineleakprofile` at build time
+- Pairs well with `net/http/pprof` for on-demand goroutine stack dumps in production
+
+### Sources
+- https://pkg.go.dev/slices
+- https://pkg.go.dev/maps
+- https://go.dev/doc/go1.26
