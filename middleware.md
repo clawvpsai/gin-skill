@@ -70,6 +70,16 @@ func Logger() gin.HandlerFunc {
 }
 ```
 
+**Skip Query String in Logs (Gin v1.12+):**
+```go
+import "github.com/gin-gonic/gin"
+
+r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
+    SkipQueryString: true, // Omits ?foo=bar&secret=key from logs
+}))
+```
+Useful for APIs where query strings may contain sensitive data (API keys, tokens).
+
 **Pre-Go 1.21 (fallback):**
 ```go
 import "log"

@@ -22,7 +22,8 @@ Then load the relevant version sections below.
 ### New in Go 1.26
 
 - **Improved toolchain** — better error messages and diagnostics
-- **Performance optimizations** — refined garbage collection
+- **Green Tea Garbage Collector** — enabled by default in Go 1.26. Previously experimental in Go 1.25. Redesigned marking and scanning for small objects with better locality and CPU scalability. Expected 10–40% reduction in GC overhead for GC-heavy programs.
+- **Experimental Goroutine Leak Profiler** — new `goroutineleak` profile type in `runtime/pprof`. Enable with `GOEXPERIMENT=goroutineleakprofile`. Also available at `/debug/pprof/goroutine` when enabled. Detects leaked goroutines in production.
 - **`go mod tidy`** improvements
 - **Enhanced `go test`** — better test output
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code

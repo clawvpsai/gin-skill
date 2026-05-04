@@ -228,6 +228,39 @@ func fetchAll(ctx context.Context, urls []string) ([]string, error) {
 }
 ```
 
+## Goroutine Leak Profiler (Go 1.26+)
+
+Go 1.26 introduces an experimental goroutine leak profiler that detects leaked goroutines in production.
+
+```bash
+# Enable at build time
+GOEXPERIMENT=goroutineleakprofile go build -o myapp .
+
+# Or set at runtime (requires the build flag)
+# Then access via pprof: /debug/pprof/goroutine?debug=1
+```
+
+**Via Gin with `net/http/pprof`:**
+```go
+import _ "net/http/pprof"
+
+func main() {
+    r := gin.Default()
+    go func() {
+        http.ListenAndServe(":6060", nil)
+    }()
+    r.Run()
+}
+```
+
+**Common leak patterns the profiler catches:**
+- Goroutines blocked on `channel send/receive` with no sender/receiver
+- Goroutines blocked on `sync.Mutex` or `sync.RWMutex`
+- Goroutines in `time.Sleep` with no wakeup mechanism
+- Goroutines waiting on `syscall` with no response
+
+**Tip:** Combine with `pprof.Lookup("goroutine")` in production to dump live goroutine stacks on demand.
+
 ## Common Mistakes
 
 1. **Goroutine without WaitGroup** — memory leak, no way to know when done
