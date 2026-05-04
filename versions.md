@@ -31,20 +31,6 @@ Then load the relevant version sections below.
 
 ---
 
-## Go 1.26 (Current — May 2026)
-
-### New in Go 1.26
-
-- **Improved toolchain** — better error messages and diagnostics
-- **Performance optimizations** — refined garbage collection
-- **`go mod tidy`** improvements
-- **Enhanced `go test`** — better test output
-- **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
-- **Range over integers** — `for i := range n` now works (Go 1.23+)
-- **Improved `build` package** — better cross-compilation support
-- **Build cache improvements** — faster incremental builds
-
----
 
 ## Go 1.25 (Previous Stable)
 
