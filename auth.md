@@ -91,6 +91,87 @@ func ProtectedHandler(c *gin.Context) {
 }
 ```
 
+## JWT Refresh Token Pattern
+
+```go
+// Store both access and refresh tokens
+type TokenPair struct {
+    AccessToken  string `json:"access_token"`
+    RefreshToken string `json:"refresh_token"`
+}
+
+func GenerateTokenPair(userID int, email string) (*TokenPair, error) {
+    accessClaims := Claims{
+        UserID: userID,
+        Email:  email,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+            Issuer:    "myapp",
+            TokenType: "access",
+        },
+    }
+    
+    refreshClaims := Claims{
+        UserID: userID,
+        Email:  email,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+            Issuer:    "myapp",
+            TokenType: "refresh",
+        },
+    }
+    
+    accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
+    refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+    
+    accessStr, err := accessToken.SignedString(JWTSecret)
+    if err != nil {
+        return nil, err
+    }
+    
+    refreshStr, err := refreshToken.SignedString(JWTSecret)
+    if err != nil {
+        return nil, err
+    }
+    
+    return &TokenPair{AccessToken: accessStr, RefreshToken: refreshStr}, nil
+}
+
+func RefreshTokenHandler(c *gin.Context) {
+    var req struct {
+        RefreshToken string `json:"refresh_token" binding:"required"`
+    }
+    
+    if err := c.ShouldBindJSON(&req); err != nil {
+        c.JSON(400, gin.H{"error": "refresh token required"})
+        return
+    }
+    
+    claims, err := ValidateToken(req.RefreshToken)
+    if err != nil {
+        c.JSON(401, gin.H{"error": "invalid or expired refresh token"})
+        return
+    }
+    
+    // Verify it's a refresh token
+    if claims.TokenType != "refresh" {
+        c.JSON(401, gin.H{"error": "not a refresh token"})
+        return
+    }
+    
+    // Generate new token pair
+    tokens, err := GenerateTokenPair(claims.UserID, claims.Email)
+    if err != nil {
+        c.JSON(500, gin.H{"error": "failed to generate tokens"})
+        return
+    }
+    
+    c.JSON(200, tokens)
+}
+```
+
 ## Password Hashing with Bcrypt
 
 ```go
@@ -258,6 +339,51 @@ func APIKeyAuthMiddleware() gin.HandlerFunc {
 }
 ```
 
+## OAuth2/JWT with Google, GitHub, etc.
+
+```go
+// OAuth2 callback handler
+func OAuthCallback(c *gin.Context) {
+    code := c.Query("code")
+    if code == "" {
+        c.JSON(400, gin.H{"error": "authorization code required"})
+        return
+    }
+    
+    // Exchange code for tokens with OAuth provider
+    tokens, err := exchangeCodeForTokens(code)
+    if err != nil {
+        c.JSON(401, gin.H{"error": "failed to authenticate"})
+        return
+    }
+    
+    // Get user info from OAuth provider
+    userInfo, err := getOAuthUserInfo(tokens.AccessToken)
+    if err != nil {
+        c.JSON(500, gin.H{"error": "failed to get user info"})
+        return
+    }
+    
+    // Find or create user in database
+    user, err := db.FindOrCreateOAuthUser(userInfo)
+    if err != nil {
+        c.JSON(500, gin.H{"error": "failed to create user"})
+        return
+    }
+    
+    // Generate app JWT
+    token, err := GenerateToken(user.ID, user.Email)
+    if err != nil {
+        c.JSON(500, gin.H{"error": "failed to generate token"})
+        return
+    }
+    
+    // Redirect to frontend with token or set cookie
+    c.SetCookie("token", token, 86400, "/", "", false, true)
+    c.Redirect(302, "/dashboard")
+}
+```
+
 ## Common Mistakes
 
 1. **JWT secret hardcoded** — always use environment variable
@@ -266,3 +392,5 @@ func APIKeyAuthMiddleware() gin.HandlerFunc {
 4. **Session cookie not Secure in production** — `Secure: true` when ENV=production
 5. **JWT token not validated for expiry** — always check `ExpiresAt`
 6. **API key in query string** — headers are more secure (query strings get logged)
+7. **No refresh token rotation** — short-lived access tokens need refresh flow
+8. **Not storing TokenType in claims** — can't distinguish access vs refresh tokens

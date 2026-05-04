@@ -166,7 +166,7 @@ go 1.26
 require (
     github.com/gin-gonic/gin v1.12.0
     github.com/golang-jwt/jwt/v5 v5.2.1
-    golang.org/x/crypto v0.33.0
+    golang.org/x/crypto v0.45.0
 )
 ```
 
@@ -193,19 +193,21 @@ go list -m all
 
 | Dependency | Min Version | Notes |
 |---|---|---|
-| Go | 1.25+ | **Minimum raised to 1.25 in v1.12** |
+| Go | 1.24+ | **Minimum raised to 1.24 in Gin v1.12** |
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
 | go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
-| bcrypt | golang.org/x/crypto | |
+| golang.org/x/crypto | v0.45.0+ | Updated in Gin v1.12 |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
+| quic-go | v0.57.1 | HTTP/3 support (Gin v1.11+) |
 
 ### Common Compatibility Issues
 
 1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
 2. **Binding tags** — `validate:""` not `binding:""` for Gin v1.9+
 3. **context** — `c.Request.Context()` not `c.Content`
-4. **Go version too old** — Gin v1.12 requires Go 1.25+
+4. **Go version too old** — Gin v1.12 requires Go 1.24+
+5. **Dockerfile Go version** — Use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT `golang:1.22-alpine`
 
 ---
 

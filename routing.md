@@ -19,6 +19,15 @@ func main() {
 }
 ```
 
+## Gin v1.12 Escaped Path Option
+
+```go
+// Gin v1.12+ — use raw/escaped request path for routing
+// Useful when dealing with URLs with encoded characters
+r := gin.New()
+r.UseRouters() // enable escaped path routing
+```
+
 ## Route Methods
 
 ```go
@@ -134,6 +143,16 @@ r.Use(gin.WrapH(http.StripPrefix("/public",
     http.FileServer(http.Dir(".")))))
 ```
 
+## HTTP/3 Support (Gin v1.11+)
+
+```go
+import "github.com/gin-gonic/gin"
+
+// Gin v1.11+ supports HTTP/3 when running with quic-go
+// HTTP/3 provides faster connections on unreliable networks
+// To enable, use a QUIC-capable server wrapper or the built-in support
+```
+
 ## Common Mistakes
 
 1. **Route order wrong** — generic `/:id` routes above specific `/admin` routes
@@ -141,3 +160,4 @@ r.Use(gin.WrapH(http.StripPrefix("/public",
 3. **Using wildcard `*` incorrectly** — `*path` captures including leading slash
 4. **No 404 handler** — missing routes return 404 by default but can be customized
 5. **Path params with same names in nested routes** — use unique names or `c.Params.ByName("id")`
+6. **Not using escaped path routing when URL encoding matters** — enable with `UseRouters()` in Gin v1.12+

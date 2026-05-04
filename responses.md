@@ -1,4 +1,4 @@
-# Responses — JSON, XML, Streaming
+# Responses — JSON, XML, Streaming, ProtoBuf
 
 ## JSON Response
 
@@ -76,6 +76,34 @@ import "gopkg.in/yaml.v3"
 c.YAML(200, gin.H{"name": "gin", "version": "1.10"})
 ```
 
+## ProtoBuf Response (Gin v1.12+)
+
+```go
+import "google.golang.org/protobuf/proto"
+
+// Define protobuf message (in .proto file, compiled to .pb.go)
+// message Response {
+//   bool success = 1;
+//   string message = 2;
+//   Data data = 3;
+// }
+
+func protobufHandler(c *gin.Context) {
+    // Negotiate ProtoBuf content type based on Accept header
+    // Supports: application/json, application/xml, application/yaml, application/protobuf
+    c.ProtoBuf(200, &Response{
+        Success: true,
+        Message: "hello",
+    })
+}
+
+// Gin v1.12 content negotiation supports:
+// - application/json (default)
+// - application/xml
+// - application/yaml
+// - application/protobuf (NEW)
+```
+
 ## HTML Response
 
 ```go
@@ -148,17 +176,22 @@ c.Redirect(302, r.GetRoute("posts").Path)
 
 ```go
 // Respond with format based on Accept header
+// Gin v1.12+ supports: json, xml, yaml, protobuf
 func respond(c *gin.Context) {
     content := gin.H{"message": "hello"}
-    
-    switch c.GetHeader("Accept") {
-    case "application/xml":
-        c.XML(200, content)
-    case "application/yaml":
-        c.YAML(200, content)
-    default:
-        c.JSON(200, content)
-    }
+    c.Negotiate(content) // uses Accept header to pick format
+}
+
+// Manual override
+switch c.GetHeader("Accept") {
+case "application/xml":
+    c.XML(200, content)
+case "application/yaml":
+    c.YAML(200, content)
+case "application/protobuf":
+    c.ProtoBuf(200, content)
+default:
+    c.JSON(200, content)
 }
 ```
 
@@ -201,3 +234,4 @@ func paginatedResponse(c *gin.Context, data interface{}, page, perPage, total in
 2. **Wrong content type for streaming** — set headers before streaming
 3. **Not handling context cancellation in streams** — check `c.Request.Context().Done()`
 4. **Using `gin.H{}` for everything** — struct types give you compile-time safety
+5. **Not using ProtoBuf for high-performance gRPC integration** — Gin v1.12+ supports it natively via content negotiation
