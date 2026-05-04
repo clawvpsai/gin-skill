@@ -2,9 +2,9 @@
 
 ## Active Go Versions
 
-- **Go 1.22** — Current stable (2024)
-- **Go 1.21** — Previous stable
-- **Go 1.20** — Still supported in some environments
+- **Go 1.24** — Current stable (released February 2025)
+- **Go 1.23** — Previous stable
+- **Go 1.22** — Still supported
 
 ## Version Selector Prompt
 
@@ -17,9 +17,29 @@ Then load the relevant version sections below.
 
 ---
 
-## Go 1.22 (Current — 2024)
+## Go 1.24 (Current — February 2025)
 
-### New in Go 1.22
+### New in Go 1.24
+
+- **Generic type aliases** — type aliases may now be parameterized
+  ```go
+  type List[T any] = []T  // now valid!
+  ```
+- **Improved `go test -cpuprofile`** profiling
+- **`math/rand/v2`** — new v2 API for random numbers
+- **Toolchain improvements** — better `go mod` handling
+- **Performance optimizations** — refined garbage collection
+
+### Gin-Specific (Gin v1.10+)
+
+- Use `gin.Context.Param()` — works with all Go versions
+- `gin.H{}` is just `map[string]interface{}` — no changes needed
+
+---
+
+## Go 1.23 (2024)
+
+### New in Go 1.23
 
 - **Range-over-func** — iterate over functions/generators
   ```go
@@ -32,13 +52,25 @@ Then load the relevant version sections below.
   }
   ```
 - **HTTP routing improvements** — `http.ServeMux` now supports patterns with variables
-- **Improved `go test -cpuprofile`** profiling
-- **`math/rand/v2`** — new v2 API for random numbers
+- **`iter.Seq`** — built-in iterator sequences
 
-### Gin-Specific (Gin v1.10+)
+### Migrating to Go 1.23
 
-- Use `gin.Context.Param()` — works with Go 1.22
-- `gin.H{}` is just `map[string]interface{}` — no changes needed
+```bash
+go mod edit -go=1.23
+go mod tidy
+go build ./...
+```
+
+---
+
+## Go 1.22 (2024)
+
+### New in Go 1.22
+
+- **HTTP routing pattern variables** — `http.ServeMux` supports `/path/{var}`
+- **`math/rand/v2`** — new v2 API
+- **`go test -cpuprofile`** profiling improvements
 
 ---
 
@@ -56,27 +88,6 @@ Then load the relevant version sections below.
 - **Built-in `min`/`max`** — `min(1, 2, 3)`, `max(a, b)`
 - **`clear()` function** — clears maps and slices
 - **Conditional `go get`** — `go get example.com/foo@latest` updates to latest
-
-### Migrating to Go 1.21
-
-```bash
-go mod edit -go=1.21
-go mod tidy
-go build ./...
-```
-
----
-
-## Go 1.20 (2023)
-
-### New in Go 1.20
-
-- **HTTP/2 push improvements**
-- **`errors.Join`** — combine multiple errors
-  ```go
-  err := errors.Join(err1, err2, err3)
-  ```
-- **`cmp.Or`** — return first non-zero value
 
 ---
 
@@ -97,7 +108,7 @@ go build ./...
 go mod init github.com/myorg/myapp
 
 # Add dependency
-go get github.com/gin-gonic/gin@v1.10.0
+go get github.com/gin-gonic/gin@v1.11.0
 
 # Tidy dependencies
 go mod tidy
@@ -114,12 +125,12 @@ go mod vendor
 ```go
 module github.com/myorg/myapp
 
-go 1.22
+go 1.24
 
 require (
-    github.com/gin-gonic/gin v1.10.0
+    github.com/gin-gonic/gin v1.11.0
     github.com/golang-jwt/jwt/v5 v5.2.0
-    golang.org/x/crypto v0.22.0
+    golang.org/x/crypto v0.31.0
 )
 
 require (
@@ -134,11 +145,11 @@ require (
 ```bash
 # Check Go version
 go version
-# go version go1.22.1 linux/amd64
+# go version go1.24.0 linux/amd64
 
 # Check Gin version
 go list -m github.com/gin-gonic/gin
-# github.com/gin-gonic/gin v1.10.0
+# github.com/gin-gonic/gin v1.11.0
 
 # Check all deps versions
 go list -m all
@@ -148,11 +159,11 @@ go list -m all
 
 ## Dependency Version Compatibility
 
-### Gin v1.10.x (Latest)
+### Gin v1.11.x (Latest)
 
 | Dependency | Min Version | Notes |
 |---|---|---|
-| Go | 1.21+ | |
+| Go | 1.21+ (1.24 recommended) | |
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | |
 | go-redis/redis/v9 | v9.x | |

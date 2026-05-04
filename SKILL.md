@@ -30,7 +30,7 @@ metadata:
 - **Check errors always** — `if err != nil { return err }` is not optional
 - **`gin.H{}` is just `map[string]interface{}`** — no magic, no hidden behavior
 - **Route order matters** — first match wins, put specific routes BEFORE generic ones
-- **Binding tags use `validate:""`** not `binding:""` for validator v10+
+- **Binding tags use `validate:""`** not `binding:""` for Gin v1.9+
 - **`c.Next()` in middleware** — call it to execute downstream handlers
 - **Abort early** with `c.AbortWithStatusJSON()` when auth fails
 - **Use `c.Copy()` if you need to access context after async work**
@@ -38,8 +38,8 @@ metadata:
 
 ## Go Version Defaults
 
-- **Go 1.21+** (module graph pruning, range-over-func, log/slog)
-- **Gin v1.10+** (current stable)
+- **Go 1.24** (current stable, generic type aliases)
+- **Gin v1.11** (latest — HTTP/3 support, optimized for Go 1.24)
 - **Go modules** — always use `go mod init` and `go.mod`
 - **nil pointer checks** — always check before dereferencing
 
