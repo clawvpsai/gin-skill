@@ -20,11 +20,11 @@ myapp/
 └── .env
 ```
 
-## Dockerfile
+## Dockerfile (Multi-stage, Go 1.26)
 
 ```dockerfile
 # Build stage
-FROM golang:1.22-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -35,11 +35,11 @@ RUN go mod download
 # Copy source
 COPY . .
 
-# Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
+# Build — disable CGO for static binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /server ./cmd/server
 
 # Runtime stage
-FROM alpine:3.19
+FROM alpine:3.21
 
 WORKDIR /app
 
@@ -124,6 +124,14 @@ services:
         condition: service_started
     volumes:
       - /var/log/myapp:/app/logs
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   db:
     image: postgres:16-alpine
@@ -328,3 +336,21 @@ ENV=production
 4. **No resource limits in Docker** — container can consume all memory
 5. **Not setting `GIN_MODE=release`** — debug mode leaks stack traces
 6. **No log rotation** — disk fills up from logs
+7. **No CPU/memory limits** — a single bad query can starve the entire service
+
+---
+
+## Updated from Research (2026-05)
+
+### Docker Improvements
+- **Alpine 3.21** is now preferred over 3.19 (security fixes, updated CA certs)
+- **`-ldflags="-w -s"`** — strips debug info, reduces binary size by ~15%
+- **Resource limits** in docker-compose `deploy:` section — prevents one service from consuming all host resources
+
+### Multi-stage Build Optimizations
+- `go mod download` before `COPY . .` — better layer caching (deps change less often than source)
+- `CGO_ENABLED=0` — produces fully static binary, no libc dependency
+
+### Sources
+- Go 1.26 container image: `golang:1.26-alpine`
+- Alpine 3.21 release notes

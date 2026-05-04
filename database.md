@@ -176,7 +176,7 @@ DB.Raw("SELECT name, COUNT(*) as count FROM users GROUP BY name").Scan(&result)
 DB.Exec("UPDATE users SET active = ? WHERE id = ?", true, 1)
 ```
 
-## Redis Client
+## Redis Client (go-redis v9)
 
 ```go
 import (
@@ -223,6 +223,28 @@ func getCachedUser(ctx context.Context, userID int) (*User, error) {
     }
     return &user, nil
 }
+
+// Pipeline for batch operations
+func batchCacheUsers(ctx context.Context, users []User) error {
+    pipe := redisClient.Pipeline()
+    for _, user := range users {
+        key := fmt.Sprintf("user:%d", user.ID)
+        data, _ := json.Marshal(user)
+        pipe.Set(ctx, key, data, 15*time.Minute)
+    }
+    _, err := pipe.Exec(ctx)
+    return err
+}
+
+// Distributed lock
+func acquireLock(ctx context.Context, key string, ttl time.Duration) (bool, error) {
+    ok, err := redisClient.SetNX(ctx, "lock:"+key, "1", ttl).Result()
+    return ok, err
+}
+
+func releaseLock(ctx context.Context, key string) error {
+    return redisClient.Del(ctx, "lock:"+key).Err()
+}
 ```
 
 ## Common Mistakes
@@ -233,3 +255,21 @@ func getCachedUser(ctx context.Context, userID int) (*User, error) {
 4. **Ignoring `err` from GORM operations** — always check errors
 5. **Using `*gorm.DB` not passed through context** — can't cancel long queries
 6. **Forgetting to close DB connection** — call `db.Close()` on shutdown
+7. **Not using pipelines for batch ops** — multiple round-trips to Redis instead of one
+
+---
+
+## Updated from Research (2026-05)
+
+### go-redis v9 Pipelines & Locks
+- **Pipeline** usage now recommended for batch Redis operations — reduces round trips significantly
+- **Distributed locking** patterns with `SetNX` for coordination across instances
+- Latest stable: **v9.19.0** (2026-04-28)
+
+### GORM v1.31 Updates
+- **GORM v1.31.1** (Nov 2025) — ensure compatibility with latest GORM
+- Transaction callback pattern is stable and preferred over manual session management
+
+### Sources
+- https://github.com/redis/go-redis/releases
+- https://github.com/go-gorm/gorm/releases

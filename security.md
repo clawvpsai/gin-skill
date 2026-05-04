@@ -11,12 +11,15 @@ func SecurityHeaders() gin.HandlerFunc {
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
         c.Header("Content-Security-Policy", "default-src 'self'")
         c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         c.Next()
     }
 }
 
 r.Use(SecurityHeaders())
 ```
+
+**Note:** `X-XSS-Protection` is deprecated in modern browsers; Content-Security-Policy is the proper replacement. Include it for legacy browser compatibility.
 
 ## Input Validation
 
@@ -153,6 +156,49 @@ func PerClientRateLimit(requestsPerSecond float64, burst int) gin.HandlerFunc {
 r.Use(PerClientRateLimit(10.0, 20)) // 10 req/s, burst 20
 ```
 
+### Redis-backed Distributed Rate Limiting
+
+```go
+// For multi-instance deployments, use Redis for rate limiting
+import "github.com/redis/go-redis/v9"
+
+func RedisRateLimit(rps float64, burst int) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        ctx := c.Request.Context()
+        key := "ratelimit:" + c.ClientIP()
+        
+        // Sliding window counter
+        now := time.Now().Unix()
+        windowKey := fmt.Sprintf("%s:%d", key, now)
+        
+        count, err := redisClient.Incr(ctx, windowKey).Result()
+        if err != nil {
+            c.Next() // fail open if Redis is down
+            return
+        }
+        
+        // Set expiry on first request in window
+        if count == 1 {
+            redisClient.Expire(ctx, windowKey, time.Second)
+        }
+        
+        // Allow burst + rps requests per second
+        limit := int64(float64(burst) + rps)
+        if count > limit {
+            c.Header("X-RateLimit-Limit", fmt.Sprintf("%d", int64(rps)))
+            c.Header("X-RateLimit-Remaining", "0")
+            c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+                "error": "rate limit exceeded",
+                "retry_after": "1",
+            })
+            return
+        }
+        
+        c.Next()
+    }
+}
+```
+
 ## Request Size Limiting
 
 ```go
@@ -204,6 +250,23 @@ func loadEnvVars() error {
 }
 ```
 
+## CSRF Protection
+
+```go
+// For browser-based applications, protect against CSRF
+import "github.com/gin-contrib/csrf"
+
+func CSRFSetup() gin.HandlerFunc {
+    return csrf.New(csrf.Options{
+        Secret:     os.Getenv("CSRF_SECRET"),
+        CookieName: "_csrf",
+        CookiePath: "/",
+        Secure:     getEnv("ENV", "dev") == "production",
+        SameSite:   http.SameSiteLaxMode,
+    })
+}
+```
+
 ## Common Mistakes
 
 1. **No security headers** — browsers won't protect against XSS/clickjacking
@@ -212,3 +275,25 @@ func loadEnvVars() error {
 4. **Request body size not limited** — memory exhaustion attack vector
 5. **Secrets in code** — environment variables only, never hardcode
 6. **No CORS lock-down** — `*` origins in production exposes API
+7. **Missing HSTS header** — without it, SSL stripping attacks are possible
+8. **No CSRF for browser apps** — state-changing APIs need CSRF protection
+
+---
+
+## Updated from Research (2026-05)
+
+### New Security Headers
+- **Strict-Transport-Security (HSTS)** — enforces HTTPS for all communications, prevents SSL stripping attacks. Add `; includeSubDomains` to cover subdomains.
+- **Permissions-Policy** — replaces older `X-Frame-Options` approach for controlling browser features
+
+### Redis-backed Distributed Rate Limiting
+- For horizontally scaled Gin apps (multiple instances), in-memory rate limiting doesn't work — all instances need to share state via Redis
+- Sliding window counter pattern using Redis `INCR` + `EXPIRE` is simple and effective
+
+### CSRF Protection
+- Stateless JWT-based APIs are generally not vulnerable to CSRF (no cookies), but browser-based apps with session cookies need CSRF tokens
+- `github.com/gin-contrib/csrf` provides Gin middleware integration
+
+### Sources
+- OWASP Security Headers: https://owasp.org/www-project-secure-headers/
+- HSTS Preload List: https://hstspreload.org/

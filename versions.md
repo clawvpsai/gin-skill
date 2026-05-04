@@ -2,9 +2,9 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (2026)
-- **Go 1.25** — Previous stable
-- **Go 1.24** — Still supported
+- **Go 1.26** — Current stable (go1.26.2, May 2026)
+- **Go 1.25** — Previous stable (go1.25.9)
+- **Go 1.24** — Still supported (minimum for Gin v1.12)
 
 ## Version Selector Prompt
 
@@ -25,25 +25,39 @@ Then load the relevant version sections below.
 - **Performance optimizations** — refined garbage collection
 - **`go mod tidy`** improvements
 - **Enhanced `go test`** — better test output
-
-### Gin-Specific (Gin v1.12+)
-
-- Use `gin.Context.Param()` — works with all Go versions
-- `gin.H{}` is just `map[string]interface{}` — no changes needed
+- **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
+- **Range over integers** — `for i := range n` now works (Go 1.23+)
+- **Improved `build` package** — better cross-compilation support
 
 ---
 
-## Go 1.25 (2025)
+## Go 1.26 (Current — May 2026)
+
+### New in Go 1.26
+
+- **Improved toolchain** — better error messages and diagnostics
+- **Performance optimizations** — refined garbage collection
+- **`go mod tidy`** improvements
+- **Enhanced `go test`** — better test output
+- **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
+- **Range over integers** — `for i := range n` now works (Go 1.23+)
+- **Improved `build` package** — better cross-compilation support
+- **Build cache improvements** — faster incremental builds
+
+---
+
+## Go 1.25 (Previous Stable)
 
 ### New in Go 1.25
 
 - **`go mod graph`** improvements
 - **Toolchain refinements**
 - **Performance improvements across standard library**
+- **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
 ---
 
-## Go 1.24 (February 2025)
+## Go 1.24 (February 2025 — Minimum for Gin v1.12)
 
 ### New in Go 1.24
 
@@ -54,6 +68,7 @@ Then load the relevant version sections below.
 - **Improved `go test -cpuprofile`** profiling
 - **`math/rand/v2`** — new v2 API for random numbers
 - **Toolchain improvements** — better `go mod` handling
+- **Minimum Go version for Gin v1.12** — all Gin v1.12+ projects must use Go 1.24+
 
 ---
 
@@ -73,6 +88,45 @@ Then load the relevant version sections below.
   ```
 - **`iter.Seq`** — built-in iterator sequences
 - **HTTP routing pattern variables** — `http.ServeMux` supports `/path/{var}`
+
+---
+
+## Gin v1.12.x (Current — February 2026)
+
+### What's New in Gin v1.12
+
+- **BSON Protocol Support** — render layer now supports BSON encoding
+  ```go
+  import "go.mongodb.org/mongo-driver/bson"
+  c.Data(200, "application/bson", bsonData)
+  ```
+- **New Context Methods:**
+  - `GetError()` / `GetErrorSlice()` — type-safe error retrieval from context
+  - `Delete(key)` — remove keys from context
+- **Flexible Binding** — URI and query binding now honor `encoding.UnmarshalText`
+- **Escaped Path Option** — `UseRouters()` enables escaped/raw request path routing
+  ```go
+  r := gin.New()
+  r.UseRouters() // use raw request path for routing
+  ```
+- **ProtoBuf Content Negotiation** — `c.ProtoBuf()` for gRPC-style responses
+  ```go
+  c.ProtoBuf(200, &Response{Success: true, Message: "ok"})
+  ```
+- **Colorized Latency in Logger** — easier to spot slow requests
+- **Flush Safety** — `Flush()` no longer panics if `http.ResponseWriter` doesn't implement `http.Flusher`
+- **Unix Socket Trust** — `X-Forwarded-For` always trusted over Unix sockets
+- **Router Tree Optimizations** — fewer allocations, faster path parsing
+
+### Gin v1.11 (HTTP/3 Support)
+
+- **HTTP/3 Support** — Gin now supports HTTP/3 via QUIC
+- **Form Improvements** — better form binding edge cases
+
+### Gin v1.10
+
+- Zero allocation router improvements
+- Better error messages
 
 ---
 
@@ -139,17 +193,19 @@ go list -m all
 
 | Dependency | Min Version | Notes |
 |---|---|---|
-| Go | 1.21+ (1.26 recommended) | |
+| Go | 1.25+ | **Minimum raised to 1.25 in v1.12** |
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
-| gorm.io/gorm | v1.25+ | |
-| go-redis/redis/v9 | v9.x | |
+| gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
+| go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
 | bcrypt | golang.org/x/crypto | |
+| mongo-driver | v2 | **BSON support upgraded to v2** |
 
 ### Common Compatibility Issues
 
 1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
 2. **Binding tags** — `validate:""` not `binding:""` for Gin v1.9+
 3. **context** — `c.Request.Context()` not `c.Content`
+4. **Go version too old** — Gin v1.12 requires Go 1.25+
 
 ---
 
@@ -161,3 +217,21 @@ Before working on any Go/Gin task:
 - [ ] Load version-specific rules above
 - [ ] Check if feature is version-specific
 - [ ] Apply version-specific patterns, not generic ones
+
+---
+
+## Updated from Research (2026-05)
+
+### Versions
+
+- **Gin v1.12.0** — released 2026-02-28, current latest
+- **go-redis v9.19.0** — released 2026-04-28, latest stable
+- **GORM v1.31.1** — released 2025-11-02, latest stable
+- **Go 1.26.2** — current stable (no Go 1.27 yet as of May 2026)
+- **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
+
+### Sources
+- https://github.com/gin-gonic/gin/releases
+- https://github.com/redis/go-redis/releases
+- https://github.com/go-gorm/gorm/releases
+- https://go.dev/dl/
