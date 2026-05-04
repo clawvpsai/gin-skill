@@ -15,7 +15,7 @@ metadata:
 | HTTP methods, JSON binding, validation | `handlers.md` | Building endpoints |
 | JSON, XML, YAML, streaming responses | `responses.md` | API response patterns |
 | JWT, session, bcrypt, auth middleware | `auth.md` | User auth & permissions |
-| MySQL, PostgreSQL, Redis, GORM | `database.md` | Data access |
+| MySQL, PostgreSQL, Redis, GORM, migrations | `database.md` + `migrations.md` | Data access |
 | Structured logging, middleware, recovery | `middleware.md` | Cross-cutting concerns |
 | Goroutines, sync.WaitGroup, context | `concurrency.md` | Parallel processing |
 | Context propagation, cancellation, values | `context.md` | Context usage |
