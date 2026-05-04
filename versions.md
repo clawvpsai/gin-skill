@@ -2,9 +2,9 @@
 
 ## Active Go Versions
 
-- **Go 1.24** — Current stable (released February 2025)
-- **Go 1.23** — Previous stable
-- **Go 1.22** — Still supported
+- **Go 1.26** — Current stable (2026)
+- **Go 1.25** — Previous stable
+- **Go 1.24** — Still supported
 
 ## Version Selector Prompt
 
@@ -17,7 +17,33 @@ Then load the relevant version sections below.
 
 ---
 
-## Go 1.24 (Current — February 2025)
+## Go 1.26 (Current — 2026)
+
+### New in Go 1.26
+
+- **Improved toolchain** — better error messages and diagnostics
+- **Performance optimizations** — refined garbage collection
+- **`go mod tidy`** improvements
+- **Enhanced `go test`** — better test output
+
+### Gin-Specific (Gin v1.12+)
+
+- Use `gin.Context.Param()` — works with all Go versions
+- `gin.H{}` is just `map[string]interface{}` — no changes needed
+
+---
+
+## Go 1.25 (2025)
+
+### New in Go 1.25
+
+- **`go mod graph`** improvements
+- **Toolchain refinements**
+- **Performance improvements across standard library**
+
+---
+
+## Go 1.24 (February 2025)
 
 ### New in Go 1.24
 
@@ -28,12 +54,6 @@ Then load the relevant version sections below.
 - **Improved `go test -cpuprofile`** profiling
 - **`math/rand/v2`** — new v2 API for random numbers
 - **Toolchain improvements** — better `go mod` handling
-- **Performance optimizations** — refined garbage collection
-
-### Gin-Specific (Gin v1.10+)
-
-- Use `gin.Context.Param()` — works with all Go versions
-- `gin.H{}` is just `map[string]interface{}` — no changes needed
 
 ---
 
@@ -51,43 +71,8 @@ Then load the relevant version sections below.
       fmt.Println(v)
   }
   ```
-- **HTTP routing improvements** — `http.ServeMux` now supports patterns with variables
 - **`iter.Seq`** — built-in iterator sequences
-
-### Migrating to Go 1.23
-
-```bash
-go mod edit -go=1.23
-go mod tidy
-go build ./...
-```
-
----
-
-## Go 1.22 (2024)
-
-### New in Go 1.22
-
 - **HTTP routing pattern variables** — `http.ServeMux` supports `/path/{var}`
-- **`math/rand/v2`** — new v2 API
-- **`go test -cpuprofile`** profiling improvements
-
----
-
-## Go 1.21 (2023)
-
-### New in Go 1.21
-
-- **`log/slog`** — structured logging built-in, replaces third-party loggers
-  ```go
-  import "log/slog"
-  
-  slog.Info("hello", "key", "value", "count", 42)
-  slog.Error("failed", "err", err)
-  ```
-- **Built-in `min`/`max`** — `min(1, 2, 3)`, `max(a, b)`
-- **`clear()` function** — clears maps and slices
-- **Conditional `go get`** — `go get example.com/foo@latest` updates to latest
 
 ---
 
@@ -107,17 +92,14 @@ go build ./...
 # Initialize module
 go mod init github.com/myorg/myapp
 
-# Add dependency
-go get github.com/gin-gonic/gin@v1.11.0
+# Add dependency (latest Gin)
+go get github.com/gin-gonic/gin@latest
 
 # Tidy dependencies
 go mod tidy
 
 # View dependency graph
 go mod graph
-
-# Vendor dependencies
-go mod vendor
 ```
 
 ### go.mod structure
@@ -125,18 +107,12 @@ go mod vendor
 ```go
 module github.com/myorg/myapp
 
-go 1.24
+go 1.26
 
 require (
-    github.com/gin-gonic/gin v1.11.0
-    github.com/golang-jwt/jwt/v5 v5.2.0
-    golang.org/x/crypto v0.31.0
-)
-
-require (
-    github.com/bytedance/sonic v1.11.0 // indirect
-    github.com/gabriel-vasile/mimetype v1.4.3 // indirect
-    // ...
+    github.com/gin-gonic/gin v1.12.0
+    github.com/golang-jwt/jwt/v5 v5.2.1
+    golang.org/x/crypto v0.33.0
 )
 ```
 
@@ -145,11 +121,11 @@ require (
 ```bash
 # Check Go version
 go version
-# go version go1.24.0 linux/amd64
+# go version go1.26.2 linux/amd64
 
 # Check Gin version
 go list -m github.com/gin-gonic/gin
-# github.com/gin-gonic/gin v1.11.0
+# github.com/gin-gonic/gin v1.12.x
 
 # Check all deps versions
 go list -m all
@@ -159,11 +135,11 @@ go list -m all
 
 ## Dependency Version Compatibility
 
-### Gin v1.11.x (Latest)
+### Gin v1.12.x (Latest)
 
 | Dependency | Min Version | Notes |
 |---|---|---|
-| Go | 1.21+ (1.24 recommended) | |
+| Go | 1.21+ (1.26 recommended) | |
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | |
 | go-redis/redis/v9 | v9.x | |
@@ -172,8 +148,8 @@ go list -m all
 ### Common Compatibility Issues
 
 1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
-2. **old Gin binding** — `binding:"required"` not `validate:""` on Gin v1.9+
-3. **context typo** — `c.Request.Context()` not `c.Content` (that doesn't exist)
+2. **Binding tags** — `validate:""` not `binding:""` for Gin v1.9+
+3. **context** — `c.Request.Context()` not `c.Content`
 
 ---
 
@@ -183,5 +159,5 @@ Before working on any Go/Gin task:
 - [ ] Identify Go version (`go version`)
 - [ ] Check Gin version (`go list -m github.com/gin-gonic/gin`)
 - [ ] Load version-specific rules above
-- [ ] Check if feature is version-specific (slog, range-over-func, etc.)
+- [ ] Check if feature is version-specific
 - [ ] Apply version-specific patterns, not generic ones

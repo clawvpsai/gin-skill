@@ -38,8 +38,8 @@ metadata:
 
 ## Go Version Defaults
 
-- **Go 1.24** (current stable, generic type aliases)
-- **Gin v1.11** (latest — HTTP/3 support, optimized for Go 1.24)
+- **Go 1.26** (current stable — 2026)
+- **Gin v1.12** (latest — HTTP/3 support, Protocol Buffers, BSON render)
 - **Go modules** — always use `go mod init` and `go.mod`
 - **nil pointer checks** — always check before dereferencing
 

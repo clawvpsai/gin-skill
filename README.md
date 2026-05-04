@@ -36,16 +36,16 @@ This skill provides comprehensive guidance for building robust APIs and web appl
 
 ## Version Support
 
-- **Go 1.22** (latest) — range-over-func, improved HTTP routing
-- **Go 1.21** — log/slog built-in structured logging
-- **Gin v1.10+** (stable)
+- **Go 1.26** (latest — 2026)
+- **Gin v1.12** (stable)
+- **Go 1.25, 1.24** — Previous versions still supported
 
 ## Auto-Updater
 
 This skill is auto-updated every 2 hours via a cron job that:
 1. Rotates through topic areas (routing, handlers, auth, etc.)
 2. Scans for gaps and deprecations in current content
-3. Performs web research on latest best practices
+3. Performs web research via Parallel AI Search API on latest best practices
 4. Commits improvements directly to this repository
 
 ## Contributing
