@@ -1,4 +1,4 @@
-# Testing — Unit Tests, httptest, Mocking
+# Testing — Unit Tests, Integration Tests, httptest, Mocking
 
 ## Test Setup
 
@@ -7,6 +7,7 @@ package handlers_test
 
 import (
     "bytes"
+    "context"
     "encoding/json"
     "net/http"
     "net/http/httptest"
@@ -192,6 +193,107 @@ func TestGetUser(t *testing.T) {
 }
 ```
 
+## Integration Tests (Test Database)
+
+```go
+func TestIntegration_CreateAndFetchUser(t *testing.T) {
+    if testing.Short() {
+        t.Skip("skipping integration test in short mode")
+    }
+    
+    // Use a separate test database
+    dsn := os.Getenv("TEST_DATABASE_URL")
+    if dsn == "" {
+        t.Skip("TEST_DATABASE_URL not set")
+    }
+    
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        t.Fatalf("failed to connect test db: %v", err)
+    }
+    
+    // Run migrations
+    migrateDB(db)
+    
+    // Create user via service
+    user, err := userService.Create(context.Background(), &CreateUserRequest{
+        Email:    "test@example.com",
+        Password: "password123",
+    })
+    assert.NoError(t, err)
+    
+    // Fetch and verify
+    fetched, err := userService.GetByID(context.Background(), user.ID)
+    assert.NoError(t, err)
+    assert.Equal(t, "test@example.com", fetched.Email)
+    
+    // Cleanup
+    db.Exec("DELETE FROM users WHERE id = ?", user.ID)
+}
+```
+
+## Subtests with Parallel Execution
+
+```go
+func TestUserHandlers(t *testing.T) {
+    r := gin.New()
+    r.POST("/users", createUser)
+    r.GET("/users/:id", getUser)
+    
+    tests := []struct {
+        name           string
+        method         string
+        path           string
+        body           string
+        wantStatus     int
+        setupToken     bool
+    }{
+        {
+            name:       "create valid user",
+            method:     "POST",
+            path:       "/users",
+            body:       `{"email":"test@example.com","password":"password123"}`,
+            wantStatus: http.StatusCreated,
+        },
+        {
+            name:       "create duplicate email",
+            method:     "POST",
+            path:       "/users",
+            body:       `{"email":"test@example.com","password":"password123"}`,
+            wantStatus: http.StatusConflict,
+        },
+        {
+            name:       "get nonexistent user",
+            method:     "GET",
+            path:       "/users/999999",
+            wantStatus: http.StatusNotFound,
+        },
+    }
+    
+    for _, tt := range tests {
+        tt := tt // capture range variable
+        t.Run(tt.name, func(t *testing.T) {
+            t.Parallel() // run subtests in parallel
+            
+            var body *bytes.Buffer
+            if tt.body != "" {
+                body = bytes.NewBufferString(tt.body)
+            } else {
+                body = bytes.NewBuffer(nil)
+            }
+            
+            req, _ := http.NewRequest(tt.method, tt.path, body)
+            req.Header.Set("Content-Type", "application/json")
+            
+            w := httptest.NewRecorder()
+            r.ServeHTTP(w, req)
+            
+            assert.Equal(t, tt.wantStatus, w.Code)
+        })
+    }
+}
+```
+
 ## Testify Assertions
 
 ```go
@@ -249,15 +351,28 @@ func BenchmarkGetPosts(b *testing.B) {
 4. **Using real HTTP client** — use `httptest.NewRecorder()` instead
 5. **Mocking the wrong interface** — match actual interface signature
 6. **Not asserting on all important fields** — check status, body, headers
+7. **Not running subtests in parallel** — `t.Run` with `t.Parallel()` for faster test suites
+8. **No integration test skip** — use `testing.Short()` to skip slow integration tests
+9. **Sharing state between tests** — each test should be independent, no shared `var db *gorm.DB`
 
+---
 
 ## Updated from Research (2026-05)
 
-- **Testing | Gin Web Framework** (https://gin-gonic.com/en/docs/testing/)
-  The net/http/httptest package is the preferred way for HTTP testing. Call gin.SetMode(gin.TestMode) before creating the router in your tests. This suppresses the debug-level route registration logs that Gin prints by default, keeping your test output clean. You can place this in TestMain so it applies to all tests in the package: ... Table-driven tests let you cover many input/output combinations without duplicating test logic. This pattern
+### Integration Tests Best Practices
+- Use `testing.Short()` to skip integration tests with `go test -short`
+- Keep integration tests in `_test.go` files with `_integration` suffix if needed
+- Test database should be isolated per test — use transactions that rollback or fresh DB per test suite
 
-- **Testing in Go Best Practices and Tips** (https://grid.gg/testing-in-go-best-practices-and-tips/)
-  Subtests called by the same testing function will, generally, run in series, and will run through all subtests even if an earlier subtest has failed. In the cases where one would prefer the tests to run in parallel there’s instead the ... t.Run is a good practice as it allows the testing framework to better utilize its available resources.
+### Table-Driven Tests with Subtests
+- Subtests called by the same testing function run in series by default
+- Use `t.Parallel()` inside `t.Run()` to parallelize subtests
+- Subtests continue even if earlier subtest fails — catch all failures in one run
 
-- **r/golang on Reddit: Best practice testing** (https://www.reddit.com/r/golang/comments/1dvecs4/best_practice_testing/)
-  21 votes, 56 comments. I&#x27;ve built an application in go. I&#x27;m now writing tests for it. To mock functions, it seems I need to refactor to use func
+### Mocking Functions (not interfaces)
+- For mocking individual functions, use interface wrappers or refactor to accept interfaces
+- `go-sqlmock` for SQL testing, `go-redismock` for Redis
+
+### Sources
+- https://gin-gonic.com/en/docs/testing/
+- https://grid.gg/testing-in-go-best-practices-and-tips/
