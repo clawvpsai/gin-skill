@@ -384,6 +384,133 @@ func OAuthCallback(c *gin.Context) {
 }
 ```
 
+## OAuth2 PKCE (RFC 7636) — Public Clients
+
+For mobile apps and SPAs where a client secret can't be kept confidential, use PKCE (Proof Key for Code Exchange).
+
+**Why PKCE?** In public clients (mobile, SPA), there's no way to keep a client secret confidential — it's always exposed in the app binary or JS bundle. PKCE adds a verifier-challenge step that prevents authorization code interception attacks.
+
+```go
+import (
+    "crypto/rand"
+    "crypto/sha256"
+    "encoding/base64"
+)
+
+// CodeVerifier is a cryptographically random string (43-128 chars)
+func GenerateCodeVerifier() (string, error) {
+    b := make([]byte, 32)
+    if _, err := rand.Read(b); err != nil {
+        return "", err
+    }
+    // Base64URL encoding without padding
+    return base64.RawURLEncoding.EncodeToString(b), nil
+}
+
+// CodeChallenge is S256(code_verifier)
+func GenerateCodeChallenge(verifier string) string {
+    h := sha256.Sum256([]byte(verifier))
+    return base64.RawURLEncoding.EncodeToString(h[:])
+}
+
+// Authorization URL with PKCE
+func BuildAuthURL(state, clientID, redirectURI, codeChallenge string) string {
+    v := url.Values{
+        "response_type":         {"code"},
+        "client_id":             {clientID},
+        "redirect_uri":          {redirectURI},
+        "scope":                 {"openid profile email"},
+        "state":                 {state},
+        "code_challenge":        {codeChallenge},
+        "code_challenge_method": {"S256"},
+    }
+    return "https://auth.example.com/authorize?" + v.Encode()
+}
+
+// Token exchange with verifier
+func ExchangeCodePKCE(ctx context.Context, code, verifier, clientID, redirectURI string) (*TokenResponse, error) {
+    params := url.Values{
+        "grant_type":    {"authorization_code"},
+        "code":          {code},
+        "redirect_uri":  {redirectURI},
+        "client_id":     {clientID},
+        "code_verifier": {verifier}, // Must match what was sent in auth URL
+    }
+    
+    req, _ := http.NewRequestWithContext(ctx, "POST", "https://auth.example.com/token", 
+        strings.NewReader(params.Encode()))
+    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+    
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+    
+    var tokens TokenResponse
+    if err := json.NewDecoder(resp.Body).Decode(&tokens); err != nil {
+        return nil, err
+    }
+    return &tokens, nil
+}
+
+// In Gin handler — initiate OAuth with PKCE
+func OAuth2Login(c *gin.Context) {
+    verifier, err := GenerateCodeVerifier()
+    if err != nil {
+        c.JSON(500, gin.H{"error": "failed to generate verifier"})
+        return
+    }
+    challenge := GenerateCodeChallenge(verifier)
+    
+    state := generateState() // random state parameter
+    
+    // Store verifier + state in session or short-lived cookie
+    c.SetCookie("pkce_verifier", verifier, 300, "/", "", false, true) // 5 min TTL
+    c.SetCookie("oauth_state", state, 300, "/", "", false, true)
+    
+    authURL := BuildAuthURL(state, os.Getenv("OAUTH_CLIENT_ID"), 
+        os.Getenv("OAUTH_REDIRECT_URI"), challenge)
+    
+    c.Redirect(302, authURL)
+}
+
+// OAuth2 callback — exchange code with verifier
+func OAuth2Callback(c *gin.Context) {
+    code := c.Query("code")
+    state := c.Query("state")
+    storedState, _ := c.Cookie("oauth_state")
+    
+    if state != storedState {
+        c.JSON(400, gin.H{"error": "state mismatch"})
+        return
+    }
+    
+    verifier, _ := c.Cookie("pkce_verifier")
+    if verifier == "" {
+        c.JSON(400, gin.H{"error": "pkce verifier missing"})
+        return
+    }
+    
+    tokens, err := ExchangeCodePKCE(c.Request.Context(), code, verifier,
+        os.Getenv("OAUTH_CLIENT_ID"), os.Getenv("OAUTH_REDIRECT_URI"))
+    if err != nil {
+        c.JSON(401, gin.H{"error": "token exchange failed"})
+        return
+    }
+    
+    // Use tokens.AccessToken to fetch user info, then create JWT session
+    c.JSON(200, gin.H{"access_token": tokens.AccessToken})
+}
+```
+
+**PKCE Flow Summary:**
+1. Client generates random `verifier`, computes `challenge = S256(verifier)`
+2. Redirect user to auth server with `code_challenge=challenge&code_challenge_method=S256`
+3. Auth server stores `code_challenge`, returns `code`
+4. Client calls `/token` with `code` + original `verifier`
+5. Server verifies `S256(verifier) == code_challenge` before issuing tokens
+
 ## Common Mistakes
 
 1. **JWT secret hardcoded** — always use environment variable
@@ -394,3 +521,25 @@ func OAuthCallback(c *gin.Context) {
 6. **API key in query string** — headers are more secure (query strings get logged)
 7. **No refresh token rotation** — short-lived access tokens need refresh flow
 8. **Not storing TokenType in claims** — can't distinguish access vs refresh tokens
+9. **OAuth2 on public clients without PKCE** — code interception vulnerability
+10. **Using `jwt/v4`** — deprecated, always use `jwt/v5`
+
+---
+
+## Updated from Research (2026-05)
+
+### OAuth2 PKCE (RFC 7636)
+- Required for mobile apps, SPAs, and any public client where client_secret can't be kept confidential
+- S256 (SHA-256) code challenge method is required — "plain" method is not secure
+- Verifier is stored in short-lived cookie (5 min TTL) during authorization redirect, then sent to token endpoint
+
+### JWT Best Practices
+- Always use `jwt/v5` (v4 is deprecated and has known vulnerabilities)
+- Short-lived access tokens (15 min) + refresh tokens (7 days) is the standard pattern
+- Include `token_type` in claims to distinguish access vs refresh tokens
+- Validate `iss` (issuer) and `aud` (audience) in production
+
+### Sources
+- RFC 7636 (PKCE): https://www.rfc-editor.org/rfc/rfc7636
+- jwt-go v5: https://github.com/golang-jwt/jwt
+- OAuth 2.0 Security Best Current Practice: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics

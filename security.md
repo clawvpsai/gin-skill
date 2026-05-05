@@ -21,6 +21,57 @@ r.Use(SecurityHeaders())
 
 **Note:** `X-XSS-Protection` is deprecated in modern browsers; Content-Security-Policy is the proper replacement. Include it for legacy browser compatibility.
 
+## Content-Security-Policy with Reporting
+
+```go
+func CSPWithReporting() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Report violations to /csp-report endpoint
+        c.Header("Content-Security-Policy", 
+            "default-src 'self'; report-uri /csp-report; style-src 'self' 'unsafe-inline'")
+        c.Next()
+    }
+}
+
+// CSP violation report handler
+func cspReportHandler(c *gin.Context) {
+    var report struct {
+        CSPReport struct {
+            DocumentURI  string `json:"document-uri"`
+            ViolatedDirective string `json:"violated-directive"`
+            OriginalPolicy string `json:"original-policy"`
+        } `json:"csp-report"`
+    }
+    
+    if err := c.ShouldBindJSON(&report); err != nil {
+        c.JSON(400, gin.H{"error": "invalid report"})
+        return
+    }
+    
+    // Log CSP violations for review
+    log.Printf("CSP violation: %s — %s", 
+        report.CSPReport.DocumentURI, 
+        report.CSPReport.ViolatedDirective)
+    
+    c.Status(204)
+}
+```
+
+## security.txt (RFC 9116)
+
+```go
+// /.well-known/security.txt endpoint
+func securityTxtHandler(c *gin.Context) {
+    c.Header("Content-Type", "text/plain; charset=utf-8")
+    c.String(200, `Contact: security@example.com
+Encryption: https://example.com/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://api.example.com/.well-known/security.txt
+Policy: https://example.com/security-policy.html
+`)
+}
+```
+
 ## Input Validation
 
 ```go
@@ -267,6 +318,81 @@ func CSRFSetup() gin.HandlerFunc {
 }
 ```
 
+## OAuth2 PKCE (Public Clients — Mobile Apps, SPAs)
+
+PKCE (Proof Key for Code Exchange) prevents authorization code interception attacks for public clients.
+
+```go
+import (
+    "crypto/rand"
+    "crypto/sha256"
+    "encoding/base64"
+    "encoding/json"
+)
+
+// Generate PKCE code verifier and challenge
+func GeneratePKCE() (verifier string, challenge string, err error) {
+    verifierBytes := make([]byte, 32)
+    if _, err := rand.Read(verifierBytes); err != nil {
+        return "", "", err
+    }
+    verifier = base64.RawURLEncoding.EncodeToString(verifierBytes)
+    
+    // SHA256 hash of verifier, base64url encoded (no padding)
+    hash := sha256.Sum256([]byte(verifier))
+    challenge = base64.RawURLEncoding.EncodeToString(hash[:])
+    
+    return verifier, challenge, nil
+}
+
+// OAuth2 authorization URL with PKCE
+func BuildAuthorizationURL(state string, pkceVerifier string) string {
+    // challenge is already generated: Base64(SHA256(verifier))
+    // Include in authorization request
+    // On your backend:
+    codeChallenge := generateCodeChallenge(pkceVerifier) // "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbzGZpVLQhM2E"
+    
+    return "https://auth.example.com/authorize?" +
+        "response_type=code" +
+        "&client_id=YOUR_CLIENT_ID" +
+        "&redirect_uri=https%3A%2F%2Fyourapp%2Fcallback" +
+        "&scope=openid%20profile%20email" +
+        "&state=" + state +
+        "&code_challenge=" + codeChallenge +
+        "&code_challenge_method=S256"
+}
+
+// Exchange authorization code with PKCE verifier
+func ExchangeCodeForTokens(ctx context.Context, code string, pkceVerifier string) (*TokenResponse, error) {
+    // Verify the code verifier matches the challenge
+    // Server stores code_challenge when issuing code, verifies S256(verifier) == code_challenge
+    
+    params := url.Values{
+        "grant_type":    {"authorization_code"},
+        "code":          {code},
+        "redirect_uri":  {"https://yourapp/callback"},
+        "client_id":     {"YOUR_CLIENT_ID"},
+        "code_verifier": {pkceVerifier}, // Must match original challenge
+    }
+    
+    req, _ := http.NewRequestWithContext(ctx, "POST", "https://auth.example.com/token", 
+        strings.NewReader(params.Encode()))
+    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+    
+    // ... execute request
+}
+
+func generateCodeChallenge(verifier string) string {
+    h := sha256.Sum256([]byte(verifier))
+    return base64.RawURLEncoding.EncodeToString(h[:])
+}
+```
+
+**When to use PKCE:**
+- Mobile apps (iOS, Android) — no client secret possible
+- SPAs (React, Vue) — client secret in frontend is not secret
+- Any OAuth2 flow where code could be intercepted
+
 ## Common Mistakes
 
 1. **No security headers** — browsers won't protect against XSS/clickjacking
@@ -277,6 +403,8 @@ func CSRFSetup() gin.HandlerFunc {
 6. **No CORS lock-down** — `*` origins in production exposes API
 7. **Missing HSTS header** — without it, SSL stripping attacks are possible
 8. **No CSRF for browser apps** — state-changing APIs need CSRF protection
+9. **OAuth2 without PKCE on public clients** — authorization code interception risk
+10. **No CSP reporting** — CSP violations go undetected
 
 ---
 
@@ -285,6 +413,12 @@ func CSRFSetup() gin.HandlerFunc {
 ### New Security Headers
 - **Strict-Transport-Security (HSTS)** — enforces HTTPS for all communications, prevents SSL stripping attacks. Add `; includeSubDomains` to cover subdomains.
 - **Permissions-Policy** — replaces older `X-Frame-Options` approach for controlling browser features
+- **security.txt (RFC 9116)** — standardized disclosure contact file at `/.well-known/security.txt`
+
+### OAuth2 PKCE (RFC 7636)
+- Required for public clients (mobile, SPAs) — no client secret can be kept secret in these environments
+- Code verifier + challenge exchange prevents auth code interception attacks
+- `code_challenge_method=S256` preferred over `plain`
 
 ### Redis-backed Distributed Rate Limiting
 - For horizontally scaled Gin apps (multiple instances), in-memory rate limiting doesn't work — all instances need to share state via Redis
@@ -297,3 +431,5 @@ func CSRFSetup() gin.HandlerFunc {
 ### Sources
 - OWASP Security Headers: https://owasp.org/www-project-secure-headers/
 - HSTS Preload List: https://hstspreload.org/
+- RFC 9116 (security.txt): https://www.rfc-editor.org/rfc/rfc9116
+- RFC 7636 (PKCE): https://www.rfc-editor.org/rfc/rfc7636
