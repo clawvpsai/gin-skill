@@ -1,27 +1,36 @@
-# Concurrency — Goroutines, WaitGroups, Context
+# Concurrency — Goroutines, WaitGroups, Context, Structured Concurrency
 
 ## Golden Rules
 
 **Never spawn a goroutine without a way to know when it's done.**
+**Treat concurrent work as first-class operations with explicit failure handling.**
 
 ## sync.WaitGroup
 
 ```go
 import "sync"
 
-func processItems(items []string) {
+func processItems(items []string) error {
     var wg sync.WaitGroup
+    var errs []error
     
     for _, item := range items {
         wg.Add(1)
         go func(i string) {
             defer wg.Done()
-            process(i)
+            if err := process(i); err != nil {
+                mu.Lock()
+                errs = append(errs, err)
+                mu.Unlock()
+            }
         }(item)
     }
     
-    wg.Wait() // blocks until all goroutines finish
+    wg.Wait()
+    return errors.Join(errs...)
 }
+
+var mu sync.Mutex // protects errs
 ```
 
 ## Context Propagation
@@ -72,7 +81,7 @@ func handler(c *gin.Context) {
 ## Worker Pool Pattern
 
 ```go
-func workerPool(jobs <-chan Job, results chan<- Result, numWorkers int) {
+func workerPool(jobs <-chan Job, results chan<- Result, numWorkers int) error {
     var wg sync.WaitGroup
     
     for i := 0; i < numWorkers; i++ {
@@ -88,6 +97,7 @@ func workerPool(jobs <-chan Job, results chan<- Result, numWorkers int) {
     
     wg.Wait()
     close(results)
+    return nil
 }
 
 func main() {
@@ -135,13 +145,38 @@ func fanOut(in <-chan int, workers int) <-chan int {
     return out
 }
 
-// Pipeline
-func pipeline(input <-chan int) <-chan string {
+// Pipeline with cancellation
+func pipeline(ctx context.Context, input <-chan int) (<-chan string, <-chan error) {
     out := make(chan string)
+    errCh := make(chan error, 1)
+    
     go func() {
         defer close(out)
         for n := range input {
-            out <- strconv.Itoa(n * 2)
+            select {
+            case <-ctx.Done():
+                errCh <- ctx.Err()
+                return
+            default:
+                out <- strconv.Itoa(n * 2)
+            }
+        }
+    }()
+    
+    return out, errCh
+}
+
+// Generator — convert a slice to a channel
+func generate(ctx context.Context, items []Item) <-chan Item {
+    out := make(chan Item)
+    go func() {
+        defer close(out)
+        for _, item := range items {
+            select {
+            case <-ctx.Done():
+                return
+            case out <- item:
+            }
         }
     }()
     return out
@@ -177,6 +212,12 @@ var count int64
 
 atomic.AddInt64(&count, 1)
 atomic.LoadInt64(&count)
+
+// Atomic for flags
+var flag int64
+
+func setFlag() { atomic.StoreInt64(&flag, 1) }
+func isSet() bool { return atomic.LoadInt64(&flag) == 1 }
 ```
 
 ## Once — Single Execution
@@ -193,9 +234,14 @@ func getInstance() *Service {
     })
     return instance
 }
+
+// Or sync.OnceValue (Go 1.21+)
+var getIngestClient = sync.OnceValue(func() *IngestClient {
+    return NewIngestClient()
+})
 ```
 
-## errgroup — Propagating Errors
+## errgroup — Propagating Errors with Context
 
 ```go
 import "golang.org/x/sync/errgroup"
@@ -266,6 +312,103 @@ func getUserDashboard(c *gin.Context) {
         "posts":         posts,
         "notifications": notifications,
     })
+}
+```
+
+## Structured Concurrency Patterns
+
+### Timeout per Task in Batch
+
+```go
+func batchWithTimeout(ctx context.Context, items []Item, perItemTimeout time.Duration) ([]Result, error) {
+    results := make([]Result, 0, len(items))
+    
+    for _, item := range items {
+        itemCtx, cancel := context.WithTimeout(ctx, perItemTimeout)
+        
+        result, err := processItem(itemCtx, item)
+        cancel() // always cancel to prevent context leak
+        
+        if err != nil {
+            log.Printf("item %v failed: %v", item.ID, err)
+            continue // don't fail entire batch for one item
+        }
+        results = append(results, result)
+    }
+    
+    return results, nil
+}
+```
+
+### Semaphore — Limit Concurrent Operations
+
+```go
+import "golang.org/x/sync/semaphore"
+
+func limitedFetch(ctx context.Context, items []Item, maxConcurrent int) error {
+    sem := semaphore.NewWeighted(int64(maxConcurrent))
+    
+    var wg sync.WaitGroup
+    for _, item := range items {
+        item := item // capture
+        wg.Add(1)
+        
+        // Acquire before spawning goroutine (limits concurrency)
+        if err := sem.Acquire(ctx, 1); err != nil {
+            wg.Done()
+            return ctx.Err()
+        }
+        
+        go func() {
+            defer wg.Done()
+            defer sem.Release(1)
+            
+            if err := processItem(ctx, item); err != nil {
+                log.Printf("item %v failed: %v", item.ID, err)
+            }
+        }()
+    }
+    
+    wg.Wait()
+    return nil
+}
+```
+
+### Context-Sensitive Fan-Out
+
+```go
+// Process items in parallel, but stop on first error
+func fanOutWithFailFast(ctx context.Context, items []Item, workers int) error {
+    ctx, cancel := context.WithCancelCause(ctx)
+    defer cancel()
+    
+    g, ctx := errgroup.WithContext(ctx)
+    
+    itemCh := make(chan Item, len(items))
+    for _, item := range items {
+        itemCh <- item
+    }
+    close(itemCh)
+    
+    for range workers {
+        g.Go(func() error {
+            for item := range itemCh {
+                select {
+                case <-ctx.Done():
+                    return ctx.Err()
+                default:
+                }
+                
+                if err := processItem(ctx, item); err != nil {
+                    cancel(err) // cancel all other workers
+                    return err
+                }
+            }
+            return nil
+        })
+    }
+    
+    return g.Wait()
 }
 ```
 
@@ -344,8 +487,9 @@ Go 1.26 introduces an experimental goroutine leak profiler that detects leaked g
 # Enable at build time
 GOEXPERIMENT=goroutineleakprofile go build -o myapp .
 
-# Or set at runtime (requires the build flag)
-# Then access via pprof: /debug/pprof/goroutine?debug=1
+# Run with the build, then access via pprof
+./myapp
+# curl http://localhost:6060/debug/pprof/goroutine?debug=1
 ```
 
 **Via Gin with `net/http/pprof`:**
@@ -355,6 +499,7 @@ import _ "net/http/pprof"
 func main() {
     r := gin.Default()
     go func() {
+        // pprof server on separate port
         http.ListenAndServe(":6060", nil)
     }()
     r.Run()
@@ -363,15 +508,34 @@ func main() {
 
 **Common leak patterns the profiler catches:**
 - Goroutines blocked on `channel send/receive` with no sender/receiver
-- Goroutines blocked on `sync.Mutex` or `sync.RWMutex`
+- Goroutines blocked on `sync.Mutex` or `sync.RWMutex`  
 - Goroutines in `time.Sleep` with no wakeup mechanism
 - Goroutines waiting on `syscall` with no response
 
 **Tip:** Combine with `pprof.Lookup("goroutine")` in production to dump live goroutine stacks on demand.
 
+**Leak detection in tests:**
+```go
+// Detect goroutine leaks in tests
+func TestNoGoroutineLeak(t *testing.T) {
+    before := runtime.NumGoroutine()
+    
+    // Run your concurrent code
+    doWork()
+    
+    // Wait for goroutines to settle
+    time.Sleep(100 * time.Millisecond)
+    
+    after := runtime.NumGoroutine()
+    if after > before {
+        t.Errorf("goroutine leak: before=%d, after=%d", before, after)
+    }
+}
+```
+
 ## Common Mistakes
 
-1. **Goroutine without WaitGroup** — memory leak, no way to know when done
+1. **Goroutine without WaitGroup or context** — memory leak, no way to know when done
 2. **Not checking context cancellation** — long-running goroutines waste CPU
 3. **Mutex contention** — too many locks in hot paths degrade performance
 4. **Closing channels twice** — panic, only close in sender (or use `defer close()` in sender goroutine)
@@ -379,21 +543,37 @@ func main() {
 6. **Not using `errgroup`** — errors from goroutines silently lost
 7. **Cloning slices with pre-allocated copy manually** — use `slices.Clone()` instead (Go 1.21+)
 8. **Manually copying maps in loops** — use `maps.Clone()` instead (Go 1.21+)
+9. **Not calling `cancel()` on derived contexts** — context leak, prevent GC of context resources
+10. **Using mutex for everything** — consider atomic operations for simple counters/flags
+11. **Spawning unlimited goroutines for unbounded work** — use semaphore or worker pool
+12. **Not handling errors in errgroup** — first error cancels context, but you must check `g.Wait()`
 
 ---
 
 ## Updated from Research (2026-05)
 
 ### Go 1.21+ slices/maps Packages
-- `slices.Clone()` and `maps.Clone()` are the idiomatic way to copy collections (safer, cleaner than manual loops)
+- `slices.Clone()` and `maps.Clone()` are the idiomatic way to copy collections
 - `slices.Filter`, `slices.IndexFunc`, `slices.Concat` reduce boilerplate in concurrent data processing
-- errgroup with Gin handlers is a clean pattern for parallel I/O (DB queries, external API calls)
+- `sync.OnceValue` (Go 1.21+) replaces manual `sync.Once` + initialization patterns
+
+### Structured Concurrency
+- Semaphore via `golang.org/x/sync/semaphore` limits concurrent goroutines for bounded resource usage
+- `context.WithCancelCause` (Go 1.21+) allows attaching error to cancellation — useful for fan-out patterns
+- Use `errors.Join` to collect multiple errors from parallel operations
 
 ### Go 1.26 Goroutine Leak Profiler
 - Enable with `GOEXPERIMENT=goroutineleakprofile` at build time
 - Pairs well with `net/http/pprof` for on-demand goroutine stack dumps in production
+- Add `time.Sleep` in tests to allow goroutines to settle before counting
+
+### errgroup Integration with Gin
+- errgroup's context cancellation integrates with Gin handler context — first failure cancels remaining parallel operations
+- Use `errgroup.WithContext` at the start of parallel DB/API calls to propagate errors cleanly
 
 ### Sources
 - https://pkg.go.dev/slices
 - https://pkg.go.dev/maps
 - https://go.dev/doc/go1.26
+- https://pkg.go.dev/golang.org/x/sync/errgroup
+- https://pkg.go.dev/golang.org/x/sync/semaphore
