@@ -152,8 +152,8 @@ go 1.26
 
 require (
     github.com/gin-gonic/gin v1.12.0
-    github.com/golang-jwt/jwt/v5 v5.2.1
-    golang.org/x/crypto v0.45.0
+    github.com/golang-jwt/jwt/v5 v5.3.1
+    golang.org/x/crypto v0.50.0
 )
 ```
 
@@ -184,7 +184,7 @@ go list -m all
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
 | go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
-| golang.org/x/crypto | v0.45.0+ | Updated in Gin v1.12 |
+| golang.org/x/crypto | v0.50.0+ | Updated in Gin v1.12 |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | quic-go | v0.57.1 | HTTP/3 support (Gin v1.11+) |
 
@@ -218,6 +218,8 @@ Before working on any Go/Gin task:
 - **GORM v1.31.1** — released 2025-11-02, latest stable
 - **Go 1.26.2** — current stable (no Go 1.27 yet as of May 2026)
 - **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
+- **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
+- **golang.org/x/crypto v0.50.0** — latest stable (Jan 2026)
 
 ### Sources
 - https://github.com/gin-gonic/gin/releases
