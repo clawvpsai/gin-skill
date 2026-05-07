@@ -124,8 +124,8 @@ import "log/slog"
 func handlerWithSlog(c *gin.Context) {
     logger := slog.Default()
     
-    // slog.Context returns a logger with ctx values attached
-    // (requires Go 1.21+ with slog.FromContext, slog.WithContext)
+    // Attach request-scoped values to the logger (not the context)
+    // Use logger.InfoContext(ctx, ...) to log with context for cancellation/tracing
     
     ctx := c.Request.Context()
     
