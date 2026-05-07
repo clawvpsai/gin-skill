@@ -186,7 +186,7 @@ go list -m all
 | go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
 | golang.org/x/crypto | v0.50.0+ | Updated in Gin v1.12 |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
-| quic-go | v0.57.1 | HTTP/3 support (Gin v1.11+) |
+| quic-go | v0.59.0 | HTTP/3 support (Jan 2026) (Gin v1.11+) |
 
 ### Common Compatibility Issues
 
@@ -220,6 +220,7 @@ Before working on any Go/Gin task:
 - **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.50.0** — latest stable (Jan 2026)
+- **quic-go v0.59.0** — latest stable (Jan 2026), HTTP/3 support (was v0.57.1)
 
 ### Sources
 - https://github.com/gin-gonic/gin/releases

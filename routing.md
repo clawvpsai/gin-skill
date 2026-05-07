@@ -149,12 +149,11 @@ r.GET("/files/*filepath", func(c *gin.Context) {
 
 ## HTTP/3 Support (Gin v1.11+)
 
-HTTP/3 support in Gin requires the `quic-go` library. Here's a practical setup:
+HTTP/3 support in Gin uses the `quic-go` library. Here's a practical setup:
 
 ```go
 import (
     "github.com/gin-gonic/gin"
-    "github.com/gin-gonic/gin/internal"
     "github.com/quic-go/quic-go/http3"
 )
 
