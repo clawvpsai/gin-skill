@@ -2,8 +2,8 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.2, May 2026)
-- **Go 1.25** — Previous stable (go1.25.9)
+- **Go 1.26** — Current stable (go1.26.3, May 2026)
+- **Go 1.25** — Previous stable (go1.25.10)
 - **Go 1.24** — Still supported (minimum for Gin v1.12)
 
 ## Version Selector Prompt
@@ -162,7 +162,7 @@ require (
 ```bash
 # Check Go version
 go version
-# go version go1.26.2 linux/amd64
+# go version go1.26.3 linux/amd64
 
 # Check Gin version
 go list -m github.com/gin-gonic/gin
@@ -209,14 +209,15 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05)
+## Updated from Research (2026-05-08)
 
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest
 - **go-redis v9.19.0** — released 2026-04-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
-- **Go 1.26.2** — current stable (no Go 1.27 yet as of May 2026)
+- **Go 1.26.3** — current stable (no Go 1.27 yet as of May 2026)
+- **Go 1.25.10** — previous stable
 - **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.50.0** — latest stable (Jan 2026)
