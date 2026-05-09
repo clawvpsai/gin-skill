@@ -330,6 +330,60 @@ func TestUserHandlers(t *testing.T) {
 }
 ```
 
+
+## testing/synctest — Deterministic Concurrent Testing (Go 1.25+)
+
+Go 1.25 introduced the stable `testing/synctest` package for deterministic testing of concurrent code. Previously required `GOEXPERIMENT=synctest` in Go 1.24.
+
+```go
+import "testing/synctest"
+
+// Before (non-deterministic, uses arbitrary sleeps):
+func TestGoroutineCleanup(t *testing.T) {
+    go func() { /* async work */ }()
+    time.Sleep(100 * time.Millisecond)  // arbitrary wait — flaky!
+}
+
+// After (deterministic — waits for all goroutines to complete):
+func TestGoroutineCleanup(t *testing.T) {
+    synctest.Test(func() {
+        go func() { /* async work */ }()
+        // test waits here until all goroutines spawned in this function complete
+    })
+    // After synctest.Test returns, the goroutine world is clean
+}
+```
+
+**Key functions:**
+- `synctest.Test(f func())` — runs `f()` in an isolated goroutine world. Returns when all goroutines spawned within `f` have completed. Any goroutine that fails to terminate causes the test to fail.
+- `synctest.Wait()` — called within `synctest.Test`, blocks until all goroutines spawned within that `synctest.Test` call have completed.
+
+**Why use it:**
+- Eliminates `time.Sleep()` in concurrent tests — no more arbitrary waits
+- Catches goroutine leaks in tests before they become production bugs
+- Complements the Go 1.26 goroutine leak profiler for production
+
+**In Gin context — testing middleware with async operations:**
+```go
+func TestAsyncMiddleware(t *testing.T) {
+    synctest.Test(func() {
+        r := gin.New()
+        r.Use(func(c *gin.Context) {
+            go func() {
+                time.Sleep(10 * time.Millisecond)
+                c.Set("done", true)
+            }()
+            c.Next()
+        })
+        
+        req, _ := http.NewRequest("GET", "/", nil)
+        w := httptest.NewRecorder()
+        r.ServeHTTP(w, req)
+    })
+    // All goroutines cleaned up by here
+}
+```
+
 ## Testify Assertions
 
 ```go

@@ -2,8 +2,8 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.3, May 2026)
-- **Go 1.25** — Previous stable (go1.25.10)
+- **Go 1.26** — Current stable (go1.26.3, released 07 May 2026)
+- **Go 1.25** — Previous stable (go1.25.10, released 07 May 2026)
 - **Go 1.24** — Still supported (minimum for Gin v1.12)
 
 ## Version Selector Prompt
@@ -17,30 +17,52 @@ Then load the relevant version sections below.
 
 ---
 
-## Go 1.26 (Current — 2026)
+## Go 1.26 (Current — Feb 2026)
 
 ### New in Go 1.26
 
-- **Improved toolchain** — better error messages and diagnostics
 - **Green Tea Garbage Collector** — enabled by default in Go 1.26. Previously experimental in Go 1.25. Redesigned marking and scanning for small objects with better locality and CPU scalability. Expected 10–40% reduction in GC overhead for GC-heavy programs.
-- **Experimental Goroutine Leak Profiler** — new `goroutineleak` profile type in `runtime/pprof`. Enable with `GOEXPERIMENT=goroutineleakprofile`. Also available at `/debug/pprof/goroutine` when enabled. Detects leaked goroutines in production.
-- **`go mod tidy`** improvements
-- **Enhanced `go test`** — better test output
+- **`go fix` overhaul** — completely rebuilt on the same analysis framework as `go vet`. Over 20 analyzers that automatically update code to newer language features and stdlib APIs. Run `go fix ./...` to modernize your codebase. Covers deprecated API migrations, internal packages, stdlib changes, and more.
+- **Expression-based `new()`** — the built-in `new()` function now accepts an optional initial value expression:
+  ```go
+  p := new(int)        // same as before
+  p := new(int, 42)    // new: initialize with expression
+  ```
+- **Self-referential generics** — type parameters can refer to themselves in their definition:
+  ```go
+  type Adder[T any] struct { sum T }
+  func (a *Adder[T]) Add(v T) { a.sum += v }  // references Adder[T]
+  ```
+- **Experimental Goroutine Leak Profiler** — new `goroutineleak` profile type in `runtime/pprof`. Enable with `GOEXPERIMENT=goroutineleakprofile` at build time. Detects leaked goroutines in production.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
-- **Range over integers** — `for i := range n` now works (Go 1.23+)
-- **Improved `build` package** — better cross-compilation support
+- **Improved toolchain** — better error messages and diagnostics
+
+**Release:** Go 1.26.3 released 07 May 2026
 
 ---
 
 
-## Go 1.25 (Previous Stable)
+## Go 1.25 (Previous Stable — Aug 2025)
 
 ### New in Go 1.25
 
-- **`go mod graph`** improvements
+- **Container-aware GOMAXPROCS** — Go runtime now automatically detects cgroup CPU limits on Linux. In container environments (Kubernetes, Docker), `GOMAXPROCS` now defaults to the container's CPU limit rather than the number of logical CPUs. Also periodically updates `GOMAXPROCS` if container limits change. Disable with `GODEBUG=containermaxprocs=0` if needed. This is a significant performance improvement for cloud-native Go services — no more CPU throttling due to CPU limits exceeding actual allocation.
+- **`testing/synctest` package** — new package for deterministic testing of concurrent code. Available since Go 1.24 under `GOEXPERIMENT=synctest`, now stable in Go 1.25. The `synctest.Test` function runs a test in an isolated goroutine world; `synctest.Wait` waits for all goroutines to finish. Use for testing concurrent code that would normally involve `time.Sleep` or arbitrary waits.
+  ```go
+  import "testing/synctest"
+
+  func TestConcurrent(t *testing.T) {
+      synctest.Test(func() {
+          // all goroutine activity completes before this returns
+          go func() { /* ... */ }()
+      })
+  }
+  ```
 - **Toolchain refinements**
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
+
+**Release:** Go 1.25.10 released 07 May 2026
 
 ---
 

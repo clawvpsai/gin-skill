@@ -216,6 +216,41 @@ func handleError(c *gin.Context, err error) {
 }
 ```
 
+
+## Gin v1.12+ Context Methods
+
+Gin v1.12 added new methods for type-safe error retrieval and context cleanup:
+
+```go
+// Store multiple errors in context (common in middleware validation)
+c.Set("errors", []error{err1, err2, err3})
+
+// Retrieve all errors as []error (type-safe)
+errors := c.GetErrorSlice("errors")
+for _, e := range errors {
+    log.Printf("error: %v", e)
+}
+
+// Get single error
+if err := c.GetError("errors"); err != nil {
+    log.Printf("first error: %v", err)
+}
+
+// Remove a key from context (Gin v1.12+)
+c.Set("temp_value", "foo")
+c.Delete("temp_value")  // removes the key
+_, exists := c.Get("temp_value")  // false
+```
+
+**Use cases for `GetError`/`GetErrorSlice`:**
+- Aggregate validation errors from middleware
+- Collect multiple errors in a pipeline before responding
+- Propagate errors through middleware chains without losing them
+
+**Use cases for `Delete`:**
+- Clean up temporary context values
+- Remove sensitive data from context before passing to background tasks
+
 ## Context for Background Jobs
 
 ```go
