@@ -175,7 +175,7 @@ go 1.26
 require (
     github.com/gin-gonic/gin v1.12.0
     github.com/golang-jwt/jwt/v5 v5.3.1
-    golang.org/x/crypto v0.50.0
+    golang.org/x/crypto v0.51.0
 )
 ```
 
@@ -206,9 +206,13 @@ go list -m all
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
 | go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
-| golang.org/x/crypto | v0.50.0+ | Updated in Gin v1.12 |
+| golang.org/x/crypto | v0.51.0+ | Latest stable; Gin main uses v0.49.0 |
+| golang.org/x/net | v0.52.0 | HTTP/2, TLS, DNS support |
+| golang.org/x/sys | v0.42.0 | System calls; comes with Go toolchain |
+| golang.org/x/text | v0.35.0 | Text encoding, Unicode |
+| golang.org/x/arch | v0.25.0 | CPU architecture support |
+| quic-go | v0.59.0 | HTTP/3 support (Gin v1.12+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
-| quic-go | v0.57.1 | HTTP/3 support (Gin v1.12, Feb 2026) |
 
 ### Common Compatibility Issues
 
@@ -231,7 +235,7 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-08)
+## Updated from Research (2026-05-09)
 
 ### Versions
 
@@ -242,11 +246,16 @@ Before working on any Go/Gin task:
 - **Go 1.25.10** — previous stable
 - **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
-- **golang.org/x/crypto v0.50.0** — latest stable (Jan 2026)
-- **quic-go v0.57.1** — HTTP/3 support (Gin v1.12, Feb 2026)
+- **golang.org/x/crypto v0.51.0** — latest stable (latest from golang.org/x)
+- **golang.org/x/net v0.52.0** — latest stable (HTTP/2, TLS, HTTP trailers)
+- **golang.org/x/sys v0.42.0** — comes with Go 1.26 toolchain
+- **golang.org/x/text v0.35.0** — latest stable
+- **golang.org/x/arch v0.25.0** — latest stable
+- **quic-go v0.59.0** — HTTP/3 support (Gin v1.12+), updated from v0.57.1
 
 ### Sources
 - https://github.com/gin-gonic/gin/releases
 - https://github.com/redis/go-redis/releases
 - https://github.com/go-gorm/gorm/releases
+- https://github.com/quic-go/quic-go/releases
 - https://go.dev/dl/
