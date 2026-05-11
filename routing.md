@@ -25,7 +25,7 @@ func main() {
 // Gin v1.12+ — use raw/escaped request path for routing
 // Useful when dealing with URLs with encoded characters
 r := gin.New()
-r.UseRouters() // enable escaped path routing
+r.UseEscapedPath = true // use url.EscapedPath() for routing
 ```
 
 ## Route Methods
@@ -192,6 +192,6 @@ func runHTTP3(r *gin.Engine, addr string) error {
 3. **Using wildcard `*` incorrectly** — `*path` captures including leading slash
 4. **No 404 handler** — missing routes return 404 by default but can be customized
 5. **Path params with same names in nested routes** — use unique names or `c.Params.ByName("id")`
-6. **Not using escaped path routing when URL encoding matters** — enable with `UseRouters()` in Gin v1.12+
+6. **Not using escaped path routing when URL encoding matters** — set `r.UseEscapedPath = true` on the engine in Gin v1.12+
 7. **Using `c.QueryInt()`** — doesn't exist in Gin, use `strconv.Atoi(c.Query("page"))` instead
 8. **Static file setup without `net/http` import** — `http.ServeFile` needs the import

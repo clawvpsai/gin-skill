@@ -113,10 +113,10 @@ Then load the relevant version sections below.
   - `GetError()` / `GetErrorSlice()` — type-safe error retrieval from context
   - `Delete(key)` — remove keys from context
 - **Flexible Binding** — URI and query binding now honor `encoding.UnmarshalText`
-- **Escaped Path Option** — `UseRouters()` enables escaped/raw request path routing
+- **Escaped Path Option** — `UseEscapedPath = true` on Engine enables escaped path routing (uses url.EscapedPath)
   ```go
   r := gin.New()
-  r.UseRouters() // use raw request path for routing
+  r.UseEscapedPath = true // use url.EscapedPath() for routing
   ```
 - **ProtoBuf Content Negotiation** — `c.ProtoBuf()` for gRPC-style responses
   ```go
