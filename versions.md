@@ -211,7 +211,7 @@ go list -m all
 | golang.org/x/sys | v0.42.0 | System calls; comes with Go toolchain |
 | golang.org/x/text | v0.35.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.25.0 | CPU architecture support |
-| quic-go | v0.59.0 | HTTP/3 support (Gin v1.12+) |
+| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 
 ### Common Compatibility Issues
@@ -235,7 +235,7 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-09)
+## Updated from Research (2026-05-12)
 
 ### Versions
 
@@ -251,7 +251,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/sys v0.42.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.35.0** — latest stable
 - **golang.org/x/arch v0.25.0** — latest stable
-- **quic-go v0.59.0** — HTTP/3 support (Gin v1.12+), updated from v0.57.1
+- **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+), updated from v0.57.1
 
 ### Sources
 - https://github.com/gin-gonic/gin/releases
