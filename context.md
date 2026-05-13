@@ -34,7 +34,7 @@ func getUser(c *gin.Context) {
 | Method | Use When |
 |---|---|
 | `context.Background()` | Entry point, tests, no request |
-| `context.TODO()` |暂时未确定传递什么 context |
+| `context.TODO()` | Placeholder when context type is not yet known |
 | `context.WithCancel()` | Cancel on another goroutine |
 | `context.WithTimeout()` | HTTP client with timeout, DB queries |
 | `context.WithValue()` | Request-scoped values (request ID, user) |
