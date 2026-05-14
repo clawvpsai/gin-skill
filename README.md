@@ -72,7 +72,7 @@ go list -m github.com/gin-gonic/gin
 | **Go 1.26** | ✅ Latest (2026) | Improved toolchain, slices/maps packages |
 | Go 1.25 | Previous stable | Toolchain refinements |
 | Go 1.24 | Minimum for Gin v1.12 | Generic type aliases, math/rand/v2 |
-| **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseRouters() |
+| **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseEscapedPath option
 
 ---
 
