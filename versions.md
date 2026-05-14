@@ -208,9 +208,9 @@ go list -m all
 | go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
 | golang.org/x/crypto | v0.51.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.54.0 | HTTP/2, TLS, DNS, HTTP trailers |
-| golang.org/x/sys | v0.42.0 | System calls; comes with Go 1.26 toolchain |
-| golang.org/x/text | v0.35.0 | Text encoding, Unicode |
-| golang.org/x/arch | v0.25.0 | CPU architecture support |
+| golang.org/x/sys | v0.44.0 | System calls; comes with Go 1.26 toolchain |
+| golang.org/x/text | v0.37.0 | Text encoding, Unicode |
+| golang.org/x/arch | v0.27.0 | CPU architecture support |
 | quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 
@@ -235,7 +235,7 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-13)
+## Updated from Research (2026-05-14)
 
 ### Versions
 
@@ -248,9 +248,9 @@ Before working on any Go/Gin task:
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.51.0** — latest stable
 - **golang.org/x/net v0.54.0** — latest stable (HTTP/2, TLS, HTTP trailers, updated from v0.52.0)
-- **golang.org/x/sys v0.42.0** — comes with Go 1.26 toolchain
-- **golang.org/x/text v0.35.0** — latest stable
-- **golang.org/x/arch v0.25.0** — latest stable
+- **golang.org/x/sys v0.44.0** — comes with Go 1.26 toolchain
+- **golang.org/x/text v0.37.0** — latest stable
+- **golang.org/x/arch v0.27.0** — latest stable
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+)
 
 ### Sources
