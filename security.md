@@ -7,11 +7,10 @@ func SecurityHeaders() gin.HandlerFunc {
     return func(c *gin.Context) {
         c.Header("X-Content-Type-Options", "nosniff")
         c.Header("X-Frame-Options", "DENY")
-        c.Header("X-XSS-Protection", "1; mode=block")
         c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
         c.Header("Content-Security-Policy", "default-src 'self'")
         c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-        c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
         c.Next()
     }
 }
@@ -19,43 +18,91 @@ func SecurityHeaders() gin.HandlerFunc {
 r.Use(SecurityHeaders())
 ```
 
-**Note:** `X-XSS-Protection` is deprecated in modern browsers; Content-Security-Policy is the proper replacement. Include it for legacy browser compatibility.
+**Note:** `X-XSS-Protection` is removed from modern browsers — do not include it. CSP is the proper XSS protection. Also added `preload` to HSTS for HSTS preload list submission.
 
-## Content-Security-Policy with Reporting
+## Cross-Origin Isolation (COOP/COEP)
+
+Required when you need `SharedArrayBuffer` (e.g., WebAssembly threads, high-resolution timers):
+
+```go
+func CrossOriginIsolation() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // COEP: Require embedded resources to grant explicit permission
+        // Enables cross-origin isolation — needed for SharedArrayBuffer, performance.measureUserAgentSpecificMemory()
+        c.Header("Cross-Origin-Embedder-Policy", "require-corp")
+        // COOP: Control how cross-origin windows interact with your window
+        c.Header("Cross-Origin-Opener-Policy", "same-origin")
+        c.Next()
+    }
+}
+```
+
+**When to use COOP/COEP:**
+- SharedArrayBuffer (WASM threads, high-res `performance.now()`)
+- `performance.measureUserAgentSpecificMemory()`
+- `navigator.storage.estimate()` with detailed info
+
+**When NOT to use** — breaks embedding of third-party content that doesn't allow being framed:
+- Third-party widgets (YouTube, Twitter embeds, etc.)
+- OAuth popups to cross-origin identity providers
+- `Cross-Origin-Opener-Policy: same-origin` blocks all cross-origin window interactions
+
+**Tip:** Test with `self.crossOriginIsolated` in browser console — returns `true` when both headers are set correctly.
+
+## Content-Security-Policy with Reporting (Modern Reporting API)
+
+`report-uri` is deprecated — use `report-to` with the [Reporting API](https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API) instead:
 
 ```go
 func CSPWithReporting() gin.HandlerFunc {
     return func(c *gin.Context) {
-        // Report violations to /csp-report endpoint
-        c.Header("Content-Security-Policy", 
-            "default-src 'self'; report-uri /csp-report; style-src 'self' 'unsafe-inline'")
+        // 1. Register the reporting endpoint via Report-To header
+        c.Header("Report-To", `{"group":"csp-endpoint","max_age":86400,"endpoints":[{"url":"/csp-report"}]}`)
+        // 2. Use report-to in CSP (not the deprecated report-uri)
+        c.Header("Content-Security-Policy",
+            "default-src 'self'; report-to csp-endpoint; style-src 'self' 'unsafe-inline'")
         c.Next()
     }
 }
 
-// CSP violation report handler
+// Modern CSP violation handler — uses the Reporting API format
 func cspReportHandler(c *gin.Context) {
-    var report struct {
-        CSPReport struct {
-            DocumentURI  string `json:"document-uri"`
-            ViolatedDirective string `json:"violated-directive"`
-            OriginalPolicy string `json:"original-policy"`
-        } `json:"csp-report"`
+    var reports []struct {
+        Type        string `json:"type"`
+        URL         string `json:"url"`
+        Age         int    `json:"age"`
+        Status      int    `json:"status"`
+        Body        struct {
+            Directive string `json:"directive"`
+            Policy    string `json:"policy"`
+            SourceFile string `json:"sourceFile"`
+            LineNumber int    `json:"lineNumber"`
+            ColumnNumber int `json:"columnNumber"`
+        } `json:"body"`
     }
-    
-    if err := c.ShouldBindJSON(&report); err != nil {
+
+    // The Reporting API sends reports as JSON array, not the old csp-report wrapper
+    if err := c.ShouldBindJSON(&reports); err != nil {
         c.JSON(400, gin.H{"error": "invalid report"})
         return
     }
-    
-    // Log CSP violations for review
-    log.Printf("CSP violation: %s — %s", 
-        report.CSPReport.DocumentURI, 
-        report.CSPReport.ViolatedDirective)
-    
+
+    for _, report := range reports {
+        log.Printf("CSP violation [%s]: %s — %s (line %d)",
+            report.Type,
+            report.URL,
+            report.Body.Directive,
+            report.Body.LineNumber)
+    }
+
     c.Status(204)
 }
 ```
+
+**Key differences from deprecated `report-uri`:**
+- `report-to` uses the modern [Reporting API](https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API) — reports are sent as `Content-Type: application/reports+json`
+- Reports include `type`, `url`, `age`, `status`, and `body` — richer information than the old `csp-report` wrapper
+- `max_age` controls how long the endpoint is remembered by the browser
 
 ## security.txt (RFC 9116)
 
@@ -147,7 +194,7 @@ func renderUserContent(c *gin.Context, content string) {
 
 // Or use template functions in HTML responses
 c.HTML(200, "user_post.html", gin.H{
-    "content": template.HTML(user.Content), // only after sanitization
+    "content": template.HTMLEscape(template.HTML(user.Content)), // only after sanitization
 })
 ```
 
@@ -405,15 +452,24 @@ func generateCodeChallenge(verifier string) string {
 8. **No CSRF for browser apps** — state-changing APIs need CSRF protection
 9. **OAuth2 without PKCE on public clients** — authorization code interception risk
 10. **No CSP reporting** — CSP violations go undetected
+11. **Using deprecated `report-uri` in CSP** — switch to `report-to` (Reporting API)
+12. **Missing COOP/COEP when SharedArrayBuffer is needed** — breaks WASM threading
 
 ---
 
 ## Updated from Research (2026-05)
 
-### New Security Headers
-- **Strict-Transport-Security (HSTS)** — enforces HTTPS for all communications, prevents SSL stripping attacks. Add `; includeSubDomains` to cover subdomains.
-- **Permissions-Policy** — replaces older `X-Frame-Options` approach for controlling browser features
-- **security.txt (RFC 9116)** — standardized disclosure contact file at `/.well-known/security.txt`
+### CSP Reporting API (Modern — replaces deprecated report-uri)
+- `report-uri` directive is deprecated in favor of `report-to` and the [Reporting API](https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API)
+- Reports are sent as `Content-Type: application/reports+json` (array format), not `application/json` (single `csp-report` wrapper)
+- `Report-To` header registers the endpoint with `max_age`, `group`, and `endpoints` array
+- Use `max_age` to control how long the browser remembers the endpoint
+
+### COOP/COEP (Cross-Origin Isolation)
+- `Cross-Origin-Opener-Policy: same-origin` — your window can only communicate with windows from the same origin
+- `Cross-Origin-Embedder-Policy: require-corp` — embedded resources must explicitly grant permission via `Cross-Origin-Resource-Policy`
+- Required for `SharedArrayBuffer` (WASM threads), `performance.measureUserAgentSpecificMemory()`, detailed `navigator.storage.estimate()`
+- Check `self.crossOriginIsolated` in browser console — `true` means both headers are active
 
 ### OAuth2 PKCE (RFC 7636)
 - Required for public clients (mobile, SPAs) — no client secret can be kept secret in these environments
@@ -433,3 +489,5 @@ func generateCodeChallenge(verifier string) string {
 - HSTS Preload List: https://hstspreload.org/
 - RFC 9116 (security.txt): https://www.rfc-editor.org/rfc/rfc9116
 - RFC 7636 (PKCE): https://www.rfc-editor.org/rfc/rfc7636
+- MDN Reporting API: https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API
+- COOP/COEP: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
