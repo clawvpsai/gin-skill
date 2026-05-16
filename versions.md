@@ -158,6 +158,9 @@ go mod init github.com/myorg/myapp
 # Add dependency (latest Gin)
 go get github.com/gin-gonic/gin@latest
 
+# Add golang.org/x/sync for errgroup/semaphore (used in concurrency patterns)
+go get golang.org/x/sync@latest
+
 # Tidy dependencies
 go mod tidy
 
@@ -176,6 +179,7 @@ require (
     github.com/gin-gonic/gin v1.12.0
     github.com/golang-jwt/jwt/v5 v5.3.1
     golang.org/x/crypto v0.51.0
+    golang.org/x/sync v0.20.0
 )
 ```
 
@@ -211,6 +215,7 @@ go list -m all
 | golang.org/x/sys | v0.44.0 | System calls; comes with Go 1.26 toolchain |
 | golang.org/x/text | v0.37.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.27.0 | CPU architecture support |
+| **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
 | quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 
@@ -235,7 +240,7 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-14)
+## Updated from Research (2026-05-16)
 
 ### Versions
 
@@ -251,6 +256,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/sys v0.44.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.37.0** — latest stable
 - **golang.org/x/arch v0.27.0** — latest stable
+- **golang.org/x/sync v0.20.0** — **NEWLY ADDED** (errgroup, semaphore — used in concurrency.md patterns)
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+)
 
 ### Sources
