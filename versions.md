@@ -41,6 +41,15 @@ Then load the relevant version sections below.
 
 ---
 
+## Go 1.27 (In Development — Expected Aug 2026)
+
+The Go 1.27 development tree is **open** as of Jan 2026. No final release notes are published yet. Monitor:
+- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes published at release time
+- [golang/go#76474](https://github.com/golang/go/issues/76474) — tracking issue for tree reopening
+
+**For agents:** If tasked with Go 1.27 work, verify features at the links above before applying version-specific rules. No version-specific patterns to apply yet.
+
+---
 
 ## Go 1.25 (Previous Stable — Aug 2025)
 
@@ -243,6 +252,13 @@ Before working on any Go/Gin task:
 ---
 
 ## Updated from Research (2026-05-21)
+
+### Go 1.27 Development Status
+- Go 1.27 tree is open as of Jan 2026 ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Expected release: **August 2026** (6 months after Go 1.26)
+- No final features documented yet — check [go.dev/doc/go1.27](https://go.dev/doc/go1.27) at release time
+- Gin v1.13 is not yet released — v1.12.0 (Feb 2026) remains current
+- No other significant version bumps since last update
 
 ### Versions
 

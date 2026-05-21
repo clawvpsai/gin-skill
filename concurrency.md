@@ -457,37 +457,48 @@ func findUser(users []User, id uint) *User {
     return &users[idx]
 }
 
-// Batch process with worker pool using slices
+// Batch process with worker pool — results collected in batches, joined with slices.Concat
 func processBatches(items []Item, workers int) []Result {
     jobs := make(chan Item, len(items))
-    results := make(chan Result, len(items))
+    batchSize := 50
 
     for _, item := range items {
         jobs <- item
     }
     close(jobs)
 
+    // Workers collect results into batches — each batch sent as a []Result
+    batches := make(chan []Result, workers)
     var wg sync.WaitGroup
+
     for range workers {
         wg.Add(1)
         go func() {
             defer wg.Done()
+            var batch []Result
             for job := range jobs {
-                results <- process(job)
+                batch = append(batch, process(job))
+                if len(batch) >= batchSize {
+                    batches <- batch
+                    batch = nil // reset — avoid keeping reference to processed items
+                }
+            }
+            if len(batch) > 0 {
+                batches <- batch
             }
         }()
     }
 
     wg.Wait()
-    close(results)
+    close(batches)
 
-    // Collect results — slices.Concat for joining result batches
-    var allResults []Result
-    for r := range results {
-        allResults = append(allResults, r)
+    // Collect all batches, then slices.Concat for a single allocation-free join
+    var allBatches [][]Result
+    for b := range batches {
+        allBatches = append(allBatches, b)
     }
 
-    return allResults
+    return slices.Concat(allBatches...)
 }
 ```
 
@@ -684,6 +695,7 @@ func callDownstreamService(ctx context.Context, url string) ([]byte, error) {
 ### Go 1.21+ slices/maps Packages
 - `slices.Clone()` and `maps.Clone()` are the idiomatic way to copy collections
 - `slices.Filter`, `slices.IndexFunc`, `slices.Concat` reduce boilerplate in concurrent data processing
+- `slices.Concat(slices...)` performs a **single allocation** to join multiple slices — prefer over repeated `append` loops in batch/worker-pool patterns where results are collected in batches
 - `sync.OnceValue` (Go 1.21+) replaces manual `sync.Once` + initialization patterns
 
 ### context.WithCancelCause (Go 1.21+)

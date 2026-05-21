@@ -165,6 +165,67 @@ func fanOut(c *gin.Context) {
         log.Printf("failed: %v", context.Cause(ctx))
     }
 }
+
+## context.AfterFunc — Schedule Work on Context Cancellation (Go 1.21+)
+
+`context.AfterFunc` schedules a function to run when a context is cancelled — without creating a new goroutine yourself:
+
+```go
+import "context"
+
+// Schedule cleanup to run when request context is cancelled
+func withCleanup(ctx context.Context, resource *Resource) {
+    ctx, cancel := context.WithCancelCause(ctx)
+    defer cancel(context.Cause(ctx)) // propagate original cause on return
+
+    done := context.AfterFunc(ctx, func() {
+        // Runs exactly once — either on ctx cancellation OR when WithCancelCause returns
+        resource.Close()
+        log.Printf("resource cleaned up: %v", context.Cause(ctx))
+    })
+
+    // If AfterFunc already fired (ctx cancelled before this line), done is false
+    // If AfterFunc scheduled the function, done is true — don't call the cleanup again
+    if !done() {
+        // ctx was already cancelled before AfterFunc was called — cleanup already queued
+        return
+    }
+
+    // Normal operation: ctx is still active, AfterFunc is registered
+    // do work...
+}
+
+// Better pattern: always derive from the request context in Gin handlers
+func handler(c *gin.Context) {
+    reqCtx := c.Request.Context()
+
+    // Schedule cleanup — runs when client disconnects or handler times out
+    var resource Resource // imagine this holds a DB tx, file handle, etc.
+    done := context.AfterFunc(reqCtx, func() {
+        resource.Release()
+    })
+    defer func() {
+        if done() {
+            // ctx still active — cancel to trigger the AfterFunc
+            // Use cancelCause to attach an error to the cancellation
+        }
+    }()
+
+    // ... handler work ...
+}
+```
+
+**Why use `AfterFunc` over a manual goroutine:**
+- No goroutine leak risk — the function runs exactly once, guaranteed
+- No `sync.Once` needed — the function is de-duplicated automatically
+- Works correctly with context cancellation AND `defer cancel()` on normal return
+- Useful for cleanup: closing DB transactions, releasing file handles, cancelling background work
+
+**Key behavior:**
+- Returns a `func() bool` — call it to check if the function was already scheduled to run
+- If `done()` returns `false`, ctx was already cancelled before `AfterFunc` was called — the function already ran or will run shortly
+- If `done()` returns `true`, the function is registered and will run when ctx is cancelled
+
 ```
 
 ## Context with Database Operations
@@ -417,6 +478,13 @@ func callService(ctx context.Context, url string) error {
 ---
 
 ## Updated from Research (2026-05)
+
+### context.AfterFunc (Go 1.21+)
+- `context.AfterFunc(ctx, fn)` schedules `fn` to run exactly once when `ctx` is cancelled
+- Returns `func() bool` — call it to check if the function was already scheduled
+- No goroutine leak risk — the function runs exactly once, de-duplicated automatically
+- Ideal for cleanup: closing DB transactions, releasing file handles, cancelling background work
+- Prefer over manual goroutine + `sync.Once` patterns
 
 ### Gin Context vs Go Context
 - `*gin.Context` is request-scoped and tied to the HTTP request lifecycle
