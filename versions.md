@@ -216,8 +216,10 @@ go list -m all
 | golang.org/x/text | v0.37.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.27.0 | CPU architecture support |
 | **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
-| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+) |
+| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+); **v0.59.1 released 2026-05-11** |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
+| **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
+| **golang-migrate/migrate** | **v4.19.1** | **SQL migrations (github.com/golang-migrate/migrate)** |
 
 ### Common Compatibility Issues
 
@@ -240,11 +242,11 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-16)
+## Updated from Research (2026-05-21)
 
 ### Versions
 
-- **Gin v1.12.0** — released 2026-02-28, current latest
+- **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
 - **go-redis v9.19.0** — released 2026-04-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
 - **Go 1.26.3** — current stable (no Go 1.27 yet as of May 2026)
@@ -252,16 +254,20 @@ Before working on any Go/Gin task:
 - **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.51.0** — latest stable
-- **golang.org/x/net v0.54.0** — latest stable (HTTP/2, TLS, HTTP trailers, updated from v0.52.0)
+- **golang.org/x/net v0.54.0** — latest stable (HTTP/2, TLS, HTTP trailers)
 - **golang.org/x/sys v0.44.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.37.0** — latest stable
 - **golang.org/x/arch v0.27.0** — latest stable
-- **golang.org/x/sync v0.20.0** — **NEWLY ADDED** (errgroup, semaphore — used in concurrency.md patterns)
-- **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+)
+- **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
+- **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
+- **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors)
+- **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 
 ### Sources
 - https://github.com/gin-gonic/gin/releases
 - https://github.com/redis/go-redis/releases
 - https://github.com/go-gorm/gorm/releases
 - https://github.com/quic-go/quic-go/releases
+- https://github.com/gin-contrib/cors/releases
+- https://github.com/golang-migrate/migrate/releases
 - https://go.dev/dl/

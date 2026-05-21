@@ -39,7 +39,7 @@ DROP TABLE IF EXISTS users;
 ## Running Migrations (golang-migrate)
 
 ```bash
-go get -u github.com/golang-migrate/migrate/v4/cmd/migrate
+go get github.com/golang-migrate/migrate/v4/cmd/migrate@v4.19.1
 ```
 
 ```bash

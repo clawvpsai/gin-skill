@@ -128,25 +128,13 @@ c.File("./exports/report.pdf")
 ## Streaming Responses
 
 ```go
-// Streaming JSON (for large arrays)
-func streamPosts(c *gin.Context) {
-    c.Stream(200, "application/json")
-    c.Stream(func(w io.Writer) bool {
-        posts, _ := db.GetPostsBatched(100)
-        for _, post := range posts {
-            c.SSEvent("post", post)
-            time.Sleep(100 * time.Millisecond)
-        }
-        return false // false = done
-    })
-}
-
-// Server-Sent Events (SSE)
+// Server-Sent Events (SSE) — the idiomatic Gin way
+// Use c.SSEvent() directly, not inside c.Stream()
 func sseHandler(c *gin.Context) {
     c.Writer.Header().Set("Content-Type", "text/event-stream")
     c.Writer.Header().Set("Cache-Control", "no-cache")
     c.Writer.Header().Set("Connection", "keep-alive")
-    
+
     for {
         select {
         case <-c.Request.Context().Done():
@@ -154,10 +142,57 @@ func sseHandler(c *gin.Context) {
         case msg := <-messages:
             c.SSEvent("message", msg)
             c.Writer.Flush()
+        case <-time.After(30 * time.Second):
+            // Keep-alive ping to prevent connection timeout
+            c.SSEvent("ping", time.Now().Unix())
+            c.Writer.Flush()
+        }
+    }
+}
+
+// Streaming JSON via c.Stream() — for NDJSON / JSON Lines
+// c.Stream() sets Content-Type and handles flushing automatically
+func streamPosts(c *gin.Context) {
+    c.Stream(200, "application/json")
+    for {
+        posts, err := db.GetPostsBatched(100)
+        if err != nil {
+            return
+        }
+        if len(posts) == 0 {
+            return
+        }
+        for _, post := range posts {
+            c.SSEvent("post", post)
+        }
+        c.Writer.Flush()
+        time.Sleep(100 * time.Millisecond)
+    }
+}
+
+// Alternative: write NDJSON lines directly to the stream writer
+func streamNDJSON(c *gin.Context) {
+    c.Stream(200, "application/x-ndjson")
+    for page := 1; ; page++ {
+        posts, err := db.GetPostsBatchedPage(100, page)
+        if err != nil || len(posts) == 0 {
+            return
+        }
+        for _, post := range posts {
+            b, _ := json.Marshal(post)
+            c.Stream(func(w io.Writer) bool {
+                w.Write(b)
+                w.Write([]byte("\n"))
+                return true // keep streaming
+            })
         }
     }
 }
 ```
+
+**Key distinction:**
+- `c.SSEvent()` — sends a formatted SSE message (`data: {...}\n\n`) to `c.Writer`; use it directly in loops
+- `c.Stream()` — handles chunked transfer-encoding; pass it an `io.Writer` callback, not SSE event formatting
 
 ## Redirects
 
@@ -235,3 +270,5 @@ func paginatedResponse(c *gin.Context, data interface{}, page, perPage, total in
 3. **Not handling context cancellation in streams** — check `c.Request.Context().Done()`
 4. **Using `gin.H{}` for everything** — struct types give you compile-time safety
 5. **Not using ProtoBuf for high-performance gRPC integration** — Gin v1.12+ supports it natively via content negotiation
+6. **Mixing `c.SSEvent()` inside `c.Stream()` callback** — `SSEvent` writes to `c.Writer`, not the Stream callback's `io.Writer` param; use `SSEvent` directly in loops instead
+7. **No keep-alive ping in SSE** — long-lived SSE connections may be closed by proxies if no data flows for ~60s; send a periodic `ping` event
