@@ -711,6 +711,35 @@ func callDownstreamService(ctx context.Context, url string) ([]byte, error) {
 - errgroup's context cancellation integrates with Gin handler context — first failure cancels remaining parallel operations
 - Use `errgroup.WithContext` at the start of parallel DB/API calls to propagate errors cleanly
 
+### testing/synctest — Deterministic Concurrent Testing (Go 1.25+)
+- `testing/synctest.Test` runs a test in an isolated goroutine world — all goroutines must finish before the function returns
+- Replaces flaky `time.Sleep` or arbitrary waits in concurrent test code
+- Works deterministically: no race conditions, no timing dependencies
+```go
+import "testing/synctest"
+
+func TestConcurrentWriter(t *testing.T) {
+    synctest.Test(func() {
+        var wg sync.WaitGroup
+        done := make(chan struct{})
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            select {
+            case done <- struct{}{}:
+            case <-synctest.Done():
+            }
+        }()
+        // synctest.Wait blocks until all goroutines started in this test complete
+        synctest.Wait()
+    })
+}
+```
+- `synctest.Done()` returns a channel that's closed when `synctest.Wait()` is ready
+- Use for testing: worker pools, pipelines, pub/sub, event buses, any concurrent code
+- Note: Not for use in production code — testing-only package
+- Combines well with `go test -race` for maximum confidence
+
 ### Sources
 - https://pkg.go.dev/slices
 - https://pkg.go.dev/maps
@@ -719,3 +748,4 @@ func callDownstreamService(ctx context.Context, url string) ([]byte, error) {
 - https://pkg.go.dev/golang.org/x/sync/semaphore
 - https://opentelemetry.io/docs/languages/go/
 - https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin
+- https://pkg.go.dev/testing/synctest

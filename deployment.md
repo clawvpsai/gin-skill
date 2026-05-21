@@ -363,6 +363,21 @@ ENV=production
 - `go mod download` before `COPY . .` — better layer caching (deps change less often than source)
 - `CGO_ENABLED=0` — produces fully static binary, no libc dependency
 
+### go fix — Automated Code Modernization (Go 1.26)
+- `go fix` was completely rebuilt in Go 1.26 on the same analysis framework as `go vet`
+- Runs 20+ analyzers that automatically update code to newer language features and stdlib APIs
+- Run it before upgrading Go versions or as part of your CI pipeline:
+```bash
+# Apply all auto-fixable modernizations
+go fix ./...
+
+# Check what would change without applying
+go fix -diff ./...
+```
+- Covers: deprecated API migrations, internal package changes, stdlib updates, and more
+- Particularly valuable when upgrading Go versions — catches deprecated patterns automatically
+- `go fix ./...` should be run before `go mod tidy` when modernizing a large codebase
+- In CI: `go fix -diff ./...` to fail the build if any fixes are available but not applied
 ### Sources
 - Go 1.26 container image: `golang:1.26-alpine`
 - Alpine 3.21 release notes
