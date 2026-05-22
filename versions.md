@@ -41,13 +41,14 @@ Then load the relevant version sections below.
 
 ---
 
-## Go 1.27 (In Development — Expected Aug 2026)
+## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 development tree is **open** as of Jan 2026. No final release notes are published yet. Monitor:
-- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes published at release time
-- [golang/go#76474](https://github.com/golang/go/issues/76474) — tracking issue for tree reopening
+The Go 1.27 release freeze began **May 20, 2026**. RC1 is expected shortly. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. Release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) are not yet published.
 
-**For agents:** If tasked with Go 1.27 work, verify features at the links above before applying version-specific rules. No version-specific patterns to apply yet.
+**For agents:** Go 1.27 RC1 expected very soon — watch for the release tag. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
+
+- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes (published at release)
+- [golang/go#76474](https://github.com/golang/go/issues/76474) — release tracking issue
 
 ---
 
@@ -251,12 +252,13 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-21)
+## Updated from Research (2026-05-22)
 
 ### Go 1.27 Development Status
-- Go 1.27 tree is open as of Jan 2026 ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began May 20, 2026 — RC1 expected very soon ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Expected release: **August 2026** (6 months after Go 1.26)
-- No final features documented yet — check [go.dev/doc/go1.27](https://go.dev/doc/go1.27) at release time
+- macOS 12 support dropped in Go 1.27 — Go 1.26 is the last release supporting macOS 12
+- Go 1.27 release notes not yet published — check [go.dev/doc/go1.27](https://go.dev/doc/go1.27) at release time
 - Gin v1.13 is not yet released — v1.12.0 (Feb 2026) remains current
 - No other significant version bumps since last update
 

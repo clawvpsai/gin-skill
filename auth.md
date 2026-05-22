@@ -1,4 +1,4 @@
-# Authentication — JWT, Session, Bcrypt, Middleware
+# Authentication — JWT, PASETO, Session, Bcrypt, Middleware
 
 ## JWT Authentication
 
@@ -171,6 +171,135 @@ func RefreshTokenHandler(c *gin.Context) {
     c.JSON(200, tokens)
 }
 ```
+
+## PASETO — JWT Alternative (2026 Best Practice)
+
+**PASETO (Platform-Agnostic Security Tokens)** is a modern alternative to JWT that eliminates entire classes of vulnerabilities. Unlike JWT (which uses the JOSE standard with its multiple algorithm options), PASETO ships with only modern, secure defaults — no algorithm choice to misconfigure.
+
+**Why PASETO over JWT?**
+- No algorithm confusion attacks — signer and verifier use the same purpose-specific key
+- No `alg: none` vulnerability class
+- No header manipulation (unlike JWT's typ/jku/x5u headers that enable attacks)
+- Simpler — fewer configuration pitfalls
+- Purpose-specific local (symmetric) and public (asymmetric) tokens
+
+```go
+import (
+    "github.com/o1egl/paseto"
+    "golang.org/x/crypto/ed25519"
+    "context"
+    "encoding/json"
+    "time"
+)
+
+// PASETO v2 (Ed25519) — recommended for most Go applications
+// v2 uses Ed25519 (EdDSA) — fast, secure, small signatures
+
+type PASETOClaims struct {
+    UserID   int    `json:"user_id"`
+    Email    string `json:"email"`
+    IssuedAt int64  `json:"iat"`
+    Exp      int64  `json:"exp"`
+}
+
+// GenerateKeyPair generates an Ed25519 key pair for PASETO v2
+// Store the secret key securely; publish the public key
+func GenerateKeyPair() (paseto.JSONToken, ed25519.PrivateKey, ed25519.PublicKey, error) {
+    publicKey, privateKey, err := ed25519.GenerateKey(nil)
+    return paseto.JSONToken{}, publicKey, privateKey, err
+}
+
+// IssuePASETO creates a signed PASETO token (local — symmetric)
+func IssuePASETO(userID int, email string, privateKey ed25519.PrivateKey) (string, error) {
+    now := time.Now()
+    exp := now.Add(24 * time.Hour)
+
+    token := paseto.JSONToken{
+        IssuedAt:  now,
+        Expiration: exp,
+    }
+
+    claims := PASETOClaims{
+        UserID:   userID,
+        Email:    email,
+        IssuedAt: now.Unix(),
+        Exp:      exp.Unix(),
+    }
+
+    footer := "" // optional footer for key ID, version, etc.
+
+    return paseto.NewV2().Sign(context.Background(), privateKey, token, claims, footer)
+}
+
+// ValidatePASETO verifies and decodes a PASETO token
+func ValidatePASETO(tokenString string, publicKey ed25519.PublicKey) (*PASETOClaims, error) {
+    var claims PASETOClaims
+
+    err := paseto.NewV2().Verify(tokenString, publicKey, &claims, nil)
+    if err != nil {
+        return nil, err
+    }
+
+    // Manual expiration check (paseto library checks automatically if Expiration is set)
+    if claims.Exp > 0 && time.Now().Unix() > claims.Exp {
+        return nil, paseto.ErrExpired
+    }
+
+    return &claims, nil
+}
+
+// PASETO Gin Middleware
+func PASETOAuthMiddleware(publicKey ed25519.PublicKey) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        authHeader := c.GetHeader("Authorization")
+        if authHeader == "" {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "authorization header required"})
+            return
+        }
+
+        parts := strings.SplitN(authHeader, " ", 2)
+        if len(parts) != 2 || parts[0] != "Bearer" {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid authorization format"})
+            return
+        }
+
+        claims, err := ValidatePASETO(parts[1], publicKey)
+        if err != nil {
+            c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
+            return
+        }
+
+        c.Set("user_id", claims.UserID)
+        c.Set("email", claims.Email)
+        c.Next()
+    }
+}
+
+// Usage in Gin handler
+func pasetoProtectedHandler(c *gin.Context) {
+    userID, _ := c.Get("user_id")
+    c.JSON(200, gin.H{"user_id": userID})
+}
+```
+
+**PASETO Versions:**
+| Version | Algorithm | Use Case |
+|---------|-----------|----------|
+| v1.local | AES-256-CTR + HMAC-SHA384 | Symmetric — same key for sign & verify (server-only) |
+| v1.public | RSA-PSS + SHA384 | Legacy RSA support |
+| v2.local | XChaCha20-Poly1305 | Symmetric — **recommended for most cases** |
+| v2.public | Ed25519 (EdDSA) | Asymmetric — **recommended for OAuth/OIDC** |
+
+**When to use PASETO over JWT:**
+- New projects (2024+) — PASETO has better security defaults
+- High-security APIs (banking, healthcare, auth services)
+- When you want simpler implementation with fewer foot-guns
+- When key rotation or multiple algorithms aren't needed
+
+**When JWT is fine:**
+- Existing projects already using JWT — no reason to migrate
+- When you need broad ecosystem compatibility (OAuth libraries, IdPs)
+- When `jwt.io` debugger tooling matters for debugging
 
 ## Password Hashing with Bcrypt
 
@@ -528,6 +657,14 @@ func OAuth2Callback(c *gin.Context) {
 
 ## Updated from Research (2026-05)
 
+### PASETO (2026 Trend)
+- PASETO v4 is increasingly recommended over JWT for high-security APIs — eliminates entire classes of JOSE vulnerabilities
+- `github.com/o1egl/paseto` is the standard Go implementation (100% pure Go)
+- v2.local (XChaCha20-Poly1305) for symmetric tokens — **recommended for most Go apps**
+- v2.public (Ed25519/EdDSA) for asymmetric tokens — recommended for OAuth/OIDC
+- Key advantage: no algorithm negotiation, no `alg:none` attacks, no header injection
+- Not a full replacement: JWT still dominant in OAuth/OIDC ecosystem and IdP integrations
+
 ### OAuth2 PKCE (RFC 7636)
 - Required for mobile apps, SPAs, and any public client where client_secret can't be kept confidential
 - S256 (SHA-256) code challenge method is required — "plain" method is not secure
@@ -540,6 +677,8 @@ func OAuth2Callback(c *gin.Context) {
 - Validate `iss` (issuer) and `aud` (audience) in production
 
 ### Sources
+- PASETO spec: https://github.com/paseto-standard/paseto-spec
+- PASETO Go impl: https://github.com/o1egl/paseto
 - RFC 7636 (PKCE): https://www.rfc-editor.org/rfc/rfc7636
 - jwt-go v5: https://github.com/golang-jwt/jwt
 - OAuth 2.0 Security Best Current Practice: https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics
