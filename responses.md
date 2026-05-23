@@ -127,9 +127,15 @@ c.File("./exports/report.pdf")
 
 ## Streaming Responses
 
+There are two fundamentally different streaming approaches. Know which one you need:
+
+### Server-Sent Events (SSE) — `c.SSEvent()` + `c.Writer.Flush()`
+
+SSE sends formatted events that browsers consume via `EventSource`. Each event has a `data:` prefix. Use this for server-to-client push where browsers handle reconnection automatically.
+
 ```go
-// Server-Sent Events (SSE) — the idiomatic Gin way
-// Use c.SSEvent() directly, not inside c.Stream()
+// Server-Sent Events — the idiomatic Gin way
+// Set headers, then loop with c.SSEvent() + c.Writer.Flush()
 func sseHandler(c *gin.Context) {
     c.Writer.Header().Set("Content-Type", "text/event-stream")
     c.Writer.Header().Set("Cache-Control", "no-cache")
@@ -149,28 +155,17 @@ func sseHandler(c *gin.Context) {
         }
     }
 }
+```
 
-// Streaming JSON via c.Stream() — for NDJSON / JSON Lines
-// c.Stream() sets Content-Type and handles flushing automatically
-func streamPosts(c *gin.Context) {
-    c.Stream(200, "application/json")
-    for {
-        posts, err := db.GetPostsBatched(100)
-        if err != nil {
-            return
-        }
-        if len(posts) == 0 {
-            return
-        }
-        for _, post := range posts {
-            c.SSEvent("post", post)
-        }
-        c.Writer.Flush()
-        time.Sleep(100 * time.Millisecond)
-    }
-}
+**SSE output format:** `data: {"text":"hello"}\n\n` — Gin's `c.SSEvent()` formats this automatically.
 
-// Alternative: write NDJSON lines directly to the stream writer
+### NDJSON / JSON Lines — `c.Stream()` with `io.Writer` callback
+
+NDJSON streams raw JSON objects, one per line. No SSE formatting — just newline-delimited JSON. Use this for streaming APIs consumed by HTTP clients, CLIs, or parsers that expect JSON lines.
+
+```go
+// NDJSON (Newline-Delimited JSON) — streaming JSON Lines
+// c.Stream() handles chunked transfer-encoding + flushing
 func streamNDJSON(c *gin.Context) {
     c.Stream(200, "application/x-ndjson")
     for page := 1; ; page++ {
@@ -188,11 +183,40 @@ func streamNDJSON(c *gin.Context) {
         }
     }
 }
+
+// Streaming plain JSON array (without NDJSON) — write directly to c.Writer
+func streamJSONArray(c *gin.Context) {
+    c.Writer.Header().Set("Content-Type", "application/json")
+    c.Writer.Write([]byte("["))
+    first := true
+    for page := 1; ; page++ {
+        posts, err := db.GetPostsBatchedPage(100, page)
+        if err != nil || len(posts) == 0 {
+            break
+        }
+        for _, post := range posts {
+            if !first {
+                c.Writer.Write([]byte(","))
+            }
+            b, _ := json.Marshal(post)
+            c.Writer.Write(b)
+            first = false
+        }
+        c.Writer.Flush()
+    }
+    c.Writer.Write([]byte("]"))
+}
 ```
 
+**NDJSON output format:** `{"id":1,"title":"Hello"}\n{"id":2,"title":"World"}\n` — raw JSON, one object per line.
+
 **Key distinction:**
-- `c.SSEvent()` — sends a formatted SSE message (`data: {...}\n\n`) to `c.Writer`; use it directly in loops
-- `c.Stream()` — handles chunked transfer-encoding; pass it an `io.Writer` callback, not SSE event formatting
+- `c.SSEvent()` — sends a formatted SSE message (`data: {...}\n\n`) to `c.Writer`; use it directly in loops with `c.Writer.Flush()`. **Not compatible with `c.Stream()`** — `SSEvent` writes to `c.Writer`, not the `io.Writer` callback passed to `c.Stream()`.
+- `c.Stream()` — handles chunked transfer-encoding; pass it an `io.Writer` callback that writes raw data. **Do not use `c.SSEvent()` inside a `c.Stream()` callback** — they write to different destinations.
+
+**When to use which:**
+- **SSE** (`c.SSEvent`) — browser clients via `EventSource`, auto-reconnection needed, simpler client implementation
+- **NDJSON** (`c.Stream`) — HTTP clients, CLIs, data pipelines, any consumer that parses JSON lines directly
 
 ## Redirects
 
@@ -270,5 +294,6 @@ func paginatedResponse(c *gin.Context, data interface{}, page, perPage, total in
 3. **Not handling context cancellation in streams** — check `c.Request.Context().Done()`
 4. **Using `gin.H{}` for everything** — struct types give you compile-time safety
 5. **Not using ProtoBuf for high-performance gRPC integration** — Gin v1.12+ supports it natively via content negotiation
-6. **Mixing `c.SSEvent()` inside `c.Stream()` callback** — `SSEvent` writes to `c.Writer`, not the Stream callback's `io.Writer` param; use `SSEvent` directly in loops instead
+6. **Using `c.SSEvent()` inside a `c.Stream()` callback** — `SSEvent` writes to `c.Writer`, not the callback's `io.Writer` parameter — they are incompatible; `c.SSEvent` must be called directly in the loop
 7. **No keep-alive ping in SSE** — long-lived SSE connections may be closed by proxies if no data flows for ~60s; send a periodic `ping` event
+8. **Confusing SSE with NDJSON** — SSE adds `data:` prefix formatting; NDJSON is raw JSON lines; choose based on your client
