@@ -43,9 +43,9 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026**. RC1 is expected shortly. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. Release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) are not yet published.
+The Go 1.27 release freeze began **May 20, 2026**. RC1 expected within days — watch the Go release dashboard. Freeze is now 4 days old with no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. Release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) are not yet published.
 
-**For agents:** Go 1.27 RC1 expected very soon — watch for the release tag. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
+**For agents:** Go 1.27 RC1 expected within days — watch the Go release dashboard closely. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
 - [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes (published at release)
 - [golang/go#76474](https://github.com/golang/go/issues/76474) — release tracking issue
@@ -226,7 +226,7 @@ go list -m all
 | golang.org/x/text | v0.37.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.27.0 | CPU architecture support |
 | **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
-| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+); **v0.59.1 released 2026-05-11** |
+| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+); **v0.59.1 released 2026-05-11**; v0.60 (dev) adds FIPS 140-3 support |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
 | **golang-migrate/migrate** | **v4.19.1** | **SQL migrations (github.com/golang-migrate/migrate)** |
@@ -252,10 +252,10 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-22)
+## Updated from Research (2026-05-24)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began May 20, 2026 — RC1 expected very soon ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began May 20, 2026 — RC1 expected within days (freeze 4 days old as of May 24, no RC1 yet) ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Expected release: **August 2026** (6 months after Go 1.26)
 - macOS 12 support dropped in Go 1.27 — Go 1.26 is the last release supporting macOS 12
 - Go 1.27 release notes not yet published — check [go.dev/doc/go1.27](https://go.dev/doc/go1.27) at release time
@@ -278,6 +278,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/arch v0.27.0** — latest stable
 - **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
+- **quic-go v0.60 (development)** — adds FIPS 140-3 support when built with Go 1.26+; see FIPS140.md in quic-go repo
 - **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors)
 - **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 

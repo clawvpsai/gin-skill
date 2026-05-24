@@ -259,7 +259,39 @@ func releaseLock(ctx context.Context, key string) error {
 
 ---
 
-## Updated from Research (2026-05)
+
+## ⚠️ Redis Security — May 2026 Critical CVEs
+
+Redis server 8.x has **5 critical/high severity CVEs** patched in Redis 8.6.3 (May 5, 2026):
+
+| CVE | Severity | Impact |
+|---|---|---|
+| CVE-2026-23479 | Critical | Use-After-Free in unblock client flow → RCE |
+| CVE-2026-25243 | Critical | Invalid memory access in RESTORE → RCE |
+| CVE-2026-25588 | Critical | Lua Use-After-Free → RCE |
+| CVE-2026-25589 | High | Additional Lua memory issue |
+| CVE-2026-23631 | High | Additional RESTORE/RDB issue |
+
+**Action items:**
+- **Upgrade Redis server to 8.6.3+ immediately** if running Redis 8.x in production
+- These are server-side vulnerabilities — the `go-redis/v9` client is not affected
+- If using Redis in a Go deployment, ensure your **Redis server** (not the client lib) is patched
+- Monitor [Redis security advisories](https://redis.io/docs/latest/operate/rc/security/) for your deployment method (Redis Open Source, Redis Stack, or Redis Enterprise)
+
+```go
+// Verify Redis server version in health checks
+func RedisHealthCheck(ctx context.Context) error {
+    ver, err := redisClient.Info(ctx, "server").Result()
+    if err != nil {
+        return err
+    }
+    // Parse "redis_version:X.X.X" from ver string
+    // Reject if version < 8.6.3
+    return nil
+}
+```
+
+## Updated from Research (2026-05-24)
 
 ### go-redis v9 Pipelines & Locks
 - **Pipeline** usage now recommended for batch Redis operations — reduces round trips significantly
