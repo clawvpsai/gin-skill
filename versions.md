@@ -43,14 +43,12 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026**. RC1 expected within days — watch the Go release dashboard. Freeze is now 4 days old with no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. Release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) are not yet published.
+The Go 1.27 release freeze began **May 20, 2026** — 5 days in, no RC1 yet as of May 25. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (created at freeze start) but are not finalized. RC1 expected soon.
 
-**For agents:** Go 1.27 RC1 expected within days — watch the Go release dashboard closely. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
+**For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes (published at release)
+- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes (finalized at release)
 - [golang/go#76474](https://github.com/golang/go/issues/76474) — release tracking issue
-
----
 
 ## Go 1.25 (Previous Stable — Aug 2025)
 
