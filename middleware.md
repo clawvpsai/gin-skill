@@ -103,8 +103,6 @@ func Logger() gin.HandlerFunc {
 ## Recovery with Custom Handler
 
 ```go
-import "github.com/gin-contrib/expvar"
-
 r.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
     log.Printf("Panic recovered: %v", err)
     c.AbortWithStatusJSON(500, gin.H{

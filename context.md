@@ -464,6 +464,63 @@ func callService(ctx context.Context, url string) error {
 }
 ```
 
+
+## Gin Error Handling — `c.SetError`, `c.GetError`, `c.GetErrorSlice` (Gin v1.12+)
+
+Gin v1.12 introduced type-safe error retrieval from the Gin context. Errors are stored in `c.Errors` (a `[] GinError` slice) via `c.SetError()`, and retrieved with `c.GetError()` / `c.GetErrorSlice()`.
+
+```go
+import "errors"
+
+// Store an error in context (middleware or handler)
+func authMiddleware(c *gin.Context) {
+    user, err := getUserFromToken(c.GetHeader("Authorization"))
+    if err != nil {
+        c.SetError(err)           // stores err in c.Errors
+        c.AbortWithStatusJSON(401, gin.H{"error": "unauthorized"})
+        return
+    }
+    c.Set("user", user)
+    c.Next()
+}
+
+// Retrieve the most recent error — type-safe (Gin v1.12+)
+func handler(c *gin.Context) {
+    if err := doSomething(); err != nil {
+        c.SetError(err)
+    }
+
+    // Get most recent error (last in slice)
+    if ginErr := c.GetError(); ginErr != nil {
+        log.Printf("error occurred: %v", ginErr)
+    }
+
+    // Get all errors as []error (unwrap all GinError)
+    allErrors := c.GetErrorSlice()
+    for _, err := range allErrors {
+        log.Printf("err: %v", err)
+    }
+
+    c.Next()
+}
+
+// ErrorLogger middleware — auto-renders c.Errors as JSON to client (Gin built-in)
+r.Use(gin.ErrorLogger())
+```
+
+**Why use `c.SetError` over `c.AbortWithStatusJSON`?**
+- `c.SetError(err)` stores errors in `c.Errors` for later inspection (logging, aggregated responses)
+- `c.AbortWithStatusJSON()` sends a response and stops the chain
+- Combine both: `c.SetError(err); c.AbortWithStatusJSON(...)` for error + response
+
+**`c.GetErrorSlice()` unwraps all `*errors.error` from `c.Errors`:**
+```go
+// c.Errors contains GinError wrappers — GetErrorSlice extracts underlying errors
+for _, err := range c.GetErrorSlice() {
+    fmt.Println(err.Error())
+}
+```
+
 ## Common Mistakes
 
 1. **`c.Context` vs `c.Request.Context()`** — `c.Context` is Gin-internal, `c.Request.Context()` is standard Go context
@@ -477,7 +534,7 @@ func callService(ctx context.Context, url string) error {
 
 ---
 
-## Updated from Research (2026-05)
+## Updated from Research (2026-05-25)
 
 ### context.AfterFunc (Go 1.21+)
 - `context.AfterFunc(ctx, fn)` schedules `fn` to run exactly once when `ctx` is cancelled
