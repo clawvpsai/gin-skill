@@ -232,7 +232,7 @@ go list -m all
 ### Common Compatibility Issues
 
 1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
-2. **Binding tags** — `validate:""` not `binding:""` for Gin v1.9+
+2. **Binding tags** — Gin uses `binding:""` (NOT `validate:""`) — Gin internally uses go-playground/validator but calls `SetTagName("binding")` to override the default tag name
 3. **context** — `c.Request.Context()` not `c.Content`
 4. **Go version too old** — Gin v1.12 requires Go 1.24+
 5. **Dockerfile Go version** — Use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT `golang:1.22-alpine`

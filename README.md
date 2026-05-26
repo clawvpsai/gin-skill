@@ -59,7 +59,7 @@ go list -m github.com/gin-gonic/gin
 | Check errors always | `if err != nil { return err }` — not optional |
 | `gin.H{}` is just `map[string]interface{}` | No magic, no hidden behavior |
 | Route order matters | First match wins — specific routes BEFORE generic |
-| Use `validate:""` not `binding:""` | Gin v1.9+ changed binding tags |
+| Binding tags use `binding:""` | Gin uses go-playground/validator internally but with `SetTagName("binding")` — NOT `validate:""` |
 | Use `c.Copy()` for context after async work | Original context may be cancelled |
 | Never use `jwt/v4` | Deprecated — always use `jwt/v5` |
 

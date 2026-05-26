@@ -29,10 +29,10 @@ metadata:
 
 - **`context.Context` is mandatory** — pass it through every function that does I/O
 - **Never spawn goroutines without `sync.WaitGroup` or context cancellation**
-- **Check errors always** — `if err != nil { return err }` is not optional
+- **Check errors always** — `if err != nil { return err }` — not optional
 - **`gin.H{}` is just `map[string]interface{}`** — no magic, no hidden behavior
 - **Route order matters** — first match wins, put specific routes BEFORE generic ones
-- **Binding tags use `validate:""`** not `binding:""` for Gin v1.9+
+- **Binding tags use `binding:""`** not `validate:""` — Gin uses `go-playground/validator` internally but sets `SetTagName("binding")` (not `validate`) as the struct tag name
 - **`c.Next()` in middleware** — call it to execute downstream handlers
 - **Abort early** with `c.AbortWithStatusJSON()` when auth fails
 - **Use `c.Copy()` if you need to access context after async work**

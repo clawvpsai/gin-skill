@@ -159,7 +159,7 @@ func createPost(c *gin.Context) {
 - `binding.YAML` — `application/yaml`
 - `binding.ProtoBuf` — `application/protobuf`
 
-## Validation Tags (go-playground/validator)
+## Validation Tags (use `binding` tag — backed by go-playground/validator)
 
 ```go
 type CreateUserRequest struct {
