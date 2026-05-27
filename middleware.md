@@ -215,34 +215,79 @@ r.GET("/path", h) // handler
 // Execution order: m1 → m2 → h → m2 (response) → m1 (response)
 ```
 
-## Timeout Middleware
+## Timeout Middleware with errgroup (Recommended)
+
+The naive goroutine + channel timeout pattern cannot propagate errors from the request handler back to the middleware context. Use `errgroup` with a derived context for proper error propagation:
 
 ```go
-import "context"
+import (
+    "context"
+    "errors"
+    "net/http"
+    "time"
 
+    "github.com/gin-gonic/gin"
+    "golang.org/x/sync/errgroup"
+)
+
+// ErrTimeout is returned when a request exceeds the timeout limit
+var ErrTimeout = errors.New("request timeout")
+
+// TimeoutMiddleware returns a middleware that timeout-halts the request
+// after the given duration. Errors from the handler are propagated correctly.
 func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
     return func(c *gin.Context) {
+        // Create a context that cancels on timeout
         ctx, cancel := context.WithTimeout(c.Request.Context(), timeout)
         defer cancel()
-        
+
+        // Replace request context so downstream handlers inherit the timeout
         c.Request = c.Request.WithContext(ctx)
-        
-        done := make(chan struct{})
-        
-        go func() {
+
+        eg, ctx := errgroup.WithContext(ctx)
+
+        eg.Go(func() error {
             c.Next()
-            close(done)
-        }()
-        
-        select {
-        case <-done:
-            // Request completed normally
-        case <-ctx.Done():
-            c.AbortWithStatusJSON(504, gin.H{"error": "request timeout"})
+            // c.Errors contains any errors set by handlers (abort, validation, etc.)
+            if len(c.Errors) > 0 {
+                // Return the first non-nil error, or a sentinel if handlers called c.Abort
+                for _, e := range c.Errors {
+                    if e.Err != nil {
+                        return e.Err
+                    }
+                }
+                // c.Abort was called without setting an error
+                return c.Aborted()
+            }
+            return nil
+        })
+
+        // Wait for handler + timeout race
+        if err := eg.Wait(); err != nil {
+            if errors.Is(err, context.DeadlineExceeded) {
+                c.AbortWithStatusJSON(http.StatusGatewayTimeout, gin.H{
+                    "error": "request timeout",
+                })
+                return
+            }
+            // Other error from handler — don't overwrite if already written
+            if !c.Writer.Written() {
+                c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+                    "error": "request failed",
+                })
+            }
         }
     }
 }
+
+// c.Aborted() returns true if c.Abort* was called
+// Use it to distinguish aborted requests from panics
 ```
+
+**Why errgroup over channel + goroutine:**
+- Propagates handler errors (panic, abort, validation failures) back to the middleware
+- Properly cancels the context when the timeout fires, causing in-flight DB calls etc. to abort
+- `errgroup.WithContext` automatically cancels the group context if any goroutine returns a non-nil error
 
 ## Common Mistakes
 
@@ -251,3 +296,4 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 3. **Goroutine in middleware without context** — async work loses request context
 4. **Rate limiter memory leak** — clean up old entries periodically
 5. **Middleware modifying response** — after `c.Next()`, response headers are already sent
+6. **Naive timeout using channels** — can't propagate handler errors; use `errgroup` instead

@@ -66,8 +66,6 @@ ENTRYPOINT ["./server"]
 ## Docker Compose (Local Dev)
 
 ```yaml
-version: '3.8'
-
 services:
   app:
     build: .
@@ -104,8 +102,6 @@ volumes:
 ## Docker Compose (Production)
 
 ```yaml
-version: '3.8'
-
 services:
   app:
     build: .
@@ -124,14 +120,15 @@ services:
         condition: service_started
     volumes:
       - /var/log/myapp:/app/logs
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 128M
+    # Resource limits — works with both Docker Compose V2 and Swarm (Compose V3.8+)
+    # Use `docker compose` (V2) for local, `docker stack deploy` (Swarm) for production
+    resources:
+      limits:
+        cpus: '1'
+        memory: 512M
+      reservations:
+        cpus: '0.25'
+        memory: 128M
 
   db:
     image: postgres:16-alpine
@@ -158,6 +155,8 @@ volumes:
   pgdata:
   redisdata:
 ```
+
+**Note on Compose file format:** The `version:` key is deprecated in the Compose Specification (V2+). Modern `docker compose` (V2 CLI) ignores it entirely. The format above is compatible with both `docker compose` and `docker stack deploy` (Swarm). The `resources:` block works with Compose V2; for Swarm-only deployments, use `deploy.resources` instead.
 
 ## Systemd Service
 
@@ -357,7 +356,8 @@ ENV=production
 ### Docker Improvements
 - **Alpine 3.21** is now preferred over 3.19 (security fixes, updated CA certs)
 - **`-ldflags="-w -s"`** — strips debug info, reduces binary size by ~15%
-- **Resource limits** in docker-compose `deploy:` section — prevents one service from consuming all host resources
+- **Compose `resources:` block** — works with both Docker Compose V2 (`docker compose`) and Swarm (`docker stack deploy`); `deploy:` is Swarm-only and ignored by standalone Compose V2
+- **`version:` key removed** — modern Compose Specification (V2+) no longer uses it
 
 ### Multi-stage Build Optimizations
 - `go mod download` before `COPY . .` — better layer caching (deps change less often than source)
