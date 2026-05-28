@@ -43,12 +43,28 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 5 days in, no RC1 yet as of May 25. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (created at freeze start) but are not finalized. RC1 expected soon.
+The Go 1.27 release freeze began **May 20, 2026** — 8 days in as of May 28, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. RC1 expected within the next week. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) but is not finalized until release.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-- [go.dev/doc/go1.27](https://go.dev/doc/go1.27) — release notes (finalized at release)
-- [golang/go#76474](https://github.com/golang/go/issues/76474) — release tracking issue
+### New in Go 1.27
+
+- **Native UUID package in stdlib** — `uuid` package (not `crypto/uuid`) provides `New()`, `NewRandomV7()`, and `Parse()`. `UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. UUIDv7 (time-ordered) is recommended for database primary keys. See [Go UUID Proposal](https://rednafi.com/shards/2026/04/go-uuid/) for migration guide.
+  ```go
+  import "uuid"
+
+  id := uuid.New()           // UUIDv4 (random)
+  id := uuid.NewRandomV7()  // UUIDv7 (time-ordered — better for DB indexes)
+  parsed, err := uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
+  ```
+- **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12. Upgrade to Go 1.26 or later for macOS development.
+- **`go fix` improvements** — additional analyzers for deprecated patterns
+- **Toolchain refinements** — continued improvement to error messages and diagnostics
+
+**Release notes:** [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (finalized at release)
+**Tracking:** [golang/go#76474](https://github.com/golang/go/issues/76474)
+
+---
 
 ## Go 1.25 (Previous Stable — Aug 2025)
 
@@ -236,6 +252,7 @@ go list -m all
 3. **context** — `c.Request.Context()` not `c.Content`
 4. **Go version too old** — Gin v1.12 requires Go 1.24+
 5. **Dockerfile Go version** — Use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT `golang:1.22-alpine`
+6. **UUID package** — prefer stdlib `uuid` on Go 1.27+; fall back to `github.com/google/uuid` on Go <1.27
 
 ---
 
@@ -250,24 +267,25 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-25)
+## Updated from Research (2026-05-28)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began May 20, 2026 — RC1 expected within days (freeze 4 days old as of May 24, no RC1 yet) ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began May 20, 2026 — 8 days in as of May 28, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Expected release: **August 2026** (6 months after Go 1.26)
-- macOS 12 support dropped in Go 1.27 — Go 1.26 is the last release supporting macOS 12
-- Go 1.27 release notes not yet published — check [go.dev/doc/go1.27](https://go.dev/doc/go1.27) at release time
+- **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
+- **Native UUID package** — Go 1.27 adds `uuid` to stdlib. `uuid.New()` (v4), `uuid.NewRandomV7()` (v7), `uuid.Parse()`. `uuid.UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. Migration is trivial. See [proposal](https://rednafi.com/shards/2026/04/go-uuid/)
+- Go 1.27 release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, not finalized)
 - Gin v1.13 is not yet released — v1.12.0 (Feb 2026) remains current
-- No other significant version bumps since last update
+- quic-go v0.59.1 still latest stable (v0.60 dev adds FIPS 140-3 support)
 
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
 - **go-redis v9.19.0** — released 2026-04-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
-- **Go 1.26.3** — current stable (no Go 1.27 yet as of May 2026)
+- **Go 1.26.3** — current stable
 - **Go 1.25.10** — previous stable
-- **Gin contributors** now managed via GitHub Contributors page (AUTHORS.md removed)
+- **Go 1.27** — in release freeze, no RC1 yet (as of May 28, 2026)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.51.0** — latest stable
 - **golang.org/x/net v0.54.0** — latest stable (HTTP/2, TLS, HTTP trailers)
@@ -276,7 +294,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/arch v0.27.0** — latest stable
 - **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
-- **quic-go v0.60 (development)** — adds FIPS 140-3 support when built with Go 1.26+; see FIPS140.md in quic-go repo
+- **quic-go v0.60 (development)** — adds FIPS 140-3 support when built with Go 1.26+
 - **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors)
 - **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 
@@ -288,3 +306,4 @@ Before working on any Go/Gin task:
 - https://github.com/gin-contrib/cors/releases
 - https://github.com/golang-migrate/migrate/releases
 - https://go.dev/dl/
+- https://rednafi.com/shards/2026/04/go-uuid/

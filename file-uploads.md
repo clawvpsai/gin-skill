@@ -16,7 +16,7 @@ func uploadFile(c *gin.Context) {
         return
     }
 
-    // Save file
+    // Save file — use UUID for unique filename
     filename := fmt.Sprintf("%s-%s", uuid.New().String(), file.Filename)
     if err := c.SaveUploadedFile(file, "./uploads/"+filename); err != nil {
         c.JSON(500, gin.H{"error": "save failed"})
@@ -26,6 +26,40 @@ func uploadFile(c *gin.Context) {
     c.JSON(200, gin.H{"url": "/uploads/" + filename})
 }
 ```
+
+### UUID Package — stdlib vs google/uuid
+
+**Go 1.27+ (stdlib, preferred):**
+```go
+import "uuid"
+
+// uuid.New() → UUID (v4, random)
+// uuid.NewRandomV7() → UUID (v7, time-ordered — better for database indexes)
+// uuid.Parse(string) → UUID, error
+id := uuid.New()
+id := uuid.NewRandomV7()
+// uuid.UUID is [16]byte — compatible with github.com/google/uuid
+```
+
+**Go <1.27 (google/uuid):**
+```go
+import "github.com/google/uuid"
+
+id := uuid.New()
+```
+
+The stdlib `uuid.UUID` type is `[16]byte` — identical to `github.com/google/uuid`, so migration is trivial:
+```go
+// Before (Go < 1.27)
+import "github.com/google/uuid"
+id := uuid.New() // type: uuid.UUID
+
+// After (Go 1.27+)
+import "uuid"
+id := uuid.New() // type: uuid.UUID (same [16]byte, no code changes needed)
+```
+
+**Recommendation:** Use stdlib `uuid` on Go 1.27+. For cross-version compatibility, keep `github.com/google/uuid` in `go.mod` — the stdlib package is API-compatible. When dropping Go <1.27 support, remove the `github.com/google/uuid` dependency.
 
 ## Multiple Files
 
@@ -84,6 +118,7 @@ client_max_body_size 10m;
 ```go
 import (
     "mime/multipart"
+    "net/http"
     "path/filepath"
     "strings"
 )
@@ -104,10 +139,10 @@ func validateFile(file *multipart.FileHeader) error {
 
     contentType := http.DetectContentType(buffer)
     allowedTypes := map[string]bool{
-        "image/jpeg": true,
-        "image/png":  true,
-        "image/gif":  true,
-        "application/pdf": true,
+        "image/jpeg":        true,
+        "image/png":         true,
+        "image/gif":         true,
+        "application/pdf":   true,
     }
     if !allowedTypes[contentType] {
         return fmt.Errorf("invalid MIME type: %s", contentType)
@@ -156,12 +191,14 @@ func uploadToS3(ctx context.Context, file *multipart.FileHeader) (string, error)
 }
 ```
 
+**Note:** `github.com/google/uuid` is shown above for Go <1.27. On Go 1.27+, use stdlib `uuid` instead — the import path changes, but the API (`uuid.New()`) and type (`uuid.UUID = [16]byte`) are identical.
+
 ## Presigned URLs (Private S3)
 
 ```go
 import (
-    "github.com/aws/aws-sdk-go-v2/service/s3/presigned"
     "github.com/aws/aws-sdk-go-v2/service/s3"
+    "github.com/aws/aws-sdk-go-v2/service/s3/presigned"
 )
 
 func getPresignedURL(ctx context.Context, key string) (string, error) {
@@ -194,7 +231,16 @@ func getPresignedURL(ctx context.Context, key string) (string, error) {
 6. **No virus scanning** — scan uploaded files with ClamAV before serving
 
 ## Updated from Research (2026-05)
+
+### UUID Package (Go 1.27 Native)
+- Go 1.27 adds `uuid` package to stdlib (not `crypto/uuid`)
+- API: `uuid.New()` (v4), `uuid.NewRandomV7()` (v7, time-ordered), `uuid.Parse()`
+- `uuid.UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`
+- Migration from `github.com/google/uuid` is trivial — same types, same method names
+- UUIDv7 is recommended for database-primary-key use cases (time-ordered, better index locality than v4)
+
+### AWS SDK v2
 - AWS SDK v2 for Go is the recommended S3 client (v1 is in maintenance mode)
 - Presigned URLs expire and are the standard way to serve private S3 files
 
-Source: [Gin File Upload](https://gin-gonic.com/docs/examples/file-upload/) | [AWS SDK v2 S3](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/)
+Source: [Gin File Upload](https://gin-gonic.com/docs/examples/file-upload/) | [Go 1.27 UUID Proposal](https://rednafi.com/shards/2026/04/go-uuid/) | [AWS SDK v2 S3](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/)
