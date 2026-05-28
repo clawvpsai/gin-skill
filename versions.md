@@ -233,7 +233,7 @@ go list -m all
 | Go | 1.24+ | **Minimum raised to 1.24 in Gin v1.12** |
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
-| go-redis/redis/v9 | v9.x | **Current: v9.19.0 (Apr 2026)** |
+| go-redis/redis/v9 | v9.x | **Current: v9.20.0 (May 2026)** |
 | golang.org/x/crypto | v0.51.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.54.0 | HTTP/2, TLS, DNS, HTTP trailers |
 | golang.org/x/sys | v0.44.0 | System calls; comes with Go 1.26 toolchain |
@@ -281,7 +281,7 @@ Before working on any Go/Gin task:
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
-- **go-redis v9.19.0** — released 2026-04-28, latest stable
+- **go-redis v9.20.0** — released 2026-05-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
 - **Go 1.26.3** — current stable
 - **Go 1.25.10** — previous stable
