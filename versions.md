@@ -202,7 +202,7 @@ go 1.26
 require (
     github.com/gin-gonic/gin v1.12.0
     github.com/golang-jwt/jwt/v5 v5.3.1
-    golang.org/x/crypto v0.51.0
+    golang.org/x/crypto v0.52.0
     golang.org/x/sync v0.20.0
 )
 ```
@@ -234,9 +234,9 @@ go list -m all
 | golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
 | go-redis/redis/v9 | v9.x | **Current: v9.20.0 (May 2026)** |
-| golang.org/x/crypto | v0.51.0+ | Latest stable; Gin main uses v0.49.0 |
-| golang.org/x/net | v0.54.0 | HTTP/2, TLS, DNS, HTTP trailers |
-| golang.org/x/sys | v0.44.0 | System calls; comes with Go 1.26 toolchain |
+| golang.org/x/crypto | v0.52.0+ | Latest stable; Gin main uses v0.49.0 |
+| golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
+| golang.org/x/sys | v0.45.0 | System calls; comes with Go 1.26 toolchain |
 | golang.org/x/text | v0.37.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.27.0 | CPU architecture support |
 | **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
@@ -287,9 +287,9 @@ Before working on any Go/Gin task:
 - **Go 1.25.10** — previous stable
 - **Go 1.27** — in release freeze, no RC1 yet (as of May 28, 2026)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
-- **golang.org/x/crypto v0.51.0** — latest stable
-- **golang.org/x/net v0.54.0** — latest stable (HTTP/2, TLS, HTTP trailers)
-- **golang.org/x/sys v0.44.0** — comes with Go 1.26 toolchain
+- **golang.org/x/crypto v0.52.0** — latest stable
+- **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
+- **golang.org/x/sys v0.45.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.37.0** — latest stable
 - **golang.org/x/arch v0.27.0** — latest stable
 - **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
