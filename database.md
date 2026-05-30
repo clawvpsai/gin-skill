@@ -291,12 +291,12 @@ func RedisHealthCheck(ctx context.Context) error {
 }
 ```
 
-## Updated from Research (2026-05-24)
+## Updated from Research (2026-05-30)
 
 ### go-redis v9 Pipelines & Locks
 - **Pipeline** usage now recommended for batch Redis operations — reduces round trips significantly
 - **Distributed locking** patterns with `SetNX` for coordination across instances
-- Latest stable: **v9.19.0** (2026-04-28)
+- Latest stable: **v9.20.0** (2026-05-28)
 
 ### GORM v1.31 Updates
 - **GORM v1.31.1** (Nov 2025) — ensure compatibility with latest GORM
