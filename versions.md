@@ -43,7 +43,7 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 10 days in as of May 30, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. RC1 expected within the next week. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) but is not finalized until release.
+The Go 1.27 release freeze began **May 20, 2026** — 12 days in as of June 1, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. RC1 expected within the next week. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) but is not finalized until release.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
@@ -270,7 +270,7 @@ Before working on any Go/Gin task:
 ## Updated from Research (2026-05-28)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began May 20, 2026 — 10 days in as of May 30, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began May 20, 2026 — 12 days in as of June 1, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Expected release: **August 2026** (6 months after Go 1.26)
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
 - **Native UUID package** — Go 1.27 adds `uuid` to stdlib. `uuid.New()` (v4), `uuid.NewRandomV7()` (v7), `uuid.Parse()`. `uuid.UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. Migration is trivial. See [proposal](https://rednafi.com/shards/2026/04/go-uuid/)
