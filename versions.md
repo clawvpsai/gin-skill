@@ -2,8 +2,8 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.3, released 07 May 2026)
-- **Go 1.25** — Previous stable (go1.25.10, released 07 May 2026)
+- **Go 1.26** — Current stable (go1.26.4, released 02 Jun 2026)
+- **Go 1.25** — Previous stable (go1.25.11, released 02 Jun 2026)
 - **Go 1.24** — Still supported (minimum for Gin v1.12)
 
 ## Version Selector Prompt
@@ -37,7 +37,13 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** Go 1.26.3 released 07 May 2026
+**Release:** Go 1.26.4 released 02 Jun 2026
+
+### Go 1.26.4 Security Patch (2026-06-02)
+
+- **Security fixes** to `crypto/x509`, `mime`, and `net/textproto` packages
+- Bug fixes to compiler, runtime, `go fix` command, and `crypto/fips140` package
+- **Upgrade immediately** if running Go 1.26.0–1.26.3 in production
 
 ---
 
@@ -86,7 +92,13 @@ The Go 1.27 release freeze began **May 20, 2026** — 12 days in as of June 1, n
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
-**Release:** Go 1.25.10 released 07 May 2026
+**Release:** Go 1.25.11 released 02 Jun 2026
+
+### Go 1.25.11 Security Patch (2026-06-02)
+
+- **Security fixes** to `crypto/x509`, `mime`, and `net/textproto` packages (same CVEs as Go 1.26.4)
+- Bug fixes to compiler and runtime
+- **Upgrade immediately** if running Go 1.25.0–1.25.10 in production
 
 ---
 
@@ -267,25 +279,26 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-05-28)
+## Updated from Research (2026-06-03)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began May 20, 2026 — 12 days in as of June 1, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began May 20, 2026 — no RC1 yet as of June 3 ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
 - Expected release: **August 2026** (6 months after Go 1.26)
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
 - **Native UUID package** — Go 1.27 adds `uuid` to stdlib. `uuid.New()` (v4), `uuid.NewRandomV7()` (v7), `uuid.Parse()`. `uuid.UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. Migration is trivial. See [proposal](https://rednafi.com/shards/2026/04/go-uuid/)
 - Go 1.27 release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, not finalized)
 - Gin v1.13 is not yet released — v1.12.0 (Feb 2026) remains current
-- quic-go v0.59.1 still latest stable (v0.60 dev adds FIPS 140-3 support)
+- quic-go v0.59.1 latest stable (v0.60 dev adds FIPS 140-3 support)
 
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
 - **go-redis v9.20.0** — released 2026-05-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
-- **Go 1.26.3** — current stable
-- **Go 1.25.10** — previous stable
-- **Go 1.27** — in release freeze, no RC1 yet (as of May 28, 2026)
+- **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)** ← updated from 1.26.3
+- **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)** ← updated from 1.25.10
+- **Go 1.27** — in release freeze, no RC1 yet (as of Jun 3, 2026)
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.52.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
@@ -295,7 +308,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
 - **quic-go v0.60 (development)** — adds FIPS 140-3 support when built with Go 1.26+
-- **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors)
+- **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors); released 2026-03-28
 - **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 
 ### Sources
@@ -306,4 +319,5 @@ Before working on any Go/Gin task:
 - https://github.com/gin-contrib/cors/releases
 - https://github.com/golang-migrate/migrate/releases
 - https://go.dev/dl/
+- https://go.dev/doc/devel/release
 - https://rednafi.com/shards/2026/04/go-uuid/
