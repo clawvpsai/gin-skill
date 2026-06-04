@@ -49,13 +49,33 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 12 days in as of June 1, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. RC1 expected within the next week. The draft release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) but is not finalized until release.
+The Go 1.27 release freeze began **May 20, 2026** — 15 days in as of June 4, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
 ### New in Go 1.27
 
-- **Native UUID package in stdlib** — `uuid` package (not `crypto/uuid`) provides `New()`, `NewRandomV7()`, and `Parse()`. `UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. UUIDv7 (time-ordered) is recommended for database primary keys. See [Go UUID Proposal](https://rednafi.com/shards/2026/04/go-uuid/) for migration guide.
+- **Generic methods** — a method declaration may declare its own type parameters. This widely anticipated change allows adding generic methods to any type (including interfaces, with some restrictions). Interface methods cannot be implemented by generic methods, and interface methods may not declare type parameters.
+  ```go
+  // Generic method on a concrete type
+  type Stack[T any] struct { items []T }
+  func (s *Stack[T]) PushAll(vals ...T) { s.items = append(s.items, vals...) }
+
+  // Generic method on an interface
+  type Stringer interface {
+      String() string
+      GenericMap[F any](func(T) F) []F  // generic method in interface
+  }
+  ```
+- **Flexible struct literal keys** — a key in a struct literal may now be any valid field selector for the struct type, not just a top-level field name. Enables cleaner initialization patterns with nested or promoted fields.
+  ```go
+  type Inner struct { X int }
+  type Outer struct { Inner }
+
+  // Go 1.27: use dot notation as struct literal keys
+  // o := Outer{Inner: {X: 1}}  // was required before
+  ```
+- **Native `uuid` package in stdlib** — `uuid` package provides `New()`, `NewRandomV7()`, and `Parse()`. `UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. UUIDv7 (time-ordered) is recommended for database primary keys. See [Go UUID Proposal](https://rednafi.com/shards/2026/04/go-uuid/).
   ```go
   import "uuid"
 
@@ -63,11 +83,25 @@ The Go 1.27 release freeze began **May 20, 2026** — 12 days in as of June 1, n
   id := uuid.NewRandomV7()  // UUIDv7 (time-ordered — better for DB indexes)
   parsed, err := uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
   ```
+- **`math/big.Int.Divide()`** — new method computes both quotient and remainder in a single call, matching the behavior of `big.Int.QuoRem` but with a simpler API.
+  ```go
+  var q, r big.Int
+  r.Divide(&q, &r, 3)  // q = n/3, r = n%3
+  ```
+- **`net/url.URL.Clone()` and `net/url.Values.Clone()`** — deep-copy methods for URL and query parameter maps. Useful when modifying request URLs in middleware without affecting the original.
+  ```go
+  cloned := req.URL.Clone()       // deep copy of URL
+  params := values.Clone()        // deep copy of query params
+  ```
+- **`go/scanner.Scanner.End()`** — new method returns the end position of the last token scanned. Useful for source code transformation tools and custom linters.
+- **`math/rand/v2` generic `*Rand.N` method** — the `*Rand` type now has a generic `N` method matching the top-level `N` function, enabling per-RNG-source random selection with type-safe bounds.
+- **`net.UnixConn` read methods return `io.EOF` directly** — previously wrapped in `net.OpError`; now returns `io.EOF` directly when the underlying read returns EOF. Quieter error handling for clean connection shutdowns.
+- **QUIC/TLS support** — `tls.ConnectionState` now exposes QUIC connection state for HTTP/3 implementations using the stdlib TLS package directly.
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12. Upgrade to Go 1.26 or later for macOS development.
 - **`go fix` improvements** — additional analyzers for deprecated patterns
 - **Toolchain refinements** — continued improvement to error messages and diagnostics
 
-**Release notes:** [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (finalized at release)
+**Release notes:** [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, finalized at release)
 **Tracking:** [golang/go#76474](https://github.com/golang/go/issues/76474)
 
 ---
@@ -224,7 +258,7 @@ require (
 ```bash
 # Check Go version
 go version
-# go version go1.26.3 linux/amd64
+# go version go1.26.4 linux/amd64
 
 # Check Gin version
 go list -m github.com/gin-gonic/gin
@@ -279,26 +313,35 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-03)
+## Updated from Research (2026-06-04)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began May 20, 2026 — no RC1 yet as of June 3 ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began **May 20, 2026** — **15 days in as of June 4**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirm all features below
 - **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
-- Expected release: **August 2026** (6 months after Go 1.26)
+- Expected final release: **August 2026**
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
-- **Native UUID package** — Go 1.27 adds `uuid` to stdlib. `uuid.New()` (v4), `uuid.NewRandomV7()` (v7), `uuid.Parse()`. `uuid.UUID` is `[16]byte` — API-compatible with `github.com/google/uuid`. Migration is trivial. See [proposal](https://rednafi.com/shards/2026/04/go-uuid/)
-- Go 1.27 release notes page exists at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, not finalized)
-- Gin v1.13 is not yet released — v1.12.0 (Feb 2026) remains current
-- quic-go v0.59.1 latest stable (v0.60 dev adds FIPS 140-3 support)
+
+### Go 1.27 New Features (Confirmed from Draft Release Notes)
+- **Generic methods** — method declarations may now declare type parameters. Major language change. Interfaces may include generic methods, but cannot be implemented by generic methods.
+- **Flexible struct literal keys** — keys can be any valid field selector (e.g., nested/promoted field access)
+- **Native `uuid` package** — stdlib `uuid.New()`, `uuid.NewRandomV7()`, `uuid.Parse()`; `[16]byte` type; API-compatible with `github.com/google/uuid`
+- **`math/big.Int.Divide()`** — quotient + remainder in one call
+- **`net/url.URL.Clone()` / `net/url.Values.Clone()`** — deep copy of URLs and query params
+- **`go/scanner.Scanner.End()`** — get end position of last token
+- **`math/rand/v2` generic `*Rand.N`** — per-RNG random selection
+- **`net.UnixConn` EOF behavior** — returns `io.EOF` directly instead of wrapped in `net.OpError`
+- **QUIC/TLS state** — `tls.ConnectionState` exposes QUIC connection state
+- Gin v1.13 not yet released — v1.12.0 (Feb 2026) remains current
 
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
 - **go-redis v9.20.0** — released 2026-05-28, latest stable
 - **GORM v1.31.1** — released 2025-11-02, latest stable
-- **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)** ← updated from 1.26.3
-- **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)** ← updated from 1.25.10
-- **Go 1.27** — in release freeze, no RC1 yet (as of Jun 3, 2026)
+- **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
+- **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)**
+- **Go 1.27** — in release freeze (15 days in as of Jun 4), no RC1 yet
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.52.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
@@ -312,6 +355,8 @@ Before working on any Go/Gin task:
 - **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 
 ### Sources
+- https://go.dev/doc/go1.27 (draft release notes — confirmed features)
+- https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
 - https://github.com/gin-gonic/gin/releases
 - https://github.com/redis/go-redis/releases
 - https://github.com/go-gorm/gorm/releases
