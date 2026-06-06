@@ -277,9 +277,9 @@ go list -m all
 | Dependency | Min Version | Notes |
 |---|---|---|
 | Go | 1.24+ | **Minimum raised to 1.24 in Gin v1.12** |
-| golang-jwt/jwt/**v5** | v5.x | **v4 is deprecated, always use v5** |
+| **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
-| go-redis/redis/v9 | v9.x | **Current: v9.20.0 (May 2026)** |
+| **github.com/redis/redis/v9** | v9.x | **Current: v9.20.0 (May 2026)** |
 | golang.org/x/crypto | v0.52.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
 | golang.org/x/sys | v0.45.0 | System calls; comes with Go 1.26 toolchain |
