@@ -49,7 +49,7 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 15 days in as of June 4, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
+The Go 1.27 release freeze began **May 20, 2026** — 17 days in as of June 6, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
@@ -316,7 +316,7 @@ Before working on any Go/Gin task:
 ## Updated from Research (2026-06-04)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **15 days in as of June 4**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began **May 20, 2026** — **17 days in as of June 6**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirm all features below
 - **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
 - Expected final release: **August 2026**
@@ -341,7 +341,7 @@ Before working on any Go/Gin task:
 - **GORM v1.31.1** — released 2025-11-02, latest stable
 - **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
 - **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)**
-- **Go 1.27** — in release freeze (15 days in as of Jun 4), no RC1 yet
+- **Go 1.27** — in release freeze (17 days in as of Jun 6), no RC1 yet
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
 - **golang.org/x/crypto v0.52.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
