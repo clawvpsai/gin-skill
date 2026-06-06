@@ -286,7 +286,7 @@ go list -m all
 | golang.org/x/text | v0.37.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.27.0 | CPU architecture support |
 | **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
-| quic-go | v0.59.1 | HTTP/3 support (Gin v1.12+); **v0.59.1 released 2026-05-11**; v0.60 (dev) adds FIPS 140-3 support |
+| quic-go | v0.60.0 | HTTP/3 support (Gin v1.12+); **v0.60.0 released 2026-06-06**; **Go 1.25+ required**; FIPS 140-3 ready (Go 1.26+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
 | **golang-migrate/migrate** | **v4.19.1** | **SQL migrations (github.com/golang-migrate/migrate)** |
@@ -296,9 +296,10 @@ go list -m all
 1. **jwt-go → jwt/v5** — `github.com/golang-jwt/jwt/v5` **not** `github.com/golang-jwt/jwt/v4` (v4 is deprecated)
 2. **Binding tags** — Gin uses `binding:""` (NOT `validate:""`) — Gin internally uses go-playground/validator but calls `SetTagName("binding")` to override the default tag name
 3. **context** — `c.Request.Context()` not `c.Content`
-4. **Go version too old** — Gin v1.12 requires Go 1.24+
+4. **Go version too old** — Gin v1.12 requires Go 1.24+; **quic-go v0.60.0 requires Go 1.25+**
 5. **Dockerfile Go version** — Use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT `golang:1.22-alpine`
 6. **UUID package** — prefer stdlib `uuid` on Go 1.27+; fall back to `github.com/google/uuid` on Go <1.27
+7. **quic-go v0.60.0 + FIPS** — FIPS 140-3 support requires Go 1.26+; Go 1.25 minimum for quic-go v0.60.0 itself
 
 ---
 
@@ -313,7 +314,7 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-04)
+## Updated from Research (2026-06-06)
 
 ### Go 1.27 Development Status
 - Go 1.27 release freeze began **May 20, 2026** — **17 days in as of June 6**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
@@ -350,7 +351,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/arch v0.27.0** — latest stable
 - **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
-- **quic-go v0.60 (development)** — adds FIPS 140-3 support when built with Go 1.26+
+- **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); **released 2026-06-06**; Go 1.25+ required; **FIPS 140-3 ready (Go 1.26+)**; uses stdlib crypto/hkdf and stdlib TLS 1.3 AES-GCM
 - **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors); released 2026-03-28
 - **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
 
