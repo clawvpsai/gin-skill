@@ -275,10 +275,10 @@ server {
 ```
 
 **quic-go version compatibility:**
-- **quic-go v0.59.1** (stable, 2026-05-11) — current recommended for production
-- **quic-go v0.60 (development)** — adds FIPS 140-3 compliance support when built with Go 1.26+; not yet stable
+- **quic-go v0.59.1** (stable, 2026-05-11) — previous stable
+- **quic-go v0.60.0** (stable, 2026-06-06) — adds FIPS 140-3 compliance support when built with Go 1.26+; Go 1.25+ required
 - Gin v1.12.x works with either version via `github.com/quic-go/quic-go/http3`
-- Add to `go.mod`: `github.com/quic-go/quic-go v0.59.1`
+- Add to `go.mod`: `github.com/quic-go/quic-go v0.60.0`
 
 **When to use HTTP/3:**
 - Public APIs with diverse client networks (mobile, international)
@@ -316,10 +316,10 @@ server {
 - QUIC requires **TLS 1.3** minimum — older TLS versions won't work with HTTP/3
 - `ssl_protocols TLSv1.3` in Nginx is required for HTTP/3 to function
 
-### quic-go v0.60 (dev)
-- **quic-go v0.60 (development)** adds FIPS 140-3 compliance support when built with Go 1.26+
-- For production, stick with **quic-go v0.59.1** (stable)
-- The v0.60 dev version is useful for FIPS-compliant government/defense deployments
+### quic-go v0.60.0 (stable)
+- **quic-go v0.60.0** adds FIPS 140-3 compliance support; Go 1.25+ required
+- For production, use **quic-go v0.60.0** (stable, 2026-06-06)
+- v0.59.1 still works but lacks FIPS 140-3 support
 
 ### Sources
 - https://github.com/quic-go/quic-go/releases
