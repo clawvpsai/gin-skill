@@ -39,7 +39,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o /server ./cmd/server
 
 # Runtime stage
-FROM alpine:3.21
+FROM alpine:3.22.4
 
 WORKDIR /app
 

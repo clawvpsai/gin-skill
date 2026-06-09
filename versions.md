@@ -49,7 +49,7 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 17 days in as of June 6, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
+The Go 1.27 release freeze began **May 20, 2026** — 20 days in as of June 9, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
@@ -248,8 +248,8 @@ go 1.26
 require (
     github.com/gin-gonic/gin v1.12.0
     github.com/golang-jwt/jwt/v5 v5.3.1
-    golang.org/x/crypto v0.52.0
-    golang.org/x/sync v0.20.0
+    golang.org/x/crypto v0.53.0
+    golang.org/x/sync v0.21.0
 )
 ```
 
@@ -280,12 +280,12 @@ go list -m all
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
 | **github.com/redis/redis/v9** | v9.x | **Current: v9.20.0 (May 2026)** |
-| golang.org/x/crypto | v0.52.0+ | Latest stable; Gin main uses v0.49.0 |
+| golang.org/x/crypto | v0.53.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
-| golang.org/x/sys | v0.45.0 | System calls; comes with Go 1.26 toolchain |
-| golang.org/x/text | v0.37.0 | Text encoding, Unicode |
-| golang.org/x/arch | v0.27.0 | CPU architecture support |
-| **golang.org/x/sync** | **v0.20.0** | **errgroup, semaphore — used in concurrency.md** |
+| golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain |
+| golang.org/x/text | v0.38.0 | Text encoding, Unicode |
+| golang.org/x/arch | v0.28.0 | CPU architecture support |
+| **golang.org/x/sync** | **v0.21.0** | **errgroup, semaphore — used in concurrency.md** |
 | quic-go | v0.60.0 | HTTP/3 support (Gin v1.12+); **v0.60.0 released 2026-06-06**; **Go 1.25+ required**; FIPS 140-3 ready (Go 1.26+) |
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
@@ -317,7 +317,7 @@ Before working on any Go/Gin task:
 ## Updated from Research (2026-06-06)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **17 days in as of June 6**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began **May 20, 2026** — **20 days in as of June 9**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirm all features below
 - **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
 - Expected final release: **August 2026**
@@ -342,14 +342,14 @@ Before working on any Go/Gin task:
 - **GORM v1.31.1** — released 2025-11-02, latest stable
 - **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
 - **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)**
-- **Go 1.27** — in release freeze (17 days in as of Jun 6), no RC1 yet
+- **Go 1.27** — in release freeze (20 days in as of Jun 9), no RC1 yet
 - **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
-- **golang.org/x/crypto v0.52.0** — latest stable
+- **golang.org/x/crypto v0.53.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
-- **golang.org/x/sys v0.45.0** — comes with Go 1.26 toolchain
-- **golang.org/x/text v0.37.0** — latest stable
-- **golang.org/x/arch v0.27.0** — latest stable
-- **golang.org/x/sync v0.20.0** — errgroup, semaphore — used in concurrency.md patterns
+- **golang.org/x/sys v0.46.0** — comes with Go 1.26 toolchain
+- **golang.org/x/text v0.38.0** — latest stable
+- **golang.org/x/arch v0.28.0** — latest stable
+- **golang.org/x/sync v0.21.0** — errgroup, semaphore — used in concurrency.md patterns
 - **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
 - **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); **released 2026-06-06**; Go 1.25+ required; **FIPS 140-3 ready (Go 1.26+)**; uses stdlib crypto/hkdf and stdlib TLS 1.3 AES-GCM
 - **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors); released 2026-03-28
