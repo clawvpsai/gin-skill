@@ -240,6 +240,13 @@ func getInstance() *Service {
 var getIngestClient = sync.OnceValue(func() *IngestClient {
     return NewIngestClient()
 })
+
+// Or sync.OnceFunc (Go 1.24+) — when you do not need a return value
+var setupBackgroundWorker = sync.OnceFunc(func() {
+    go backgroundWorker() // start once, never again
+})
+
+// Usage: setupBackgroundWorker() // safe to call multiple times, runs exactly once
 ```
 
 ## errgroup — Propagating Errors with Context
@@ -697,6 +704,7 @@ func callDownstreamService(ctx context.Context, url string) ([]byte, error) {
 - `slices.Filter`, `slices.IndexFunc`, `slices.Concat` reduce boilerplate in concurrent data processing
 - `slices.Concat(slices...)` performs a **single allocation** to join multiple slices — prefer over repeated `append` loops in batch/worker-pool patterns where results are collected in batches
 - `sync.OnceValue` (Go 1.21+) replaces manual `sync.Once` + initialization patterns
+- `sync.OnceFunc` (Go 1.24+) — same idea as OnceValue but for side-effects (no return value)
 
 ### context.WithCancelCause (Go 1.21+)
 - `WithCancelCause` attaches an error to cancellation — use `context.Cause(ctx)` to retrieve it
