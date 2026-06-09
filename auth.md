@@ -658,12 +658,12 @@ func OAuth2Callback(c *gin.Context) {
 ## Updated from Research (2026-05)
 
 ### PASETO (2026 Trend)
-- PASETO v4 is increasingly recommended over JWT for high-security APIs — eliminates entire classes of JOSE vulnerabilities
+- PASETO v2 (current) is recommended over JWT for high-security APIs — eliminates entire classes of JOSE vulnerabilities
 - `github.com/o1egl/paseto` is the standard Go implementation (100% pure Go)
-- v2.local (XChaCha20-Poly1305) for symmetric tokens — **recommended for most Go apps**
+- v2.local (XChaCha20-Poly1305) for symmetric tokens — recommended for most Go apps
 - v2.public (Ed25519/EdDSA) for asymmetric tokens — recommended for OAuth/OIDC
 - Key advantage: no algorithm negotiation, no `alg:none` attacks, no header injection
-- Not a full replacement: JWT still dominant in OAuth/OIDC ecosystem and IdP integrations
+- Note: v2.0.0 (2020-01-18) is the latest PASETO release — there is no v4. JWT remains dominant in the OAuth/OIDC ecosystem and IdP integrations
 
 ### OAuth2 PKCE (RFC 7636)
 - Required for mobile apps, SPAs, and any public client where client_secret can't be kept confidential

@@ -354,7 +354,7 @@ ENV=production
 ## Updated from Research (2026-05)
 
 ### Docker Improvements
-- **Alpine 3.21** is now preferred over 3.19 (security fixes, updated CA certs)
+- **Alpine 3.22.4** is current (security fixes, updated CA certs)
 - **`-ldflags="-w -s"`** — strips debug info, reduces binary size by ~15%
 - **Compose `resources:` block** — works with both Docker Compose V2 (`docker compose`) and Swarm (`docker stack deploy`); `deploy:` is Swarm-only and ignored by standalone Compose V2
 - **`version:` key removed** — modern Compose Specification (V2+) no longer uses it
