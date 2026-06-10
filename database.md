@@ -262,7 +262,7 @@ func releaseLock(ctx context.Context, key string) error {
 
 ## ⚠️ Redis Security — May 2026 Critical CVEs
 
-Redis server 8.x has **5 critical/high severity CVEs** patched in Redis 8.6.3 (May 5, 2026):
+Redis server 8.x had **5 critical/high severity CVEs** patched in Redis 8.6.3 (May 5, 2026):
 
 | CVE | Severity | Impact |
 |---|---|---|
@@ -273,10 +273,14 @@ Redis server 8.x has **5 critical/high severity CVEs** patched in Redis 8.6.3 (M
 | CVE-2026-23631 | High | Additional RESTORE/RDB issue |
 
 **Action items:**
-- **Upgrade Redis server to 8.6.3+ immediately** if running Redis 8.x in production
+- **Upgrade Redis server to 8.6.4+ immediately** — 8.6.3 (May CVE patch) superseded by 8.6.4 (June 4, 2026) with additional critical bug fixes
 - These are server-side vulnerabilities — the `go-redis/v9` client is not affected
 - If using Redis in a Go deployment, ensure your **Redis server** (not the client lib) is patched
 - Monitor [Redis security advisories](https://redis.io/docs/latest/operate/rc/security/) for your deployment method (Redis Open Source, Redis Stack, or Redis Enterprise)
+
+**Redis 8.6.4** (June 4, 2026) — bug fix release superseding 8.6.3. Critical fixes include use-after-free, AArch64 startup crash on Linux, Lua debugger under-copy, cluster crash on `CLIENT KILL` inside `EXEC`, `XREADGROUP` consumer replication inconsistency, TCP deadlock fixes, and `SCAN` integer overflow in `COUNT` parameter.
+
+**Redis 8.8.0** (May 25, 2026) — latest minor in the 8.x line with general improvements.
 
 ```go
 // Verify Redis server version in health checks
@@ -286,12 +290,17 @@ func RedisHealthCheck(ctx context.Context) error {
         return err
     }
     // Parse "redis_version:X.X.X" from ver string
-    // Reject if version < 8.6.3
+    // Reject if version < 8.6.4
     return nil
 }
 ```
 
-## Updated from Research (2026-05-30)
+## Updated from Research (2026-06-10)
+
+### Redis 8.6.4 (June 4, 2026)
+- Supersedes 8.6.3 (May CVE patch) with additional critical bug fixes
+- Affects production Redis 8.x deployments — upgrade required
+- Key fixes: use-after-free (#15059), AArch64 startup crash, Lua debugger under-copy, cluster crash in `EXEC`, `XREADGROUP` inconsistency, TCP stalls/deadlocks (#14667, #14886)
 
 ### go-redis v9 Pipelines & Locks
 - **Pipeline** usage now recommended for batch Redis operations — reduces round trips significantly
@@ -303,5 +312,7 @@ func RedisHealthCheck(ctx context.Context) error {
 - Transaction callback pattern is stable and preferred over manual session management
 
 ### Sources
-- https://github.com/redis/go-redis/releases
+- https://github.com/redis/redis/releases
 - https://github.com/go-gorm/gorm/releases
+- Redis 8.6.4 release notes (GitHub)
+

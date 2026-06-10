@@ -49,9 +49,12 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 20 days in as of June 9, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
+The Go 1.27 release freeze began **May 20, 2026** — 21 days in as of June 10, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
+
+> **No Go 1.27 RC as of June 10, 2026** — Go 1.27 remains in release freeze 21 days in with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
+
 
 ### New in Go 1.27
 
@@ -314,10 +317,10 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-06)
+## Updated from Research (2026-06-10)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **20 days in as of June 9**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began **May 20, 2026** — **21 days in as of June 10**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirm all features below
 - **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
 - Expected final release: **August 2026**
