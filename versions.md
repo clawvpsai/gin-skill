@@ -3,7 +3,7 @@
 ## Active Go Versions
 
 - **Go 1.26** — Current stable (go1.26.4, released 02 Jun 2026)
-- **Go 1.25** — Previous stable (go1.25.11, released 02 Jun 2026)
+- **Go 1.25** — Previous stable (go1.25.12, released 07 Jun 2026)
 - **Go 1.24** — Still supported (minimum for Gin v1.12)
 
 ## Version Selector Prompt
@@ -49,11 +49,11 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 21 days in as of June 10, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
+The Go 1.27 release freeze began **May 20, 2026** — 24 days in as of June 13, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 10, 2026** — Go 1.27 remains in release freeze 21 days in with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
+> **No Go 1.27 RC as of June 13, 2026** — Go 1.27 remains in release freeze 24 days in with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
 
 
 ### New in Go 1.27
@@ -101,8 +101,18 @@ The Go 1.27 release freeze began **May 20, 2026** — 21 days in as of June 10, 
 - **`net.UnixConn` read methods return `io.EOF` directly** — previously wrapped in `net.OpError`; now returns `io.EOF` directly when the underlying read returns EOF. Quieter error handling for clean connection shutdowns.
 - **QUIC/TLS support** — `tls.ConnectionState` now exposes QUIC connection state for HTTP/3 implementations using the stdlib TLS package directly.
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12. Upgrade to Go 1.26 or later for macOS development.
-- **`go fix` improvements** — additional analyzers for deprecated patterns
 - **Toolchain refinements** — continued improvement to error messages and diagnostics
+
+### Go 1.27 Tools Improvements (Draft Release Notes)
+
+- **Response file support** — `@file` parsing now supported for `compile`, `link`, `asm`, `cgo`, `cover`, and `pack` tools. Arguments in response files support single/double quotes, escape sequences, and backslash line continuation. GCC-compatible format for build system interoperability.
+- **`go test` stdversion vet check** — `go test` now runs the `stdversion` vet check by default. Reports when code uses stdlib symbols newer than the `go` directive in `go.mod` allows.
+- **`go fix` new modernizers:** `atomictypes` (atomic type aliases), `embedlit` (embed directives), `slicesbackward` (backward `slices` iteration), `unsafefuncs` (unsafe function conversions).
+- **`go fix` removed/renamed:** `fmtappendf` analyzer removed; `waitgroup` analyzer renamed to `waitgroupgo` to avoid ambiguity.
+- **`go mod tidy` for go 1.27+ modules** — automatically merges duplicate `require` blocks into at most two blocks (direct + indirect). No more scattered duplicates.
+- **Compiler `//line` relative paths** — `//line` and `/*line*/` directives now resolve relative filenames against the directory of the file containing the directive, matching `go/scanner` behavior.
+- **`go` command + bzr removed** — support for the `bzr` version control system removed from `go get`/`go mod`; cannot fetch modules from bzr servers.
+- **GODEBUG recognition** — `go` command now recognizes deprecated GODEBUG settings in `go.mod` (`go debug` entries) and `//go:debug` comments; accepts if set to final default value, fails if set to old value.
 
 **Release notes:** [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, finalized at release)
 **Tracking:** [golang/go#76474](https://github.com/golang/go/issues/76474)
@@ -129,13 +139,15 @@ The Go 1.27 release freeze began **May 20, 2026** — 21 days in as of June 10, 
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
-**Release:** Go 1.25.11 released 02 Jun 2026
+**Release:** Go 1.25.12 released 07 Jun 2026
 
-### Go 1.25.11 Security Patch (2026-06-02)
+### Go 1.25.12 Security Patch (2026-06-07)
 
-- **Security fixes** to `crypto/x509`, `mime`, and `net/textproto` packages (same CVEs as Go 1.26.4)
+- **Security fixes** to `crypto/x509`, `mime`, and `net/textproto` packages
 - Bug fixes to compiler and runtime
-- **Upgrade immediately** if running Go 1.25.0–1.25.10 in production
+- **Upgrade immediately** if running Go 1.25.0–1.25.11 in production
+
+> Note: This supersedes the Go 1.25.11 patch. Systems running Go 1.25.11 on the release dashboard (pre-June 7) should upgrade to 1.25.12.
 
 ---
 
@@ -199,6 +211,13 @@ The Go 1.27 release freeze began **May 20, 2026** — 21 days in as of June 10, 
 - **Flush Safety** — `Flush()` no longer panics if `http.ResponseWriter` doesn't implement `http.Flusher`
 - **Unix Socket Trust** — `X-Forwarded-For` always trusted over Unix sockets
 - **Router Tree Optimizations** — fewer allocations, faster path parsing
+
+### Gin v1.13 (Upcoming — Due June 30, 2026)
+
+- **Milestone #28**: 50% complete, due **June 30, 2026** (last updated June 10, 2026)
+- Not yet released — v1.12.x remains current
+- Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
+- **For agents**: When v1.13 drops, check release notes before applying version-specific patterns.
 
 ### Gin v1.11 (HTTP/3 Support)
 
@@ -280,9 +299,10 @@ go list -m all
 | Dependency | Min Version | Notes |
 |---|---|---|
 | Go | 1.24+ | **Minimum raised to 1.24 in Gin v1.12** |
+| Go | 1.25+ | **Required for quic-go v0.60.0+** |
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
-| gorm.io/gorm | v1.25+ | **Current: v1.31+ (Nov 2025)** |
-| **github.com/redis/redis/v9** | v9.x | **Current: v9.20.1 (Jun 2026)** |
+| gorm.io/gorm | v1.25+ | **Current: v1.31+** |
+| **github.com/redis/redis/v9** | v9.x | **Current: v9.20.1** |
 | golang.org/x/crypto | v0.53.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
 | golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain |
@@ -317,12 +337,12 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-10)
+## Updated from Research (2026-06-13)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **21 days in as of June 10**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
-- Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirm all features below
-- **Go 1.26.4 and Go 1.25.11 released 2026-06-02** — security patches for `crypto/x509`, `mime`, `net/textproto`
+- Go 1.27 release freeze began **May 20, 2026** — **24 days in as of June 13**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirmed all features below plus new tools improvements
+- **Go 1.25.12 released 2026-06-07** — security patches for `crypto/x509`, `mime`, `net/textproto` (supersedes 1.25.11)
 - Expected final release: **August 2026**
 - **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
 
@@ -336,32 +356,47 @@ Before working on any Go/Gin task:
 - **`math/rand/v2` generic `*Rand.N`** — per-RNG random selection
 - **`net.UnixConn` EOF behavior** — returns `io.EOF` directly instead of wrapped in `net.OpError`
 - **QUIC/TLS state** — `tls.ConnectionState` exposes QUIC connection state
-- Gin v1.13 not yet released — v1.12.0 (Feb 2026) remains current
+
+### Go 1.27 Tools (New in Draft Release Notes)
+- Response file (`@file`) support for compile/link/asm/cgo/cover/pack — GCC-compatible
+- `go test` now runs `stdversion` vet check by default
+- `go fix` new modernizers: `atomictypes`, `embedlit`, `slicesbackward`, `unsafefuncs`
+- `go fix`: `fmtappendf` removed, `waitgroup` renamed to `waitgroupgo`
+- `go mod tidy` auto-merges duplicate `require` blocks for `go 1.27+` modules
+- Compiler `//line` relative path resolution improved
+- `bzr` VCS support removed from `go` command
+
+### Gin v1.13
+- Milestone #28: 50% complete, due **June 30, 2026** (last updated June 10)
+- Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
+- v1.12.x remains current until v1.13 ships
 
 ### Versions
 
-- **Gin v1.12.0** — released 2026-02-28, current latest (no v1.13 yet)
-- **go-redis v9.20.1** — released 2026-06-11, latest stable
-- **GORM v1.31.1** — released 2025-11-02, latest stable
+- **Gin v1.12.0** — released 2026-02-28, current latest
+- **Gin v1.13** — milestone #28, due 2026-06-30, 50% complete, not yet released
+- **go-redis v9.20.1** — latest stable
+- **GORM v1.31.1** — latest stable
 - **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
-- **Go 1.25.11** — **previous stable (security patch, 02 Jun 2026)**
-- **Go 1.27** — in release freeze (20 days in as of Jun 9), no RC1 yet
-- **golang-jwt/jwt v5.3.1** — released 2026-01-28, latest stable
+- **Go 1.25.12** — **previous stable (security patch, 07 Jun 2026)**
+- **Go 1.27** — in release freeze (24 days in as of Jun 13), no RC1 yet
+- **golang-jwt/jwt v5.3.1** — latest stable
 - **golang.org/x/crypto v0.53.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
 - **golang.org/x/sys v0.46.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.38.0** — latest stable
 - **golang.org/x/arch v0.28.0** — latest stable
 - **golang.org/x/sync v0.21.0** — errgroup, semaphore — used in concurrency.md patterns
-- **quic-go v0.59.1** — HTTP/3 support (Gin v1.12+); released 2026-05-11
 - **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); **released 2026-06-06**; Go 1.25+ required; **FIPS 140-3 ready (Go 1.26+)**; uses stdlib crypto/hkdf and stdlib TLS 1.3 AES-GCM
-- **gin-contrib/cors v1.7.7** — CORS middleware (github.com/gin-contrib/cors); released 2026-03-28
-- **golang-migrate/migrate v4.19.1** — SQL migrations (github.com/golang-migrate/migrate, Nov 2025)
+- **gin-contrib/cors v1.7.7** — CORS middleware; released 2026-03-28
+- **golang-migrate/migrate v4.19.1** — SQL migrations
 
 ### Sources
 - https://go.dev/doc/go1.27 (draft release notes — confirmed features)
 - https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
+- https://dev.golang.org/release (Go release dashboard)
 - https://github.com/gin-gonic/gin/releases
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 milestone)
 - https://github.com/redis/go-redis/releases
 - https://github.com/go-gorm/gorm/releases
 - https://github.com/quic-go/quic-go/releases
