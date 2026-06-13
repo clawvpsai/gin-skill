@@ -90,7 +90,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   cache:
-    image: redis:7-alpine
+    image: redis:8-alpine
     volumes:
       - redisdata:/data
 
@@ -145,7 +145,7 @@ services:
       retries: 5
 
   cache:
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: always
     command: redis-server --appendonly yes
     volumes:
@@ -354,7 +354,7 @@ ENV=production
 ## Updated from Research (2026-05)
 
 ### Docker Improvements
-- **Alpine 3.22.4** is current (security fixes, updated CA certs)
+- **Alpine 3.24.0** is current (June 2026 — matches Dockerfile alpine base)
 - **`-ldflags="-w -s"`** — strips debug info, reduces binary size by ~15%
 - **Compose `resources:` block** — works with both Docker Compose V2 (`docker compose`) and Swarm (`docker stack deploy`); `deploy:` is Swarm-only and ignored by standalone Compose V2
 - **`version:` key removed** — modern Compose Specification (V2+) no longer uses it
