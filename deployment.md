@@ -332,7 +332,7 @@ ENV=production
 | Image | Go Version | Notes |
 |-------|------------|-------|
 | `golang:1.26-alpine` | 1.26.4 | **Recommended** for production (June 2026) |
-| `golang:1.25-alpine` | 1.25.11 | Previous stable (security patch, 02 Jun 2026) |
+| `golang:1.25-alpine` | 1.25.12 | Previous stable (security patch, 07 Jun 2026) |
 | `golang:1.24-alpine` | 1.24.4 | Gin v1.12 minimum requirement |
 
 **Note:** Gin v1.12 requires Go 1.24+. Always use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT older versions.
