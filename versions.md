@@ -49,12 +49,11 @@ Then load the relevant version sections below.
 
 ## Go 1.27 (Release Freeze — Expected Aug 2026)
 
-The Go 1.27 release freeze began **May 20, 2026** — 24 days in as of June 13, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
+The Go 1.27 release freeze began **May 20, 2026** — 25 days in as of June 14, no RC1 yet. Monitor the [Go release dashboard](https://dev.golang.org/release) for tag announcements. The draft release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
-**For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 12 is dropped in Go 1.27 — use Go 1.26 for macOS 12 environments.
+**For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 13, 2026** — Go 1.27 remains in release freeze 24 days in with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
-
+> **No Go 1.27 RC as of June 14, 2026** — Go 1.27 remains in release freeze (25 days in) with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
 
 ### New in Go 1.27
 
@@ -100,19 +99,57 @@ The Go 1.27 release freeze began **May 20, 2026** — 24 days in as of June 13, 
 - **`math/rand/v2` generic `*Rand.N` method** — the `*Rand` type now has a generic `N` method matching the top-level `N` function, enabling per-RNG-source random selection with type-safe bounds.
 - **`net.UnixConn` read methods return `io.EOF` directly** — previously wrapped in `net.OpError`; now returns `io.EOF` directly when the underlying read returns EOF. Quieter error handling for clean connection shutdowns.
 - **QUIC/TLS support** — `tls.ConnectionState` now exposes QUIC connection state for HTTP/3 implementations using the stdlib TLS package directly.
-- **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12. Upgrade to Go 1.26 or later for macOS development.
+- **Size-specialized memory allocation** — compiler now generates calls to size-specialized memory allocation routines, reducing cost of small (<80 byte) allocations by up to 30%. Expected ~1% overall improvement in allocation-heavy programs. Binary size increases ~60KB. Opt out with `GOEXPERIMENT=nosizespecializedmalloc` (temporary opt-out, removed in Go 1.28).
 - **Toolchain refinements** — continued improvement to error messages and diagnostics
+
+### New `encoding/json/v2` Package (Go 1.27)
+
+Major redesign of `encoding/json` in a new `v2` sub-package — not a replacement, `encoding/json` v1 is fully supported:
+
+```go
+import "encoding/json/v2"
+
+// New API with variadic Options
+data, err := jsonv2.Marshal(v, jsonv2.OMitZero, jsonv2.Name("custom_key"))
+
+// MarshalWrite writes directly to a Writer — no intermediate bytes.Buffer needed
+err = jsonv2.MarshalWrite(w, v)
+
+// UnmarshalRead reads directly from a Reader
+err = jsonv2.UnmarshalRead(r, &v)
+
+// Lower-level token decoding
+err = jsonv2.UnmarshalDecode(dec, &v)
+```
+
+**`encoding/json/jsontext`** — lower-level streaming JSON token processing:
+```go
+import "encoding/json/jsontext"
+dec := jsontext.NewDecoder(r)
+tok, err := dec.Token() // get next JSON token
+```
+
+**Stricter defaults than v1:**
+- Rejects invalid UTF-8 in JSON strings
+- Rejects duplicate names within a JSON object
+
+**Migration:** Use `encoding/json/v2` in new code. Existing `encoding/json` v1 code works unchanged — v1 is **not deprecated**.
 
 ### Go 1.27 Tools Improvements (Draft Release Notes)
 
 - **Response file support** — `@file` parsing now supported for `compile`, `link`, `asm`, `cgo`, `cover`, and `pack` tools. Arguments in response files support single/double quotes, escape sequences, and backslash line continuation. GCC-compatible format for build system interoperability.
 - **`go test` stdversion vet check** — `go test` now runs the `stdversion` vet check by default. Reports when code uses stdlib symbols newer than the `go` directive in `go.mod` allows.
-- **`go fix` new modernizers:** `atomictypes` (atomic type aliases), `embedlit` (embed directives), `slicesbackward` (backward `slices` iteration), `unsafefuncs` (unsafe function conversions).
+- **`go fix` new modernizers:** `atomictypes` (atomic type aliases), `embedlit` (embed directives), `slicesbackward` (backward `slices` iteration), `unsafefuncs` (unsafe function conversions)
 - **`go fix` removed/renamed:** `fmtappendf` analyzer removed; `waitgroup` analyzer renamed to `waitgroupgo` to avoid ambiguity.
 - **`go mod tidy` for go 1.27+ modules** — automatically merges duplicate `require` blocks into at most two blocks (direct + indirect). No more scattered duplicates.
 - **Compiler `//line` relative paths** — `//line` and `/*line*/` directives now resolve relative filenames against the directory of the file containing the directive, matching `go/scanner` behavior.
 - **`go` command + bzr removed** — support for the `bzr` version control system removed from `go get`/`go mod`; cannot fetch modules from bzr servers.
 - **GODEBUG recognition** — `go` command now recognizes deprecated GODEBUG settings in `go.mod` (`go debug` entries) and `//go:debug` comments; accepts if set to final default value, fails if set to old value.
+
+### Go 1.27 Ports Changes
+
+- **Darwin (macOS)**: Go 1.27 requires **macOS 13 Ventura or later** — macOS 12 Monterey support is dropped (previously announced in Go 1.26 release notes). Use Go 1.26 for macOS 12 environments.
+- **PowerPC 64-bit big-endian Linux (ppc64)**: Now uses ELFv2 ABI. Cgo, PIE, and external linking now supported. Requires Linux kernel 3.13+ (RHEL7 backported this support to its 3.10 kernel). For pure-Go binaries with cgo options, set `CGO_ENABLED=0`.
 
 **Release notes:** [go.dev/doc/go1.27](https://go.dev/doc/go1.27) (draft, finalized at release)
 **Tracking:** [golang/go#76474](https://github.com/golang/go/issues/76474)
@@ -214,7 +251,7 @@ The Go 1.27 release freeze began **May 20, 2026** — 24 days in as of June 13, 
 
 ### Gin v1.13 (Upcoming — Due June 30, 2026)
 
-- **Milestone #28**: 50% complete, due **June 30, 2026** (last updated June 10, 2026)
+- **Milestone #28**: 55% complete (15/27 issues closed), due **June 30, 2026** (last updated June 14, 2026)
 - Not yet released — v1.12.x remains current
 - Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
 - **For agents**: When v1.13 drops, check release notes before applying version-specific patterns.
@@ -302,7 +339,7 @@ go list -m all
 | Go | 1.25+ | **Required for quic-go v0.60.0+** |
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+** |
-| **github.com/redis/redis/v9** | v9.x | **Current: v9.20.1** |
+| **github.com/redis/go-redis/v9** | v9.x | **Current: v9.20.1** |
 | golang.org/x/crypto | v0.53.0+ | Latest stable; Gin main uses v0.49.0 |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
 | golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain |
@@ -323,6 +360,7 @@ go list -m all
 5. **Dockerfile Go version** — Use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT `golang:1.22-alpine`
 6. **UUID package** — prefer stdlib `uuid` on Go 1.27+; fall back to `github.com/google/uuid` on Go <1.27
 7. **quic-go v0.60.0 + FIPS** — FIPS 140-3 support requires Go 1.26+; Go 1.25 minimum for quic-go v0.60.0 itself
+8. **redis client module path** — use `github.com/redis/go-redis/v9` not `github.com/redis/redis/v9`
 
 ---
 
@@ -337,14 +375,14 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-13)
+## Updated from Research (2026-06-14)
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **24 days in as of June 13**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
+- Go 1.27 release freeze began **May 20, 2026** — **25 days in as of June 14**, no RC1 yet ([golang/go#76474](https://github.com/golang/go/issues/76474))
 - Draft release notes at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirmed all features below plus new tools improvements
 - **Go 1.25.12 released 2026-06-07** — security patches for `crypto/x509`, `mime`, `net/textproto` (supersedes 1.25.11)
 - Expected final release: **August 2026**
-- **macOS 12 dropped** — Go 1.26 is the last release supporting macOS 12
+- **macOS 13 Ventura required** — Go 1.27 drops macOS 12 Monterey; Go 1.26 is the last release for macOS 12
 
 ### Go 1.27 New Features (Confirmed from Draft Release Notes)
 - **Generic methods** — method declarations may now declare type parameters. Major language change. Interfaces may include generic methods, but cannot be implemented by generic methods.
@@ -356,6 +394,7 @@ Before working on any Go/Gin task:
 - **`math/rand/v2` generic `*Rand.N`** — per-RNG random selection
 - **`net.UnixConn` EOF behavior** — returns `io.EOF` directly instead of wrapped in `net.OpError`
 - **QUIC/TLS state** — `tls.ConnectionState` exposes QUIC connection state
+- **Faster memory allocation** — size-specialized malloc reduces small (<80B) allocation cost by up to 30%, ~1% overall improvement. Binary size +60KB. Opt-out via `GOEXPERIMENT=nosizespecializedmalloc` (temporary).
 
 ### Go 1.27 Tools (New in Draft Release Notes)
 - Response file (`@file`) support for compile/link/asm/cgo/cover/pack — GCC-compatible
@@ -366,20 +405,29 @@ Before working on any Go/Gin task:
 - Compiler `//line` relative path resolution improved
 - `bzr` VCS support removed from `go` command
 
+### Go 1.27 Ports
+- **Darwin**: macOS 13 Ventura or later required — macOS 12 dropped
+- **PowerPC ppc64 big-endian Linux**: ELFv2 ABI switch, Cgo/PIE/external linking now supported; kernel 3.13+ required
+
 ### Gin v1.13
-- Milestone #28: 50% complete, due **June 30, 2026** (last updated June 10)
+- Milestone #28: **55% complete** (15/27 issues closed), due **June 30, 2026** (last updated June 14)
 - Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
 - v1.12.x remains current until v1.13 ships
+
+### New in Go 1.27: `encoding/json/v2`
+- Major redesign with `MarshalWrite`, `UnmarshalRead`, `UnmarshalDecode`, variadic Options, stricter UTF-8/duplicate-key defaults
+- `encoding/json/jsontext` for streaming token-level JSON processing
+- v1 is **not deprecated** — existing code works unchanged
 
 ### Versions
 
 - **Gin v1.12.0** — released 2026-02-28, current latest
-- **Gin v1.13** — milestone #28, due 2026-06-30, 50% complete, not yet released
-- **go-redis v9.20.1** — latest stable
+- **Gin v1.13** — milestone #28, due 2026-06-30, 55% complete, not yet released
+- **go-redis v9.20.1** — latest stable (`github.com/redis/go-redis/v9`)
 - **GORM v1.31.1** — latest stable
 - **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
 - **Go 1.25.12** — **previous stable (security patch, 07 Jun 2026)**
-- **Go 1.27** — in release freeze (24 days in as of Jun 13), no RC1 yet
+- **Go 1.27** — in release freeze (25 days in as of Jun 14), no RC1 yet, expected August 2026
 - **golang-jwt/jwt v5.3.1** — latest stable
 - **golang.org/x/crypto v0.53.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable (HTTP/2, TLS, HTTP trailers)
@@ -387,7 +435,7 @@ Before working on any Go/Gin task:
 - **golang.org/x/text v0.38.0** — latest stable
 - **golang.org/x/arch v0.28.0** — latest stable
 - **golang.org/x/sync v0.21.0** — errgroup, semaphore — used in concurrency.md patterns
-- **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); **released 2026-06-06**; Go 1.25+ required; **FIPS 140-3 ready (Go 1.26+)**; uses stdlib crypto/hkdf and stdlib TLS 1.3 AES-GCM
+- **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); **released 2026-06-06**; Go 1.25+ required; **FIPS 140-3 ready (Go 1.26+)**
 - **gin-contrib/cors v1.7.7** — CORS middleware; released 2026-03-28
 - **golang-migrate/migrate v4.19.1** — SQL migrations
 
