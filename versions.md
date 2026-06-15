@@ -239,7 +239,7 @@ tok, err := dec.Token() // get next JSON token
 
 ### Gin v1.13 (Upcoming — Due June 30, 2026)
 
-- **Milestone #28**: ~58% complete (16/27 issues closed), due **June 30, 2026** (last updated ~June 8, 2026)
+- **Milestone #28**: ~50% complete, due **June 30, 2026** (last updated ~June 12, 2026)
 - Not yet released — v1.12.x remains current
 - Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
 - **For agents**: When v1.13 drops, check release notes before applying version-specific patterns.
@@ -338,6 +338,7 @@ go list -m all
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
 | **golang-migrate/migrate** | **v4.19.1** | **SQL migrations (github.com/golang-migrate/migrate)** |
+| **jackc/pgx/v5** | **v5.10.0** | **PostgreSQL driver (CVE-2026-33816 fixed in v5.9.0+, CVSS 9.8)** |
 
 ### Common Compatibility Issues
 
@@ -349,6 +350,7 @@ go list -m all
 6. **UUID package** — prefer stdlib `uuid` on Go 1.27+; fall back to `github.com/google/uuid` on Go <1.27
 7. **quic-go v0.60.0 + FIPS** — FIPS 140-3 support requires Go 1.26+; Go 1.25 minimum for quic-go v0.60.0 itself
 8. **redis client module path** — use `github.com/redis/go-redis/v9` not `github.com/redis/redis/v9`
+9. **pgx/v5 CVE-2026-33816** — if using jackc/pgx v5, upgrade to **v5.9.0+** (CVSS 9.8 critical memory-safety vulnerability); v5.10.0 patches both CVE-2026-33816 and CVE-2026-33815
 
 ---
 
@@ -407,7 +409,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **PowerPC ppc64 big-endian Linux**: ELFv2 ABI switch, Cgo/PIE/external linking now supported; kernel 3.13+ required
 
 ### Gin v1.13
-- Milestone #28: ~58% complete, due **June 30, 2026**
+- Milestone #28: ~50% complete, due **June 30, 2026** (last updated ~June 12, 2026)
 - Check [github.com/gin-gonic/gin/milestone/28](https://github.com/gin-gonic/gin/milestone/28) for open issues
 - v1.12.x remains current until v1.13 ships
 
@@ -419,12 +421,13 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 ### Verified Versions (2026-06-15 — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, ~58% complete, not yet released
+- **Gin v1.13** — milestone #28, due 2026-06-30, ~50% complete (updated Jun 12, 2026), not yet released
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl)
 - **Go 1.27** — in release freeze (26 days as of Jun 15), no RC1 yet, expected August 2026
 - **go-redis v9.20.1** — latest stable
 - **GORM v1.31.1** — latest stable
+- **jackc/pgx v5 v5.10.0** — latest stable (Jun 3, 2026); **CVE-2026-33816 fixed in v5.9.0+** (critical memory-safety, CVSS 9.8); CVE-2026-33815 also patched in v5.10.0
 - **golang-jwt/jwt v5.3.1** — latest stable
 - **golang.org/x/crypto v0.53.0** — latest stable
 - **golang.org/x/net v0.55.0** — latest stable
