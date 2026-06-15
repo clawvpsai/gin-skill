@@ -2,7 +2,7 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, released 02 Jun 2026)
+- **Go 1.26** — Current stable (go1.26.5, released 08 Jun 2026)
 - **Go 1.25** — Previous stable (go1.25.12, released 07 Jun 2026)
 - **Go 1.24** — Still supported (minimum for Gin v1.12)
 
@@ -37,13 +37,13 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** Go 1.26.4 released 02 Jun 2026
+**Release:** Go 1.26.5 released 08 Jun 2026
 
-### Go 1.26.4 Security Patch (2026-06-02)
+### Go 1.26.5 Security Patch (2026-06-08)
 
 - **Security fixes** to `crypto/x509`, `mime`, and `net/textproto` packages
 - Bug fixes to compiler, runtime, `go fix` command, and `crypto/fips140` package
-- **Upgrade immediately** if running Go 1.26.0–1.26.3 in production
+- **Upgrade immediately** if running Go 1.26.0–1.26.4 in production
 
 ---
 
@@ -317,7 +317,7 @@ require (
 ```bash
 # Check Go version
 go version
-# go version go1.26.4 linux/amd64
+# go version go1.26.5 linux/amd64
 
 # Check Gin version
 go list -m github.com/gin-gonic/gin
@@ -425,7 +425,7 @@ Before working on any Go/Gin task:
 - **Gin v1.13** — milestone #28, due 2026-06-30, 55% complete, not yet released
 - **go-redis v9.20.1** — latest stable (`github.com/redis/go-redis/v9`)
 - **GORM v1.31.1** — latest stable
-- **Go 1.26.4** — **current stable (security patch, 02 Jun 2026)**
+- **Go 1.26.5** — **current stable (security patch, 08 Jun 2026)**
 - **Go 1.25.12** — **previous stable (security patch, 07 Jun 2026)**
 - **Go 1.27** — in release freeze (25 days in as of Jun 14), no RC1 yet, expected August 2026
 - **golang-jwt/jwt v5.3.1** — latest stable
