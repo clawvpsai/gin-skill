@@ -337,6 +337,7 @@ Go 1.25 introduced the stable `testing/synctest` package for deterministic testi
 
 ```go
 import "testing/synctest"
+// Go 1.24: GOEXPERIMENT=synctest   |   Go 1.25+: stable, no build tag needed
 
 // Before (non-deterministic, uses arbitrary sleeps):
 func TestGoroutineCleanup(t *testing.T) {
@@ -390,6 +391,7 @@ func TestAsyncMiddleware(t *testing.T) {
 import "github.com/stretchr/testify/assert"
 
 func TestAssertions(t *testing.T) {
+    t.Helper() // mark this function as a helper; failures report caller's line
     // Equality
     assert.Equal(t, "expected", "actual")
     assert.NotEqual(t, 1, 2)
@@ -437,6 +439,7 @@ func BenchmarkGetPosts(b *testing.B) {
 }
 
 // Run benchmarks with: go test -bench=. -benchmem
+// Go 1.24+: -benchtime=1x for quick smoke, -short for fast test runs
 // Compare with: go test -bench=. -benchmem -cpuprofile=cpu.out
 // Then: go tool pprof -http=:8080 cpu.out
 ```
@@ -456,6 +459,175 @@ func BenchmarkGetPosts(b *testing.B) {
 11. **Using `assert.Equal` on slices with different order** — use `assert.ElementsMatch` or sort before comparing
 
 ---
+
+
+## Modern `testing.TB` Methods (Go 1.24+ / 1.25+)
+
+The `testing.TB` interface in Go 1.26 exposes several new methods that make Gin tests cleaner. These are part of the `T`, `B`, and `F` interfaces.
+
+### `t.Context()` — Go 1.24+
+
+Returns a `context.Context` canceled just before `Cleanup`-registered functions run. Use this instead of `context.Background()` in tests so resources tied to the test lifetime are released cleanly.
+
+```go
+func TestHandlerWithContext(t *testing.T) {
+    r := gin.New()
+    r.GET("/jobs/:id", func(c *gin.Context) {
+        // Pass the test-managed context down to your service layer.
+        // It is automatically canceled when the test ends — no leaks.
+        job, err := jobService.Get(c.Request.Context(), c.Param("id"))
+        if err != nil {
+            c.JSON(500, gin.H{"error": err.Error()})
+            return
+        }
+        c.JSON(200, job)
+    })
+
+    // For setup/teardown code that needs a context, prefer t.Context() over context.Background()
+    ctx, cancel := context.WithCancel(t.Context())
+    defer cancel()
+
+    req, _ := http.NewRequestWithContext(ctx, "GET", "/jobs/42", nil)
+    w := httptest.NewRecorder()
+    r.ServeHTTP(w, req)
+    assert.Equal(t, http.StatusOK, w.Code)
+}
+```
+
+**In Gin handlers**, prefer `c.Request.Context()` (request-scoped, with client cancellation) over `t.Context()` (test-scoped). The two are different — `t.Context()` is for setup/teardown, not for handler logic.
+
+### `t.Setenv()` — Go 1.17+ (always prefer this over `os.Setenv`)
+
+Sets an env var and **automatically restores the original value** at test end. Cannot be used with `t.Parallel()` (env vars are process-wide).
+
+```go
+func TestConfigFromEnv(t *testing.T) {
+    t.Setenv("DATABASE_URL", "postgres://test:test@localhost:5432/test")
+    t.Setenv("JWT_SECRET", "test-secret")
+
+    cfg, err := config.Load()
+    assert.NoError(t, err)
+    assert.Equal(t, "test-secret", cfg.JWTSecret)
+    // env vars are auto-restored after the test — no manual cleanup
+}
+```
+
+### `t.Chdir()` — Go 1.24+
+
+Changes the working directory for the test and restores it on cleanup. Useful for tests that read config files relative to `.`.
+
+```go
+func TestLoadMigrations(t *testing.T) {
+    t.Chdir("./testdata") // cwd is restored automatically
+
+    // Now "./001_init.sql" resolves to "./testdata/001_init.sql"
+    files, err := filepath.Glob("./*.sql")
+    assert.NoError(t, err)
+    assert.NotEmpty(t, files)
+}
+```
+
+### `t.Attr()` / `t.ArtifactDir()` — Go 1.25+
+
+`Attr` annotates the test with key/value metadata (visible in `go test -v` output and tooling). `ArtifactDir` returns a per-test directory for saving failure artifacts (screenshots, dumps, traces).
+
+```go
+func TestSlowEndpoint(t *testing.T) {
+    t.Attr("endpoint", "/api/v1/heavy")
+    t.Attr("expected_p95_ms", "200")
+
+    // Save profiling data on failure for later inspection
+    defer func() {
+        if t.Failed() {
+            dir := t.ArtifactDir()
+            os.WriteFile(filepath.Join(dir, "trace.out"), profileData, 0644)
+        }
+    }()
+
+    // ... test body ...
+}
+```
+
+### `t.TempDir()` — Go 1.15+
+
+Returns a unique temp directory cleaned up automatically. Use it for SQLite test DBs, file uploads, etc.
+
+```go
+func TestFileUpload(t *testing.T) {
+    dir := t.TempDir() // auto-cleaned
+    uploadPath := filepath.Join(dir, "upload.dat")
+
+    // ... write file, test upload handler ...
+
+    // No defer os.RemoveAll — TempDir handles it
+}
+```
+
+## Fuzz Testing (Go 1.18+)
+
+Gin handlers are ideal fuzz targets. Use `f.Fuzz` to feed random/seeded inputs.
+
+```go
+func FuzzCreatePost(f *testing.F) {
+    // Seed corpus — must always be valid
+    f.Add(`{"title": "Hello", "body": "World"}`)
+    f.Add(`{}`)
+    f.Add(`not json at all`)
+
+    r := gin.New()
+    r.POST("/posts", createPost)
+
+    f.Fuzz(func(t *testing.T, body string) {
+        req, _ := http.NewRequest("POST", "/posts", bytes.NewBufferString(body))
+        req.Header.Set("Content-Type", "application/json")
+        w := httptest.NewRecorder()
+
+        // Must not panic, must return a valid HTTP status
+        assert.NotPanics(t, func() { r.ServeHTTP(w, req) })
+        assert.True(t, w.Code >= 200 && w.Code < 600)
+    })
+}
+
+// Run with: go test -fuzz=FuzzCreatePost -fuzztime=30s
+```
+
+**What fuzzing catches in Gin handlers:**
+1. Nil-pointer panics on unexpected input shapes
+2. JSON unmarshal panics (recursion bombs, large numbers)
+3. Path traversal in URL params
+4. Integer overflow in size headers
+5. Race conditions (Go 1.18+ with `-race` enabled)
+
+## Test Shuffling (Go 1.20+)
+
+Run tests in random order to catch dependencies on shared state. Critical for Gin apps where global middleware state can leak between tests.
+
+```bash
+# Run all tests in random order, seeded for reproducibility
+go test -shuffle=1234567890 ./...
+
+# Run with a fresh random seed each time
+go test -shuffle=off ./...      # explicit order (default)
+go test -shuffle=on ./...       # random each run
+go test -shuffle=42 ./...       # seeded (reproducible)
+```
+
+**When to use `-shuffle=on`:**
+- CI to catch order-dependent test failures
+- After refactoring shared setup code
+- When adding new tests to an existing suite
+
+If a test fails under `-shuffle=on` but passes with `-shuffle=off`, you have order-dependence — almost always a sign of **shared state** (a global DB pool, a package-level `var`, or un-cleaned middleware state).
+
+## Common Mistakes (Updated 2026-06)
+
+12. **Using `os.Setenv` instead of `t.Setenv`** — leaks env state to other tests; restore is manual
+13. **Using `context.Background()` in tests** — use `t.Context()` (Go 1.24+) so test cleanup can cancel outstanding work
+14. **No fuzz tests on handler inputs** — fuzz catches panics and edge cases unit tests miss
+15. **Running tests in fixed order** — use `go test -shuffle=on` in CI to expose state leaks
+16. **Not using `t.TempDir()` for file-based tests** — leaves stale files across runs
+17. **Not calling `t.Helper()` in assertion wrappers** — failure messages point to the wrapper, not the actual failing call
+18. **Calling `t.Parallel()` after `t.Setenv`** — panics: env vars are process-wide
 
 ## Updated from Research (2026-05)
 
@@ -479,6 +651,7 @@ func BenchmarkGetPosts(b *testing.B) {
 - Run benchmarks with `go test -bench=. -benchmem`
 - Use `-cpuprofile` and `-memprofile` to identify bottlenecks
 - `go tool pprof -http=:8080 cpu.out` provides an interactive web UI
+- Use `-benchtime=1x` (Go 1.24+) for quick smoke benchmarks during dev
 
 ### Sources
 - https://gin-gonic.com/en/docs/testing/

@@ -126,6 +126,22 @@ func getPost(c *gin.Context) {
 }
 ```
 
+**⚠️ Gotcha — `binding:"required"` on numeric types:** For `int`/`uint` fields, `required` only fails on the zero value. If `0` is a valid ID in your domain, this won't catch missing values. Use a range constraint instead:
+
+```go
+// Bad — only fails if ID == 0
+type BadParam struct {
+    ID int `uri:"id" binding:"required"`
+}
+
+// Good — explicit range; also rejects negative IDs
+type GoodParam struct {
+    ID int `uri:"id" binding:"required,gt=0"`
+}
+```
+
+This applies to **all numeric types**: `int`, `int64`, `float64`, `uint`, etc. For string IDs, `required` works as expected (rejects empty string).
+
 ## Multiple Body Reads — ShouldBindBodyWith
 
 Gin's `ShouldBind*` methods consume `c.Request.Body`. If you need to bind the same body multiple times (e.g., logging + processing), use `ShouldBindBodyWith`:
@@ -226,3 +242,4 @@ c.ShouldBindBodyWith(&req, binding.JSON)
 4. **Wrong HTTP status codes** — 201 for create, 204 for delete with no body, 400 for bad request
 5. **Not handling `c.Request.Body` EOF** — `ShouldBind` already handles this
 6. **Multiple `ShouldBind` calls without `ShouldBindBodyWith`** — body is consumed on first bind
+7. **`binding:"required"` on numeric types** — silently accepts the zero value. Use `binding:"required,gt=0"` (or `gte=1`) for IDs/positive integers. Strings are unaffected — `required` correctly rejects empty strings.
