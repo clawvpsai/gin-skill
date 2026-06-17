@@ -509,17 +509,24 @@ func processBatches(items []Item, workers int) []Result {
 }
 ```
 
-## Goroutine Leak Profiler (Go 1.26+)
+## Goroutine Leak Profiler (Go 1.26 experimental, GA in 1.27)
 
-Go 1.26 introduces an experimental goroutine leak profiler that detects leaked goroutines in production.
+Detects leaked goroutines in production — a goroutine blocked on a concurrency primitive (channel, `sync.Mutex`, `sync.Cond`, etc.) that **cannot possibly become unblocked**.
 
+**Go 1.27+ (generally available — no flag required):**
 ```bash
-# Enable at build time
-GOEXPERIMENT=goroutineleakprofile go build -o myapp .
-
-# Run with the build, then access via pprof
+# Just build and run — no GOEXPERIMENT needed
+go build -o myapp .
 ./myapp
-# curl http://localhost:6060/debug/pprof/goroutine?debug=1
+# Goroutine leak profile available at:
+#   /debug/pprof/goroutineleak  (via net/http/pprof)
+# Plus traditional /debug/pprof/goroutine?debug=1
+```
+
+**Go 1.26 (experimental — opt-in):**
+```bash
+# Enable at build time via GOEXPERIMENT
+GOEXPERIMENT=goroutineleakprofile go build -o myapp .
 ```
 
 **Via Gin with `net/http/pprof`:**
@@ -722,8 +729,9 @@ func callDownstreamService(ctx context.Context, url string) ([]byte, error) {
 - Use `otel.Tracer().Start(ctx, name)` for manual child spans in handlers
 - Propagate trace context via `otel.GetTextMapPropagator().Inject/Extract` for cross-service traces
 
-### Go 1.26 Goroutine Leak Profiler
-- Enable with `GOEXPERIMENT=goroutineleakprofile` at build time
+### Goroutine Leak Profiler (Go 1.26 experimental, GA in 1.27)
+- Go 1.27+: built in, no experiment flag, served at `/debug/pprof/goroutineleak`
+- Go 1.26: opt-in via `GOEXPERIMENT=goroutineleakprofile` at build time
 - Pairs well with `net/http/pprof` for on-demand goroutine stack dumps in production
 - Add `time.Sleep` in tests to allow goroutines to settle before counting
 

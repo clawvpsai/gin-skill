@@ -33,7 +33,7 @@ Then load the relevant version sections below.
   type Adder[T any] struct { sum T }
   func (a *Adder[T]) Add(v T) { a.sum += v }  // references Adder[T]
   ```
-- **Experimental Goroutine Leak Profiler** — new `goroutineleak` profile type in `runtime/pprof`. Enable with `GOEXPERIMENT=goroutineleakprofile` at build time. Detects leaked goroutines in production.
+- **Goroutine Leak Profiler (experimental in 1.26, GA in 1.27)** — new `goroutineleak` profile type in `runtime/pprof`. In Go 1.26 enable with `GOEXPERIMENT=goroutineleakprofile` at build time. In Go 1.27+ the profile is **generally available** with no experiment flag, exposed at `net/http/pprof` endpoint `/debug/pprof/goroutineleak`. Detects leaked goroutines in production.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
@@ -54,6 +54,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 ### New in Go 1.27
 
 - **Generic methods** — a method declaration may declare its own type parameters. This widely anticipated change allows adding generic methods to any type (including interfaces, with some restrictions). Interface methods cannot be implemented by generic methods, and interface methods may not declare type parameters.
+- **Function type inference generalized (Go 1.27)** — function type inference now applies in **all** contexts where a generic function is assigned to a variable of (or converted to) a matching function type. Previously inference only worked in call expressions. Useful for storing generic function values in fields, slices, or returning them from factories.
   ```go
   // Generic method on a concrete type
   type Stack[T any] struct { items []T }
