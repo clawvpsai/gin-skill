@@ -50,7 +50,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 12:07 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable).
+> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 18:12 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
 
 ### New in Go 1.27
 
@@ -133,6 +133,42 @@ tok, err := dec.Token() // get next JSON token
 - Rejects duplicate names within a JSON object
 
 **Migration:** Use `encoding/json/v2` in new code. Existing `encoding/json` v1 code works unchanged — v1 is **not deprecated**.
+
+**Performance (vs v1, measured on representative workloads):**
+- **Unmarshal: 2.7–10.2× faster** — 2.7× on small payloads, 10.2× on large/structured JSON. Real-world: the k8s OpenAPI spec unmarshals **~40× faster** when using `UnmarshalJSONFrom` (the streaming custom-type method).
+- **Marshal: ~1.8× faster on typical payloads** — close to v1 for tiny data, wins big for medium/large. Some datasets are still marginally slower; benchmark your shape.
+- **Allocations: significant reduction** — many structs go to **zero heap allocations** for marshal; unmarshal cuts intermediate buffer churn.
+- See benchmarks: [`github.com/go-json-experiment/jsonbench`](https://github.com/go-json-experiment/jsonbench).
+
+**Streaming custom types — `MarshalJSONTo` / `UnmarshalJSONFrom`:**
+```go
+// v2 streaming interface — implement these on your types for O(n) instead of O(n²)
+type MyType struct { /* ... */ }
+
+func (m *MyType) MarshalJSONTo(w *jsontext.Encoder) error {
+    // Write tokens directly to the encoder — no intermediate []byte
+    if err := w.WriteToken(jsontext.BeginObject); err != nil { return err }
+    // ... write tokens
+    return w.WriteToken(jsontext.EndObject)
+}
+
+func (m *MyType) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
+    // Read tokens directly from decoder — no reflection per nested element
+    // ...
+    return nil
+}
+```
+The streaming interface converts certain **O(n²) unmarshaling scenarios into O(n)**. Critical for large docs (k8s OpenAPI, OpenAPI specs, large config files).
+
+**`OMitZero` (v2's stricter `omitempty`):**
+- v2 introduces `OMitZero` option that omits fields with JSON-empty values (not just Go zero). For struct fields, this means a non-pointer field whose marshaled form is `{}` is omitted.
+- Existing v1 `omitempty` tag is **backward-compatible** — still omits zero values for pointers, slices, maps, strings, numbers, bools. Struct fields are where behavior diverges.
+- Use `OMitZero` option or `omitzero` struct tag for v2 semantics.
+
+**Gin integration:** Gin's `c.JSON()` uses `encoding/json` v1. To use v2 in a Gin handler, register a custom `render.Render` (see `responses.md` → "JSON v2 Custom Renderer"). You can also swap the global JSON renderer via `engine.JSON = func(...)`.
+
+**Pre-1.27 backport:** On Go 1.24/1.25/1.26, use the experiment `GOEXPERIMENT=jsonv2 go build`, or import [`github.com/go-json-experiment/json`](https://github.com/go-json-experiment/json) (the same API) into a vendor or replace directive in go.mod.
+
 
 ### Go 1.27 Tools Improvements (Draft Release Notes)
 

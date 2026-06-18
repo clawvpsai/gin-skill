@@ -1,5 +1,7 @@
 # Handlers — HTTP Methods, JSON Binding, Validation
 
+> **Performance tip (Go 1.27+):** Gin's `c.JSON()` / `c.ShouldBindJSON()` use `encoding/json` v1. For 2.7–10.2× faster unmarshaling, register a custom `render.Render` for json/v2 (see `responses.md` → "JSON v2 Custom Renderer"). For request binding with v2, replace `c.ShouldBindJSON` with `jsonv2.UnmarshalRead(c.Request.Body, &req)`.
+
 ## Handler Structure
 
 ```go

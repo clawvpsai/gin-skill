@@ -322,8 +322,74 @@ func exportUsers(c *gin.Context) {
 - Use `c.Status(code)` before `c.Render(code, ...)` is redundant — pass the code to `Render`
 - For streaming, write directly to `c.Writer` and call `c.Writer.Flush()` — `c.Render` is for fixed-size payloads
 
-## ## Redirects
 
+## JSON v2 Custom Renderer (Go 1.27+, opt-in)
+
+Gin's built-in `c.JSON()` uses `encoding/json` v1. On Go 1.27+ you can swap in `encoding/json/v2` for **2.7–10.2× faster unmarshaling** and **~1.8× faster marshaling on typical payloads** by registering a custom renderer. v1 is **not deprecated** — both packages coexist.
+
+```go
+import (
+    jsonv2 "encoding/json/v2"
+    "github.com/gin-gonic/gin/render"
+)
+
+// JSONV2Render uses encoding/json/v2 with stricter defaults (rejects invalid UTF-8, duplicate keys)
+type JSONV2Render struct {
+    Data any
+    Opts []jsonv2.Options // variadic: jsonv2.OMitZero, jsonv2.FormatNilSliceAsNull, etc.
+}
+
+func (r JSONV2Render) Render(w http.ResponseWriter) error {
+    r.WriteContentType(w)
+    return jsonv2.MarshalWrite(w, r.Data, r.Opts...)
+}
+
+func (r JSONV2Render) WriteContentType(w http.ResponseWriter) {
+    w.Header().Set("Content-Type", "application/json; charset=utf-8")
+}
+
+// Handler — swap c.JSON() for c.Render(200, JSONV2Render{...})
+func listUsers(c *gin.Context) {
+    users, err := db.GetUsers(c.Request.Context())
+    if err != nil {
+        c.JSON(500, gin.H{"error": err.Error()}) // v1 is fine for errors
+        return
+    }
+    c.Render(200, JSONV2Render{Data: users})
+}
+```
+
+**Why v2 matters for Gin apps:**
+- **Decode speed** — `jsonv2.Unmarshal` is 2.7–10.2× faster than v1 on typical JSON (2.7× small payloads, 10.2× large/structured). Hot path for high-RPS APIs.
+- **Streaming custom types** — `MarshalJSONTo` / `UnmarshalJSONFrom` convert O(n²) unmarshaling into O(n) for large/complex payloads. The k8s OpenAPI spec went **40× faster** by switching to `UnmarshalJSONFrom`.
+- **Stricter defaults** — v2 rejects invalid UTF-8 strings and duplicate JSON object keys. Good for API correctness/security; bad if you consume legacy clients sending duplicates.
+- **Variadic options** — `jsonv2.OMitZero`, `jsonv2.FormatNilSliceAsNull`, `jsonv2.DiscardUnknownMembers`, `jsonv2.RejectDuplicateMembers` configure behavior per-call without struct tags.
+
+**Activation:** v2 ships in Go 1.27 (release freeze May 20, 2026; final ~August 2026). On Go 1.24/1.25/1.26 you can use the **opt-in experiment**: `GOEXPERIMENT=jsonv2 go build`. See [Go 1.27 release notes](https://go.dev/doc/go1.27) and [`github.com/go-json-experiment/json`](https://github.com/go-json-experiment/json) for the pre-1.27 backport.
+
+**v2 `omitempty` behavior change** (heads-up): v2's `omitempty` is based on **JSON emptiness**, not Go zero values. A non-pointer struct field with all zero values is omitted only if it marshals to `{}`. Pointer fields with `nil` are still omitted. Test your existing structs.
+
+```go
+type Box struct{}                          // marshals to {}
+type Demo struct{ B Box `json:",omitempty"` }
+demo := Demo{}
+// v1: {"B":{}}    (struct is never "empty" to v1)
+// v2: {}           (v2 omits because {} is JSON-empty)
+```
+
+**Content negotiation with v2** — combine the v2 renderer with `Accept` header logic to opt-in per route, or swap `gin.Default()` JSON globally via a custom `Engine`:
+
+```go
+// Global swap: replace Gin's default JSON renderer
+// (advanced — affects every c.JSON() in the app)
+r := gin.New()
+r.JSON = func(c *gin.Context, code int, obj any) {
+    c.Render(code, JSONV2Render{Data: obj})
+}
+```
+
+
+## Redirects
 ```go
 // Temporary redirect (302)
 c.Redirect(302, "/new-url")
@@ -415,3 +481,17 @@ func paginatedResponse(c *gin.Context, data interface{}, page, perPage, total in
 ### Sources
 - https://pkg.go.dev/github.com/gin-gonic/gin/render (Gin render package)
 - https://github.com/gin-gonic/gin/blob/master/render/render.go (interface definition)
+
+### JSON v2 Custom Renderer (Go 1.27)
+- Built-in `c.JSON()` still uses `encoding/json` v1 — opt into v2 via a custom `render.Render` impl
+- **Decode: 2.7–10.2× faster** than v1; k8s OpenAPI spec went **~40× faster** with `UnmarshalJSONFrom`
+- **Encode: ~1.8× faster** on typical payloads (varies by shape — benchmark yours)
+- Stricter defaults: rejects invalid UTF-8 strings + duplicate JSON object keys
+- Use `jsonv2.OMitZero` option (or `omitzero` struct tag) for v2's JSON-emptiness semantics
+- Pre-1.27: use `GOEXPERIMENT=jsonv2` or import `github.com/go-json-experiment/json`
+
+### Sources
+- https://go.dev/doc/go1.27 (Go 1.27 release notes)
+- https://antonz.org/go-json-v2/ (v1→v2 evolution, performance details)
+- https://github.com/go-json-experiment/json (pre-1.27 backport)
+- https://github.com/go-json-experiment/jsonbench (benchmarks)
