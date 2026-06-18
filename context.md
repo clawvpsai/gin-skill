@@ -166,6 +166,83 @@ func fanOut(c *gin.Context) {
     }
 }
 
+## context.WithoutCancel — Propagate Values Past Cancellation (Go 1.21+)
+
+`context.WithoutCancel` returns a context that keeps the parent's **values** (trace IDs, request IDs, loggers) but **discards cancellation**. The resulting context only cancels when the *parent* of the original context cancels — typically `context.Background()` (process exit), not when the HTTP request ends.
+
+This is the right pattern for **background work that must survive the request**:
+
+```go
+// Emit metrics / traces / audit logs AFTER the request returns.
+// The HTTP request context will be cancelled when the client disconnects —
+// but you still want to ship the trace span, record the metric, etc.
+func emitAfterRequest(c *gin.Context, span trace.Span) {
+    // Inherits trace_id, user_id, logger — but ignores request cancellation
+    bgCtx := context.WithoutCancel(c.Request.Context())
+
+    go func() {
+        defer span.End()
+        // Use a fresh timeout — NOT the request's
+        ctx, cancel := context.WithTimeout(bgCtx, 5*time.Second)
+        defer cancel()
+        metricExporter.Export(ctx, span)
+    }()
+}
+```
+
+**When to use `WithoutCancel`:**
+- Async work that should continue after the HTTP response is sent (email, audit log, metric export)
+- Fire-and-forget operations that should not be killed by client disconnect
+- Background flushers for in-memory buffers (e.g., request-scoped batches flushed to a queue)
+- Tracing/metrics emission that must complete even if the request was cancelled
+
+**When NOT to use:**
+- The work itself depends on the request (e.g., reading the request body, accessing `c.Writer`)
+- You want client cancellation to stop the work (use the request context directly)
+
+**Why not just use `context.Background()`?**
+```go
+// WRONG — loses request-scoped values (trace_id, user_id, logger)
+ctx := context.Background()
+span.End() // span has no parent — orphaned in your tracing backend
+
+// RIGHT — keeps values, drops cancellation
+ctx := context.WithoutCancel(c.Request.Context())
+span.End() // span is correctly parented to the request trace
+```
+
+**Pattern: enrich `c.Request` with a logger that survives the request:**
+
+```go
+// In your tracing middleware:
+func tracingMiddleware(c *gin.Context) {
+    ctx := c.Request.Context()
+    span, ctx := tracer.Start(ctx, c.FullPath())
+    defer span.End()
+
+    // Build a logger that carries trace_id + user_id
+    logger := slog.With("trace_id", span.SpanContext().TraceID())
+    ctx = context.WithValue(ctx, loggerKey{}, logger)
+
+    c.Request = c.Request.WithContext(ctx)
+    c.Next()
+}
+
+// In a handler that triggers background work:
+func handler(c *gin.Context) {
+    ctx := c.Request.Context() // has logger
+    bgCtx := context.WithoutCancel(ctx) // keeps logger, drops cancellation
+
+    go func() {
+        bgCtx, cancel := context.WithTimeout(bgCtx, 10*time.Second)
+        defer cancel()
+        log := loggerFrom(bgCtx) // logger is still here
+        log.Info("background work done")
+    }()
+    c.JSON(202, gin.H{"status": "accepted"})
+}
+```
+
 ## context.AfterFunc — Schedule Work on Context Cancellation (Go 1.21+)
 
 `context.AfterFunc` schedules a function to run when a context is cancelled — without creating a new goroutine yourself:
@@ -562,3 +639,16 @@ for _, err := range c.GetErrorSlice() {
 - https://go.dev/blog/context (Go context blog post — still the definitive guide)
 - https://pkg.go.dev/context (stdlib context package)
 - https://opentelemetry.io/docs/languages/go/ (OpenTelemetry Go)
+
+
+## Updated from Research (2026-06-18)
+
+### context.WithoutCancel (Go 1.21+)
+- `context.WithoutCancel(ctx)` returns a context that keeps parent **values** but discards cancellation
+- Use for background work that must survive request cancellation: audit log emission, trace span flush, metric export
+- Prefer over `context.Background()` to preserve trace IDs, user IDs, and loggers in async work
+- Combine with `context.WithTimeout` for a fresh deadline independent of the request
+
+### Sources
+- https://pkg.go.dev/context#WithoutCancel (Go 1.21+ stdlib)
+- https://go.dev/blog/context (definitive Go context blog post)

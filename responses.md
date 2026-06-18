@@ -218,7 +218,111 @@ func streamJSONArray(c *gin.Context) {
 - **SSE** (`c.SSEvent`) — browser clients via `EventSource`, auto-reconnection needed, simpler client implementation
 - **NDJSON** (`c.Stream`) — HTTP clients, CLIs, data pipelines, any consumer that parses JSON lines directly
 
-## Redirects
+## Custom Renderers via `c.Render()`
+
+For formats Gin does not ship with (CSV, MsgPack, Apache Arrow, protocol buffers from a custom registry, etc.), implement the `render.Render` interface and call `c.Render()`:
+
+```go
+import "github.com/gin-gonic/gin/render"
+
+// MsgPack renderer (binary, faster than JSON for many workloads)
+type MsgPackRender struct {
+    Data interface{}
+}
+
+var msgpack = []byte("msgpack") // content-type suffix used by Render.WriteContentType
+
+func (r MsgPackRender) Render(w http.ResponseWriter) error {
+    r.WriteContentType(w)
+    return msgpackEncode(w, r.Data) // your encoder (e.g. github.com/vmihailenco/msgpack/v5)
+}
+
+func (r MsgPackRender) WriteContentType(w http.ResponseWriter) {
+    w.Header().Set("Content-Type", "application/msgpack")
+}
+
+// Usage in a handler
+func listUsers(c *gin.Context) {
+    users, err := db.GetUsers(c.Request.Context())
+    if err != nil {
+        c.JSON(500, gin.H{"error": err.Error()})
+        return
+    }
+    c.Render(200, MsgPackRender{Data: users})
+}
+```
+
+**Content-negotiated handler that picks the renderer at runtime:**
+
+```go
+func listUsers(c *gin.Context) {
+    users, err := db.GetUsers(c.Request.Context())
+    if err != nil {
+        c.JSON(500, gin.H{"error": err.Error()})
+        return
+    }
+
+    switch c.GetHeader("Accept") {
+    case "application/msgpack":
+        c.Render(200, MsgPackRender{Data: users})
+    case "application/x-protobuf":
+        c.Render(200, render.ProtoBuf{Data: users})
+    default:
+        c.JSON(200, users)
+    }
+}
+```
+
+**Implementing a CSV renderer:**
+
+```go
+import (
+    "encoding/csv"
+    "github.com/gin-gonic/gin/render"
+)
+
+type CSVRender struct {
+    Headers []string
+    Rows    [][]string
+}
+
+func (r CSVRender) Render(w http.ResponseWriter) error {
+    r.WriteContentType(w)
+    cw := csv.NewWriter(w)
+    if len(r.Headers) > 0 {
+        if err := cw.Write(r.Headers); err != nil {
+            return err
+        }
+    }
+    return cw.WriteAll(r.Rows)
+}
+
+func (r CSVRender) WriteContentType(w http.ResponseWriter) {
+    w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+    w.Header().Set("Content-Disposition", `attachment; filename="export.csv"`)
+}
+
+// Usage
+func exportUsers(c *gin.Context) {
+    users, _ := db.GetUsers(c.Request.Context())
+    rows := make([][]string, 0, len(users))
+    for _, u := range users {
+        rows = append(rows, []string{u.ID, u.Email, u.Name})
+    }
+    c.Render(200, CSVRender{
+        Headers: []string{"id", "email", "name"},
+        Rows:    rows,
+    })
+}
+```
+
+**Key rules for custom renderers:**
+- `Render(w)` must call `WriteContentType(w)` first — Gin checks the header was set
+- Errors from `Render` are propagated to the error logger; return meaningful errors
+- Use `c.Status(code)` before `c.Render(code, ...)` is redundant — pass the code to `Render`
+- For streaming, write directly to `c.Writer` and call `c.Writer.Flush()` — `c.Render` is for fixed-size payloads
+
+## ## Redirects
 
 ```go
 // Temporary redirect (302)
@@ -297,3 +401,17 @@ func paginatedResponse(c *gin.Context, data interface{}, page, perPage, total in
 6. **Using `c.SSEvent()` inside a `c.Stream()` callback** — `SSEvent` writes to `c.Writer`, not the callback's `io.Writer` parameter — they are incompatible; `c.SSEvent` must be called directly in the loop
 7. **No keep-alive ping in SSE** — long-lived SSE connections may be closed by proxies if no data flows for ~60s; send a periodic `ping` event
 8. **Confusing SSE with NDJSON** — SSE adds `data:` prefix formatting; NDJSON is raw JSON lines; choose based on your client
+
+
+## Updated from Research (2026-06-18)
+
+### Custom Renderers via c.Render()
+- Implement `render.Render` interface: `Render(w http.ResponseWriter) error` + `WriteContentType(w http.ResponseWriter)`
+- `Render(w)` must call `WriteContentType(w)` first — Gin checks the Content-Type was set
+- Use `c.Render(code, myRenderer{...})` — pass the HTTP status code to `Render`, not `c.Status()` first
+- For streaming/chunked output, write directly to `c.Writer` + `c.Writer.Flush()` instead
+- Good fits: CSV, MsgPack, Apache Arrow, custom protobuf registries, Thrift, custom binary formats
+
+### Sources
+- https://pkg.go.dev/github.com/gin-gonic/gin/render (Gin render package)
+- https://github.com/gin-gonic/gin/blob/master/render/render.go (interface definition)
