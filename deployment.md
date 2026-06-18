@@ -332,7 +332,7 @@ ENV=production
 | Image | Go Version | Notes |
 |-------|------------|-------|
 | `golang:1.26-alpine` | 1.26.4 | **Recommended** for production (June 2026) |
-| `golang:1.25-alpine` | 1.25.12 | Previous stable (security patch, 07 Jun 2026) |
+| `golang:1.25-alpine` | 1.25.11 | Previous stable (verified 2026-06-18 via go.dev/dl) |
 | `golang:1.24-alpine` | 1.24.4 | Gin v1.12 minimum requirement |
 
 **Note:** Gin v1.12 requires Go 1.24+. Always use `golang:1.26-alpine` or `golang:1.24-alpine`, NOT older versions.
@@ -351,7 +351,13 @@ ENV=production
 
 ---
 
-## Updated from Research (2026-05)
+## Updated from Research (2026-06-18)
+
+### Go Version Reference Table — Correction
+- **`golang:1.25-alpine` → 1.25.11** (NOT 1.25.12 — the 1.25.12 security patch reference was a fabrication that was already corrected in `versions.md` on 2026-06-15 but not propagated to the deployment table here). Verified against `go.dev/dl/?mode=json` on 2026-06-18 12:07 UTC.
+
+### (Previous notes from 2026-05)
+
 
 ### Docker Improvements
 - **Alpine 3.24.0** is current (June 2026 — matches Dockerfile alpine base)

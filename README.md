@@ -30,7 +30,7 @@ go list -m github.com/gin-gonic/gin
 
 ---
 
-## 📚 Topics Covered (15 files)
+## 📚 Topics Covered (14 files)
 
 | Topic | File | When to Use |
 |---|---|---|
@@ -81,7 +81,7 @@ go list -m github.com/gin-gonic/gin
 The skill is **auto-updated every 6 hours** via a cron job. The agent decides whether to update based on whether it finds meaningful gaps — no forced updates.
 
 **How it works:**
-1. Checks current state of all 15 topic files
+1. Checks current state of all 14 topic files
 2. Identifies weak or outdated areas via web research
 3. Checks for new Go/Gin/dependency releases
 4. Updates files with new patterns + source URLs
@@ -106,9 +106,9 @@ All skill files are `.md` — no code generation needed. Just update patterns, a
 
 ## 📊 Skill Stats
 
-- **15 topic files** covering full Gin/Go development lifecycle
+- **14 topic files** covering full Gin/Go development lifecycle
 - **Version-aware** — Go 1.26, 1.25, 1.24 + Gin v1.12 covered
-- **~5,800+ lines** of production-ready content
+- **~6,500+ lines** of production-ready content
 - **Auto-updated** via OpenClaw cron — never stale
 - **MIT licensed** — free for everyone
 

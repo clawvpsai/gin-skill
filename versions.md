@@ -50,7 +50,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 06:13 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable).
+> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 12:07 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable).
 
 ### New in Go 1.27
 
