@@ -12,7 +12,7 @@ metadata:
 | Topic | File | When to Use |
 |---|---|---|
 | Router, routing groups, middleware | `routing.md` | Any endpoint setup |
-| HTTP methods, JSON binding, validation | `handlers.md` | Building endpoints |
+| HTTP methods, JSON binding, validation, WebSockets | `handlers.md` | Building endpoints |
 | JSON, XML, YAML, streaming responses | `responses.md` | API response patterns |
 | JWT, session, bcrypt, auth middleware | `auth.md` | User auth & permissions |
 | MySQL, PostgreSQL, Redis, GORM, migrations | `database.md` + `migrations.md` | Data access |

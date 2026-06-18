@@ -234,6 +234,230 @@ c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 c.ShouldBindBodyWith(&req, binding.JSON)
 ```
 
+## WebSocket Upgrades
+
+Gin does not ship with WebSocket support, but the upgrade pattern is short. Two library options:
+
+- **`github.com/gorilla/websocket`** — the de-facto standard, used in most production Go codebases. Years of production hardening, broad Stack Overflow coverage, works with Go 1.20+.
+- **`github.com/coder/websocket`** (formerly `nhooyr.io/websocket`) — modern, minimal API, context-first. Cleaner for new code if you can adopt it.
+
+### Basic Upgrade (gorilla/websocket)
+
+```go
+import (
+    "net/http"
+    "github.com/gin-gonic/gin"
+    "github.com/gorilla/websocket"
+)
+
+// Upgrader is safe to reuse across requests — it is stateless
+var upgrader = websocket.Upgrader{
+    ReadBufferSize:  1024,
+    WriteBufferSize: 1024,
+    // CheckOrigin prevents CSWSH (Cross-Site WebSocket Hijacking).
+    // In production, validate the Origin header against an allowlist.
+    CheckOrigin: func(r *http.Request) bool {
+        origin := r.Header.Get("Origin")
+        return origin == "" || origin == "https://myapp.com" || origin == "https://admin.myapp.com"
+    },
+}
+
+func wsHandler(c *gin.Context) {
+    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        // Upgrade already wrote an error response; just return.
+        return
+    }
+    defer conn.Close()
+
+    for {
+        msgType, msg, err := conn.ReadMessage()
+        if err != nil {
+            return // client disconnected
+        }
+        if err := conn.WriteMessage(msgType, msg); err != nil {
+            return
+        }
+    }
+}
+
+// Wire it up — Gin treats it like any other route
+r.GET("/ws", wsHandler)
+```
+
+### Production Pattern — Read/Write Deadlines + Ping/Pong
+
+Without deadlines, a dead network connection leaks forever. Without ping/pong, intermediaries drop idle connections in ~60 seconds. Always use both:
+
+```go
+const (
+    writeWait      = 10 * time.Second
+    pongWait       = 60 * time.Second
+    pingPeriod     = (pongWait * 9) / 10 // send pings at 54s — must be < pongWait
+    maxMessageSize = 8192
+)
+
+func wsHandler(c *gin.Context) {
+    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        return
+    }
+    defer conn.Close()
+
+    conn.SetReadLimit(maxMessageSize)
+    _ = conn.SetReadDeadline(time.Now().Add(pongWait))
+    conn.SetPongHandler(func(string) error {
+        _ = conn.SetReadDeadline(time.Now().Add(pongWait))
+        return nil
+    })
+
+    // Reader goroutine: detect client disconnects via read errors
+    done := make(chan struct{})
+    go func() {
+        defer close(done)
+        for {
+            _, msg, err := conn.ReadMessage()
+            if err != nil {
+                return
+            }
+            // Handle message here (or push to a channel for the writer)
+            _ = msg
+        }
+    }()
+
+    // Writer goroutine: periodic ping keeps the connection alive
+    ticker := time.NewTicker(pingPeriod)
+    defer ticker.Stop()
+    for {
+        select {
+        case <-done:
+            return
+        case <-ticker.C:
+            _ = conn.SetWriteDeadline(time.Now().Add(writeWait))
+            if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+                return
+            }
+        }
+    }
+}
+```
+
+### Hub Pattern — Broadcasting to Multiple Clients
+
+For chat rooms, notifications, live dashboards — fan-out from a single source to many connections:
+
+```go
+type Hub struct {
+    clients    map[*websocket.Conn]bool
+    broadcast  chan []byte
+    register   chan *websocket.Conn
+    unregister chan *websocket.Conn
+    mu         sync.RWMutex
+}
+
+func NewHub() *Hub {
+    return &Hub{
+        broadcast:  make(chan []byte, 256),
+        register:   make(chan *websocket.Conn),
+        unregister: make(chan *websocket.Conn),
+        clients:    make(map[*websocket.Conn]bool),
+    }
+}
+
+func (h *Hub) Run() {
+    for {
+        select {
+        case conn := <-h.register:
+            h.mu.Lock()
+            h.clients[conn] = true
+            h.mu.Unlock()
+        case conn := <-h.unregister:
+            h.mu.Lock()
+            if _, ok := h.clients[conn]; ok {
+                delete(h.clients, conn)
+                conn.Close()
+            }
+            h.mu.Unlock()
+        case msg := <-h.broadcast:
+            h.mu.RLock()
+            for conn := range h.clients {
+                _ = conn.SetWriteDeadline(time.Now().Add(writeWait))
+                if err := conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+                    // write failed — schedule cleanup via unregister
+                    go func(c *websocket.Conn) { h.unregister <- c }(conn)
+                }
+            }
+            h.mu.RUnlock()
+        }
+    }
+}
+
+// Handler: each connection registers with the hub and pumps its own messages
+func (h *Hub) ServeWS(c *gin.Context) {
+    conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+    if err != nil {
+        return
+    }
+    h.register <- conn
+    // Reader: forward client messages into the broadcast channel
+    go func() {
+        defer func() { h.unregister <- conn }()
+        conn.SetReadLimit(maxMessageSize)
+        for {
+            _, msg, err := conn.ReadMessage()
+            if err != nil {
+                return
+            }
+            h.broadcast <- msg
+        }
+    }()
+}
+
+// Wire up: hub.Run() once at startup
+// r.GET("/ws", hub.ServeWS)
+```
+
+### coder/websocket (modern alternative)
+
+```go
+import "github.com/coder/websocket"
+
+func wsHandler(w http.ResponseWriter, r *http.Request) {
+    // Accept takes a context — cancellation propagates to the conn
+    conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+        OriginPatterns: []string{"myapp.com", "*.myapp.com"},
+    })
+    if err != nil {
+        return
+    }
+    defer conn.Close(websocket.StatusNormalClosure, "bye")
+
+    ctx := r.Context()
+    for {
+        msgType, data, err := conn.Read(ctx)
+        if err != nil {
+            return
+        }
+        if err := conn.Write(ctx, msgType, data); err != nil {
+            return
+        }
+    }
+}
+```
+
+**Key differences from gorilla/websocket:**
+- `Accept` takes the request context — when the client disconnects, `Read` returns immediately. No need for a separate ping/pong goroutine.
+- `OriginPatterns` uses wildcard subdomain matching — cleaner than a `CheckOrigin` callback.
+- Built-in `Close(code, reason)` returns a clean WebSocket close frame with a status code.
+
+### WebSocket Behind Gin — Notes
+
+- **CORS + WebSockets**: `CheckOrigin` (gorilla) or `OriginPatterns` (coder) handles the Origin check. You do NOT also need a `cors` middleware on the `/ws` route — WebSocket handshakes bypass CORS but the browser still sends `Origin`.
+- **Gin middleware runs before upgrade**: auth, request ID, logging middleware all run as usual on the GET request. The upgrade happens inside the handler. If auth fails, return 401 before calling `upgrader.Upgrade`.
+- **Hijacking**: `upgrader.Upgrade` calls `http.Hijacker` on the underlying `http.ResponseWriter` — Gin's writer supports this, but be aware that after upgrade, Gin no longer mediates the connection.
+- **Sticky sessions / load balancers**: WebSocket connections are long-lived. Behind a load balancer, configure sticky sessions (cookie-based) or run the WS endpoints on a dedicated hostname that bypasses the LB.
+- **Graceful shutdown**: `conn.Close()` from the shutdown signal will not flush in-flight messages. Track connections in a `sync.WaitGroup` and call `conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, ""), time.Now().Add(time.Second))` to send a clean close frame.
+
 ## Common Mistakes
 
 1. **Using `ShouldBindQuery` for POST body** — binds from URL query params, not body
@@ -243,3 +467,8 @@ c.ShouldBindBodyWith(&req, binding.JSON)
 5. **Not handling `c.Request.Body` EOF** — `ShouldBind` already handles this
 6. **Multiple `ShouldBind` calls without `ShouldBindBodyWith`** — body is consumed on first bind
 7. **`binding:"required"` on numeric types** — silently accepts the zero value. Use `binding:"required,gt=0"` (or `gte=1`) for IDs/positive integers. Strings are unaffected — `required` correctly rejects empty strings.
+8. **WebSocket: `CheckOrigin` returning `true` always** — disables CSWSH protection. Always validate `Origin` against an allowlist, or use `coder/websocket`'s `OriginPatterns`.
+9. **WebSocket: no read deadline** — a dead network connection leaks the goroutine forever. Always call `conn.SetReadDeadline(...)` and refresh it in the pong handler.
+10. **WebSocket: no write deadline or ping interval** — intermediaries drop idle connections in ~60s. Send a `PingMessage` every ~30s with a write deadline.
+11. **WebSocket: `conn.Close()` on shutdown** — does not send a clean close frame. Use `conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, ""), deadline)` first, then `Close`.
+12. **WebSocket: reading and writing from the same goroutine** — gorilla/websocket allows only one concurrent reader and one concurrent writer. Serialize writes with a single writer goroutine, or guard with a mutex.

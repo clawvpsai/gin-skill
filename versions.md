@@ -22,6 +22,7 @@ Then load the relevant version sections below.
 ### New in Go 1.26
 
 - **Green Tea Garbage Collector** — enabled by default in Go 1.26. Previously experimental in Go 1.25. Redesigned marking and scanning for small objects with better locality and CPU scalability. Expected 10–40% reduction in GC overhead for GC-heavy programs.
+- **Experimental `simd/archsimd` package** — Go 1.26 introduces a new experimental `simd/archsimd` package providing low-level access to architecture-specific SIMD instructions (SSE/AVX on amd64, NEON on arm64). Enable with `GOEXPERIMENT=simd` at build time. Vector types are architecture-specific (e.g. `archsimd.Int32x4`). This is the architecture-tied lower layer; Go 1.27 adds a portable wrapper on top.
 - **`go fix` overhaul** — completely rebuilt on the same analysis framework as `go vet`. Over 20 analyzers that automatically update code to newer language features and stdlib APIs. Run `go fix ./...` to modernize your codebase. Covers deprecated API migrations, internal packages, stdlib changes, and more.
 - **Expression-based `new()`** — the built-in `new()` function now accepts an optional initial value expression:
   ```go
@@ -49,11 +50,12 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 15, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026.
+> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 06:13 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable).
 
 ### New in Go 1.27
 
 - **Generic methods** — a method declaration may declare its own type parameters. This widely anticipated change allows adding generic methods to any type (including interfaces, with some restrictions). Interface methods cannot be implemented by generic methods, and interface methods may not declare type parameters.
+- **Experimental `simd` package (portable wrapper)** — new `simd` package on top of `simd/archsimd` that is portable and vector-size-agnostic. Vector types like `simd.Int8s` and `simd.Float32s` use "scalable" operations that are hardware-supported or easily emulated across architectures and vector widths. Enable with `GOEXPERIMENT=simd` at build time. Useful for hot-path numeric and JSON-handling code in Gin services once stable. See the [Go 1.27 release notes draft](https://go.dev/doc/go1.27) for the design and roadmap.
 - **Function type inference generalized (Go 1.27)** — function type inference now applies in **all** contexts where a generic function is assigned to a variable of (or converted to) a matching function type. Previously inference only worked in call expressions. Useful for storing generic function values in fields, slices, or returning them from factories.
   ```go
   // Generic method on a concrete type
