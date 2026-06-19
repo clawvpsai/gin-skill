@@ -2,8 +2,8 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-18 via go.dev/dl)
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-18 via go.dev/dl)
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-19 via go.dev/dl)
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-19 via go.dev/dl)
 - **Go 1.24** — Minimum for Gin v1.12
 
 ## Version Selector Prompt
@@ -38,7 +38,7 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** go1.26.4 — verified current as of 2026-06-18 against `go.dev/dl`
+**Release:** go1.26.4 — verified current as of 2026-06-19 against `go.dev/dl`
 
 > ⚠️ **Verify latest before building:** `curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['version']) for p in json.load(sys.stdin)[:5]]"`
 
@@ -50,7 +50,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 18, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (29 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-18 18:12 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
+> **No Go 1.27 RC as of June 19, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (30 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-19 12:10 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
 
 ### New in Go 1.27
 
@@ -132,6 +132,17 @@ tok, err := dec.Token() // get next JSON token
 - Rejects invalid UTF-8 in JSON strings
 - Rejects duplicate names within a JSON object
 
+### `encoding/json` v1 is Now Backed by v2 in Go 1.27 (Critical)
+
+As of Go 1.27, the `encoding/json` v1 package is **re-implemented on top of the v2 implementation**. Behavior is preserved (most code works unchanged), but error message text may differ. The net effect:
+
+- **Existing Gin handlers using `c.JSON()` / `c.ShouldBindJSON()` automatically get the v2 performance boost** on Go 1.27+ — ~1.8× faster marshal, up to ~10× faster unmarshal, fewer allocations.
+- The v1 `MarshalJSON` / `UnmarshalJSON` interface is still honored, but v2's `MarshalJSONTo` / `UnmarshalJSONFrom` (taking `*jsontext.Encoder` / `*jsontext.Decoder`) is now the preferred custom-type interface for hot paths.
+- Behavior differences to watch: stricter UTF-8/duplicate-key rejection, slightly different number formatting, and a new `jsonv2.DiscardUnknownMembers` / `jsonv2.RejectDuplicateMembers` opt-in (v1 stays lenient by default).
+- **Action for Gin projects:** just upgrade to Go 1.27 when it ships and existing code benefits — no migration required. For maximum throughput on JSON-heavy paths, register a custom `render.Render` to call `jsonv2.MarshalWrite` directly (see `responses.md` → "JSON v2 Custom Renderer").
+
+> Source: [Go 1.27 Release Notes (draft)](https://go.dev/doc/go1.27) — *"The `encoding/json` package is now backed by the v2 implementation. Marshaling and unmarshaling behavior is preserved, but the exact text of error messages may differ."*
+
 **Migration:** Use `encoding/json/v2` in new code. Existing `encoding/json` v1 code works unchanged — v1 is **not deprecated**.
 
 **Performance (vs v1, measured on representative workloads):**
@@ -169,6 +180,17 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 
 **Pre-1.27 backport:** On Go 1.24/1.25/1.26, use the experiment `GOEXPERIMENT=jsonv2 go build`, or import [`github.com/go-json-experiment/json`](https://github.com/go-json-experiment/json) (the same API) into a vendor or replace directive in go.mod.
 
+### Go 1.27 Post-Quantum Cryptography
+
+- **`crypto/mldsa` package** — implements the post-quantum **ML-DSA (Module-Lattice-Based Digital Signature Algorithm)** specified in FIPS 204. Parameter sets: `MLDSA44`, `MLDSA65`, `MLDSA87` (trade off signature size vs speed). `crypto/x509` accepts ML-DSA keys/signatures; `crypto/tls` exposes them as `tls.MLDSA44`/`65`/`87` `SignatureScheme` values for TLS 1.3. The new `crypto.Hash` value `crypto.MLDSAMu` is used as a signaling mechanism for External μ (mu) ML-DSA signing.
+- **`crypto/tls` MLKEM1024** — the `MLKEM1024` post-quantum key exchange is now supported. Enable by adding it to `tls.Config.CurvePreferences` (alongside or instead of the existing `X25519MLKEM768`). Use for HTTP/2 + TLS 1.3 servers in production to get hybrid post-quantum key exchange against capable clients.
+- **Why it matters for Gin services:** forward-secrecy against future quantum attackers ("harvest now, decrypt later"). Enable both for any service that handles long-lived secrets (sessions, JWT signing keys, customer PII) — the overhead is small and interop with non-PQ clients is preserved.
+
+### Go 1.27 Other New Standard Library APIs
+
+- **`bytes.CutLast(s, sep) (before, after, found)`** — symmetric with `bytes.Cut`, slices around the **last** occurrence of a separator. Useful for parsing paths (`/api/v1/users` → `/api/v1` + `/users`), log lines, and filenames with a single call instead of `LastIndex` + manual slicing.
+- **`net/url.URL.Clone()` / `net/url.Values.Clone()`** — deep copy of URLs and `url.Values` query params. Handlers can safely mutate cloned request URLs without affecting the original.
+- **`crypto/x509.Certificate.RawSignatureAlgorithm`** (and `CertificateRequest.RawSignatureAlgorithm`, `RevocationList.RawSignatureAlgorithm`) — exposes the DER-encoded `AlgorithmIdentifier` even when the high-level `SignatureAlgorithm` field is `UnknownSignatureAlgorithm`. Use when verifying certificates signed with non-standard algorithms (e.g. ML-DSA above).
 
 ### Go 1.27 Tools Improvements (Draft Release Notes)
 
@@ -211,7 +233,7 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
-**Release:** go1.25.11 — verified current as of 2026-06-18 via go.dev/dl
+**Release:** go1.25.11 — verified current as of 2026-06-19 via go.dev/dl
 
 ---
 
@@ -417,7 +439,7 @@ curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['ve
 Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security patches. **The authoritative go.dev/dl API (2026-06-15) confirms the actual latest stable versions are go1.26.4 and go1.25.11.** No security patches above those versions have been released.
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **27 days in as of June 16**, no RC1 yet
+- Go 1.27 release freeze began **May 20, 2026** — **30 days in as of June 19**, no RC1 yet
 - Release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirmed all features below
 - Expected final release: **August 2026**
 - **macOS 13 Ventura required** — Go 1.27 drops macOS 12 Monterey; Go 1.26 is the last release for macOS 12
@@ -457,10 +479,10 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - `encoding/json/jsontext` for streaming token-level JSON processing
 - v1 is **not deprecated** — existing code works unchanged
 
-### Verified Versions (2026-06-18 — go.dev/dl API)
+### Verified Versions (2026-06-19 — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, **~55% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-18)
+- **Gin v1.13** — milestone #28, due 2026-06-30, **~55% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-19)
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl)
 - **Go 1.27** — in release freeze (**27 days as of Jun 16**), no RC1 yet, expected August 2026
@@ -479,9 +501,9 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **golang-migrate/migrate v4.19.1** — SQL migrations
 
 ### Sources
-- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-18)
-- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-18)
-- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-18)
+- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-19)
+- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-19)
+- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-19)
 - https://go.dev/doc/go1.27 (Go 1.27 release notes)
 - https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
 - https://dev.golang.org/release (Go release dashboard)

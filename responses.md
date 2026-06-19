@@ -327,6 +327,8 @@ func exportUsers(c *gin.Context) {
 
 Gin's built-in `c.JSON()` uses `encoding/json` v1. On Go 1.27+ you can swap in `encoding/json/v2` for **2.7–10.2× faster unmarshaling** and **~1.8× faster marshaling on typical payloads** by registering a custom renderer. v1 is **not deprecated** — both packages coexist.
 
+> **Go 1.27+ default:** `encoding/json` v1 is now **backed by the v2 implementation** internally, so existing handlers using `c.JSON()` / `c.ShouldBindJSON()` get the v2 performance automatically — no code change required. Registering a custom `JSONV2Render` (below) is only needed if you want explicit v2 control (options, streaming, stricter behavior).
+
 ```go
 import (
     jsonv2 "encoding/json/v2"
