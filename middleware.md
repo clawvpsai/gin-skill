@@ -297,3 +297,51 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 4. **Rate limiter memory leak** — clean up old entries periodically
 5. **Middleware modifying response** — after `c.Next()`, response headers are already sent
 6. **Naive timeout using channels** — can't propagate handler errors; use `errgroup` instead
+
+## Goroutine Leak Detection (Go 1.27+)
+
+Go 1.27 graduates the **goroutine leak profiler** to GA. Expose it on your Gin server
+to catch leaked goroutines in production (or staging) — extremely useful for catching
+async middleware bugs that would otherwise only show up as memory creep.
+
+```go
+import (
+    "net/http"
+    "net/http/pprof"
+
+    "github.com/gin-gonic/gin"
+)
+
+// Expose /debug/pprof endpoints (including the new goroutineleak profile)
+func RegisterPprof(r *gin.Engine) {
+    debug := r.Group("/debug/pprof")
+    // Catch-all for the index page
+    debug.GET("/*any", gin.WrapH(http.HandlerFunc(pprof.Index)))
+    debug.POST("/*any", gin.WrapH(http.HandlerFunc(pprof.Index)))
+
+    // Named profiles that aren't covered by the catch-all
+    profiles := map[string]http.HandlerFunc{
+        "cmdline": pprof.Cmdline,
+        "profile": pprof.Profile,
+        "symbol":  pprof.Symbol,
+        "trace":   pprof.Trace,
+    }
+    for name, h := range profiles {
+        debug.GET("/"+name, gin.WrapH(h))
+    }
+
+    // The new endpoint (Go 1.27 GA): GET /debug/pprof/goroutineleak
+    debug.GET("/goroutineleak", gin.WrapH(pprof.Handler("goroutineleak")))
+}
+```
+
+**Production usage:**
+- Hit `GET /debug/pprof/goroutineleak` periodically (cron, k8s probe, or on alert)
+- The output lists goroutines that *should* have exited but are still running
+- Common offenders: background workers spawned in middleware that never receive a
+  shutdown signal, `c.Next()` goroutines that lost their context cancellation
+
+**Note:** Requires Go 1.27+. In Go 1.26 the same endpoint exists behind
+`GOEXPERIMENT=goroutineleakprofile` at build time.
+
+See [versions.md](versions.md) for the full Go 1.27 feature list.

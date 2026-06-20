@@ -2,8 +2,8 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-19 via go.dev/dl)
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-19 via go.dev/dl)
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-20 00:09 UTC via go.dev/dl)
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-20 00:09 UTC via go.dev/dl)
 - **Go 1.24** — Minimum for Gin v1.12
 
 ## Version Selector Prompt
@@ -38,7 +38,7 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** go1.26.4 — verified current as of 2026-06-19 against `go.dev/dl`
+**Release:** go1.26.4 — re-verified 2026-06-20 00:09 UTC against `go.dev/dl/?mode=json` (still current)
 
 > ⚠️ **Verify latest before building:** `curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['version']) for p in json.load(sys.stdin)[:5]]"`
 
@@ -50,7 +50,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 19, 2026** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (30 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-19 12:10 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
+> **No Go 1.27 RC as of June 20, 2026 (00:09 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (31 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-20 00:09 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
 
 ### New in Go 1.27
 
@@ -233,7 +233,7 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
-**Release:** go1.25.11 — verified current as of 2026-06-19 via go.dev/dl
+**Release:** go1.25.11 — re-verified 2026-06-20 00:09 UTC against go.dev/dl/?mode=json (still current)
 
 ---
 
@@ -482,7 +482,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 ### Verified Versions (2026-06-19 — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, **~55% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-19)
+- **Gin v1.13** — milestone #28, due 2026-06-30, **~55% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-20 00:09 UTC)
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl)
 - **Go 1.27** — in release freeze (**27 days as of Jun 16**), no RC1 yet, expected August 2026
@@ -501,9 +501,9 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **golang-migrate/migrate v4.19.1** — SQL migrations
 
 ### Sources
-- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-19)
-- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-19)
-- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-19)
+- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-20 00:09 UTC)
+- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-20 00:09 UTC)
+- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-20 00:09 UTC)
 - https://go.dev/doc/go1.27 (Go 1.27 release notes)
 - https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
 - https://dev.golang.org/release (Go release dashboard)
