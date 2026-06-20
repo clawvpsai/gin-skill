@@ -655,6 +655,34 @@ func OAuth2Callback(c *gin.Context) {
 
 ---
 
+## ⚠️ go-jose CVE-2026-34986 (added 2026-06-20)
+
+If your auth flow pulls in `github.com/go-jose/go-jose` **transitively** (e.g. via `coreos/go-oidc/v3` or any OIDC ID-token verifier), you are exposed to a **high-severity DoS** (CVSS 7.5):
+
+- **CVE-2026-34986 / GHSA-78h2-9frx-2jm8** — Disclosed 2026-03-31, patched 2026-04-06.
+- **Trigger:** Decrypting a JWE object whose `alg` is a key-wrapping algorithm (e.g. `RSA-OAEP`, `A128KW`, `A256KW`) **and** whose `encrypted_key` is empty. `cipher.KeyUnwrap()` then panics on a zero/negative-length slice allocation → full process crash.
+- **Affected:** `go-jose/v3 < 3.0.5`, `go-jose/v4 < 4.1.4`.
+- **Patched:** `go-jose/v3 >= 3.0.5`, `go-jose/v4 >= 4.1.4`.
+
+**Action for Gin services:**
+
+```bash
+# Check your dep tree
+go list -m all | grep go-jose
+# Pin patched versions in go.mod (or let go mod tidy upgrade)
+go get github.com/go-jose/go-jose/v4@v4.1.4
+go get github.com/go-jose/go-jose/v3@v3.0.5
+go mod tidy
+```
+
+**Workaround if you can't upgrade immediately:** when calling `ParseEncrypted()` / `ParseEncryptedCompact()` / `ParseEncryptedJSON()`, pass a `keyAlgorithms` list that **excludes** any algorithm ending in `KW` (except `A128GCMKW`/`A192GCMKW`/`A256GCMKW`). The panic path is then unreachable.
+
+**Why PASETO sidesteps this entirely:** PASETO (recommended above) doesn't use the JOSE/JWE machinery at all, so go-jose is never pulled in. This is yet another argument for PASETO over JWT for new services.
+
+Sources: [GHSA-78h2-9frx-2jm8](https://github.com/go-jose/go-jose/security/advisories/GHSA-78h2-9frx-2jm8), [NVD CVE-2026-34986](https://nvd.nist.gov/vuln/detail/CVE-2026-34986).
+
+---
+
 ## Updated from Research (2026-05)
 
 ### PASETO (2026 Trend)
