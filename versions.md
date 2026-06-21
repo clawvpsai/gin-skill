@@ -2,16 +2,18 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-20 12:08 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-17).
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-20 12:08 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 3 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-17).
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-21 12:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-17).
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-21 12:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 3 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-17).
 - **Go 1.24** — Minimum for Gin v1.12 (still security-supported until Go 1.26 + 1 stable)
 
-## Pending Security Patches (2026-06-20)
+## Pending Security Patches (2026-06-21)
 
-The [dev.golang.org/release](https://dev.golang.org/release) dashboard (last snapshot 2026-06-17) shows pending CLs for two upcoming security patch releases:
+The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-21 12:04 UTC) shows pending CLs for two upcoming security patch releases:
 
-- **Go 1.26.5** — 7 pending CLs (includes cmd/compile bugfixes and crypto/tls fixes). Expected within days.
-- **Go 1.25.12** — 3 pending CLs. Expected within days.
+- **Go 1.26.5** — 7 pending CLs (includes **CVE-2026-39822 runtime fix** [1.26 backport, issue #79027] + cmd/compile bugfixes + crypto/tls fixes). Expected within days.
+- **Go 1.25.12** — 3 pending CLs (includes **CVE-2026-39822 runtime fix** [1.25 backport, issue #79026]). Expected within days.
+
+**CVE-2026-39822** (embargoed, per Go security policy): runtime-level security fix. Details under embargo until release announcement. Track [github.com/golang/go/issues/79005](https://github.com/golang/go/issues/79005).
 
 **Action:** Re-run `curl -s https://go.dev/dl/?mode=json` before deploying production builds — the patches may have shipped since this snapshot. Track [dev.golang.org/release](https://dev.golang.org/release) for the announcement thread on [golang-announce](https://groups.google.com/g/golang-announce).
 
@@ -47,7 +49,7 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** go1.26.4 — re-verified 2026-06-20 12:08 UTC against `go.dev/dl/?mode=json` (still current)
+**Release:** go1.26.4 — re-verified 2026-06-21 12:04 UTC against `go.dev/dl/?mode=json` (still current)
 
 > ⚠️ **Verify latest before building:** `curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['version']) for p in json.load(sys.stdin)[:5]]"`
 
@@ -59,7 +61,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 20, 2026 (00:09 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (31 days in). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-20 12:08 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
+> **No Go 1.27 RC as of June 21, 2026 (12:04 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (32 days in as of Jun 21). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-21 12:04 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
 
 ### New in Go 1.27
 
@@ -242,7 +244,7 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 - **Performance improvements across standard library**
 - **Required for Gin v1.12.x** — minimum Go version raised from 1.18 to 1.24
 
-**Release:** go1.25.11 — re-verified 2026-06-20 12:08 UTC against go.dev/dl/?mode=json (still current)
+**Release:** go1.25.11 — re-verified 2026-06-21 12:04 UTC against go.dev/dl/?mode=json (still current)
 
 ---
 
@@ -438,8 +440,17 @@ Before working on any Go/Gin task:
 
 ---
 
-## Updated from Research (2026-06-20)
+## Updated from Research (2026-06-21)
 
+### New CVEs Affecting Gin/Go (June 2026)
+
+- **CVE-2026-52878 / GHSA-w4c6-7r69-w7j9** (Jun 5, 2026, High): klever-go REST API slow-header connection exhaustion via Gin `Engine.Run()` — **Gin-specific DoS pattern**. Fix: use `http.Server` directly with `ReadHeaderTimeout`/`ReadTimeout`/`WriteTimeout`/`IdleTimeout` (see `security.md`).
+- **CVE-2026-42507** (Jun 4, 2026, Medium): Go `net/textproto` log injection — affects all Go HTTP servers including Gin. Patched in upcoming Go 1.25.12 / 1.26.5.
+- **CVE-2026-42500** (May 29, 2026, Medium): Go `image` BMP paletted-image panic. Affects image-upload handlers. Fixed in `golang.org/x/image` v0.41.0+.
+- **CVE-2026-39822** (embargoed): Go runtime security fix landing in Go 1.25.12 / 1.26.5.
+- **CVE-2026-22786** (Jan 12, 2026, High): gin-vue-admin path traversal in file upload — generally applicable lesson for Gin handlers (sanitize filenames with `filepath.Base` + regex whitelist).
+
+### Go 1.27 Development Status
 ### ⚠️ CRITICAL: Always Verify Versions Against go.dev/dl
 
 The Go release cycle does NOT always produce security patch releases on the dates previous research suggested. **Before citing any specific patch version (e.g., go1.26.5, go1.25.12), always verify against the official source:**
@@ -448,7 +459,7 @@ The Go release cycle does NOT always produce security patch releases on the date
 curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['version'], p.get('stable','')) for p in json.load(sys.stdin)[:10]]"
 ```
 
-Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security patches. **The authoritative go.dev/dl API (verified 2026-06-20 12:08 UTC) confirms the latest stable versions are still go1.26.4 and go1.25.11** — but the dev.golang.org/release dashboard shows both patches are **imminent** (7 CLs for 1.26.5, 3 CLs for 1.25.12, as of 2026-06-17). **Always re-verify at go.dev/dl before deploying — patches may have shipped.**
+Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security patches. **The authoritative go.dev/dl API (verified 2026-06-21 12:04 UTC) confirms the latest stable versions are still go1.26.4 and go1.25.11** — but the dev.golang.org/release dashboard shows both patches are **imminent** (7 CLs for 1.26.5, 3 CLs for 1.25.12, as of 2026-06-17). **Always re-verify at go.dev/dl before deploying — patches may have shipped.**
 
 ### Go 1.27 Development Status
 - Go 1.27 release freeze began **May 20, 2026** — **31 days in as of June 20, 2026**, no RC1 yet
@@ -491,14 +502,15 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - `encoding/json/jsontext` for streaming token-level JSON processing
 - v1 is **not deprecated** — existing code works unchanged
 
-### Verified Versions (2026-06-20 12:08 UTC — go.dev/dl API)
+### Verified Versions (2026-06-21 12:04 UTC — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, **~55.6% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-20 12:08 UTC via GitHub API)
+- **Gin v1.13** — milestone #28, due 2026-06-30, **~55.6% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-21 12:04 UTC via GitHub API)
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl)
-- **Go 1.27** — in release freeze (**31 days as of Jun 20, 2026**), no RC1 yet, expected August 2026
+- **Go 1.27** — in release freeze (**32 days as of Jun 21, 2026**), no RC1 yet, expected August 2026
 - **go-redis v9.20.1** — latest stable
+- **golang.org/x/image v0.41.0+** — required to avoid CVE-2026-42500 BMP decode panic
 - **GORM v1.31.1** — latest stable
 - **jackc/pgx v5 v5.10.0** — latest stable (Jun 3, 2026); **CVE-2026-33816 fixed in v5.9.0+** (critical memory-safety, CVSS 9.8); CVE-2026-33815 also patched in v5.10.0
 - **golang-jwt/jwt v5.3.1** — latest stable
@@ -517,9 +529,9 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **squaredup/squawk (latest)** — PostgreSQL migration linter; CI guard for dangerous DDL
 
 ### Sources
-- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-20 12:08 UTC)
-- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-20 12:08 UTC)
-- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-20 12:08 UTC)
+- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-21 12:04 UTC)
+- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-21 12:04 UTC)
+- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-21 12:04 UTC)
 - https://go.dev/doc/go1.27 (Go 1.27 release notes)
 - https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
 - https://dev.golang.org/release (Go release dashboard)

@@ -1,4 +1,4 @@
-# File Uploads — Multipart Forms, Cloud Storage
+# File Uploads — Multipart Forms, Cloud Storage, Image Decode Safety
 
 ## Gin Multipart Form Handling
 
@@ -221,6 +221,84 @@ func getPresignedURL(ctx context.Context, key string) (string, error) {
 }
 ```
 
+## Image Decode Safety (CVE-2026-42500)
+
+**CVE-2026-42500** (published 2026-05-29, Medium severity): Decoding a paletted BMP file with an out-of-range palette index **panics** in `golang.org/x/image/bmp`. Affects any Gin handler that accepts image uploads and runs `image.Decode` / `image.DecodeConfig` without restricting formats.
+
+**Mitigations:**
+1. **Restrict accepted formats at the content sniff level.** Reject any upload that isn't JPEG/PNG/WebP before decoding:
+   ```go
+   var allowedFormats = map[string]bool{
+       "image/jpeg": true, "image/png": true, "image/webp": true,
+   }
+
+   func decodeAllowedImage(r io.Reader) (image.Image, string, error) {
+       // Read first 512 bytes for MIME sniff
+       buf := make([]byte, 512)
+       n, _ := io.ReadFull(r, buf)
+       contentType := http.DetectContentType(buf[:n])
+       if !allowedFormats[contentType] {
+           return nil, "", fmt.Errorf("unsupported image format: %s", contentType)
+       }
+       // Reset reader and decode
+       if _, err := r.(io.ReadSeeker).Seek(0, io.SeekStart); err != nil {
+           // Fall back to combining bytes
+           r = io.MultiReader(bytes.NewReader(buf[:n]), r)
+       }
+       return image.Decode(r.(io.Reader))
+   }
+   ```
+2. **Upgrade `golang.org/x/image` to v0.41.0+** — patches the panic.
+3. **Wrap decode in `recover()` as defense-in-depth** (same pattern shown in `security.md`).
+
+## Path Traversal Prevention (CVE-2026-22786 Lesson)
+
+The Jan 2026 CVE-2026-22786 against gin-vue-admin showed what happens when user-supplied filenames are concatenated to a directory path without sanitization. In raw Gin handlers, apply this rule:
+
+```go
+import "path/filepath"
+import "strings"
+
+// ALWAYS sanitize user-supplied filenames before using them in filesystem paths
+func sanitizeUploadFilename(name string) (string, error) {
+    base := filepath.Base(name) // strips any directory components
+    if base == "." || base == "/" || base == "" {
+        return "", errors.New("empty or invalid filename")
+    }
+    // Belt-and-braces: reject anything containing ".."
+    if strings.Contains(base, "..") {
+        return "", errors.New("filename contains '..'")
+    }
+    // Restrict to a conservative character class (no spaces, no unicode tricks)
+    if matched, _ := regexp.MatchString(`^[a-zA-Z0-9._-]+$`, base); !matched {
+        return "", errors.New("filename contains disallowed characters")
+    }
+    return base, nil
+}
+
+// In your upload handler:
+func uploadFile(c *gin.Context) {
+    file, err := c.FormFile("file")
+    if err != nil {
+        c.JSON(400, gin.H{"error": "file required"})
+        return
+    }
+    safeName, err := sanitizeUploadFilename(file.Filename)
+    if err != nil {
+        c.JSON(400, gin.H{"error": err.Error()})
+        return
+    }
+    finalName := fmt.Sprintf("%s-%s", uuid.New().String(), safeName)
+    if err := c.SaveUploadedFile(file, "./uploads/"+finalName); err != nil {
+        c.JSON(500, gin.H{"error": "save failed"})
+        return
+    }
+    c.JSON(200, gin.H{"url": "/uploads/" + finalName})
+}
+```
+
+**Why `filepath.Base` alone isn't enough:** `filepath.Base("../foo/bar")` returns `"bar"`, which is safe — but `filepath.Base("..\foo\bar")` on Windows returns `"bar"` too, and an attacker can use URL-encoded `%2e%2e%2f` before the request reaches the handler. Whitelisting a strict character class (alphanumeric + `.` + `_` + `-`) closes that loophole.
+
 ## Common Mistakes
 
 1. **Using original filename** — `file.Filename` is user-controlled; generate UUID-based names
@@ -229,6 +307,8 @@ func getPresignedURL(ctx context.Context, key string) (string, error) {
 4. **Public S3 bucket** — keep bucket private, use presigned URLs or CloudFront signed URLs
 5. **Not setting content type** — `Content-Type` header affects how browsers handle downloads
 6. **No virus scanning** — scan uploaded files with ClamAV before serving
+13. **Not restricting decoded image formats** — CVE-2026-42500 BMP panic DoS; sniff content type before decoding
+14. **Trusting `file.Filename` for filesystem paths** — CVE-2026-22786 path traversal; always sanitize with `filepath.Base` + regex whitelist
 
 ## Updated from Research (2026-05)
 

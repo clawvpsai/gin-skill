@@ -1,4 +1,4 @@
-# Security — Headers, CORS, Rate Limiting, Hardening
+# Security — Headers, CORS, Rate Limiting, Hardening, Recent CVEs
 
 ## Security Headers
 
@@ -19,6 +19,166 @@ r.Use(SecurityHeaders())
 ```
 
 **Note:** `X-XSS-Protection` is removed from modern browsers — do not include it. CSP is the proper XSS protection. Also added `preload` to HSTS for HSTS preload list submission.
+
+## ⚠️ Critical Production Server Setup (CVE-2026-52878 Mitigation)
+
+**`gin.Engine.Run(":8080")` is unsafe for production.** It uses Go's default `http.Server` with **no timeouts**, leaving the server vulnerable to **slow-header / slowloris DoS attacks** that exhaust file descriptors. This was confirmed in production via CVE-2026-52878 / GHSA-w4c6-7r69-w7j9 (June 2026) against klever-go's Gin-based REST API.
+
+**Always use `http.Server` directly with explicit timeouts in production:**
+
+```go
+func NewProductionServer(addr string, r *gin.Engine) *http.Server {
+    return &http.Server{
+        Addr:    addr,
+        Handler: r,
+
+        // CVE-2026-52878 mitigation: limit slow-header / slowloris attacks
+        ReadHeaderTimeout: 5 * time.Second,  // max time to read request headers
+        ReadTimeout:       30 * time.Second, // total request read time (headers + body)
+        WriteTimeout:      30 * time.Second, // response write deadline
+        IdleTimeout:       120 * time.Second, // keep-alive idle timeout
+
+        // Header size cap (defends against memory exhaustion via large headers)
+        MaxHeaderBytes: 1 << 20, // 1 MB
+    }
+}
+
+func main() {
+    r := gin.New()
+    r.Use(gin.Recovery(), SecurityHeaders(), RequestSizeLimit(10<<20))
+
+    r.GET("/health", func(c *gin.Context) {
+        c.JSON(200, gin.H{"status": "ok"})
+    })
+
+    srv := NewProductionServer(":8080", r)
+
+    // Graceful shutdown on SIGTERM/SIGINT
+    go func() {
+        if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+            log.Fatalf("listen: %v", err)
+        }
+    }()
+
+    quit := make(chan os.Signal, 1)
+    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+    <-quit
+    log.Println("shutdown requested")
+
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+    if err := srv.Shutdown(ctx); err != nil {
+        log.Printf("graceful shutdown failed: %v", err)
+    }
+}
+```
+
+**Why this matters:**
+- `gin.Engine.Run(addr)` calls `http.ListenAndServe(addr, engine)` — this uses `http.DefaultServer` with **no timeouts** (deprecated since Go 1.8).
+- An attacker can open thousands of TCP connections, send partial HTTP headers very slowly, and exhaust the file descriptor pool — taking down the entire API.
+- `ReadHeaderTimeout` is the critical one. Even setting just that to 5–10s mitigates the slow-header attack.
+
+**Alternative — use `gin-contrib/timeout` middleware for per-handler timeouts:**
+```go
+import "github.com/gin-contrib/timeout"
+
+r.Use(timeout.New(
+    timeout.WithTimeout(10*time.Second),
+    timeout.WithHandler(func(c *gin.Context) {
+        c.JSON(http.StatusRequestTimeout, gin.H{"error": "timeout"})
+    }),
+    timeout.WithResponse(func(c *gin.Context) {
+        c.JSON(http.StatusRequestTimeout, gin.H{"error": "request timed out"})
+    }),
+))
+```
+
+## Recent Gin/Go CVEs (June 2026)
+
+### CVE-2026-52878 / GHSA-w4c6-7r69-w7j9 — Gin Engine slow-header DoS
+- **Published:** 2026-06-05 | **Severity:** High
+- **Affected:** Any Gin app using `gin.Engine.Run(addr)` or `http.ListenAndServe()` without explicit `http.Server` timeouts
+- **Impact:** Remote, unauthenticated attacker opens many TCP connections sending partial HTTP headers extremely slowly, exhausting file descriptors and causing complete API unavailability.
+- **Fix:** Use `http.Server` with `ReadHeaderTimeout`, `ReadTimeout`, `WriteTimeout`, `IdleTimeout` (see code above). `r.Run(":8080")` is for development only.
+- **Detection:** Monitor `lsof -p $PID | wc -l` for FD count spikes; `netstat -an | grep <port> | grep ESTABLISHED | wc -l` for connection count.
+
+### CVE-2026-42507 — Go `net/textproto` log injection
+- **Published:** 2026-06-04 | **Severity:** Medium
+- **Affected:** All Go HTTP servers including Gin — affects any handler that logs `textproto.Error()` output or header parse errors.
+- **Impact:** Attacker-controlled input included in error messages without escaping. Enables misleading log entries, terminal-control injection (ANSI escapes), and log injection attacks when logs are ingested by monitoring tools.
+- **Fix:** Patched in upcoming Go 1.25.12 / 1.26.5. Until patched, **sanitize HTTP header values before logging** — use `strconv.Quote()` or strip non-printable chars before `log.Printf()`.
+- **Workaround example:**
+  ```go
+  // UNSAFE — raw header in logs
+  log.Printf("bad header from %s: %v", c.Request.RemoteAddr, err)
+
+  // SAFER — quote header values to neutralize control chars
+  log.Printf("bad header from %s: %s",
+      c.Request.RemoteAddr,
+      strconv.Quote(c.GetHeader("X-Custom")))
+  ```
+
+### CVE-2026-42500 — Go `image` package BMP paletted-image panic
+- **Published:** 2026-05-29 | **Severity:** Medium
+- **Affected:** Image upload handlers using `golang.org/x/image/bmp` (or code paths that fall back to BMP decoding via `image.Decode`).
+- **Impact:** Decoding a paletted BMP with an out-of-range palette index panics. Remote DoS via crafted upload.
+- **Fix:** Upgrade `golang.org/x/image` to **v0.41.0+**. Add `defer recover()` around `image.Decode()` in upload handlers as a defense-in-depth measure.
+- **Defense-in-depth pattern:**
+  ```go
+  func decodeImageSafely(r io.Reader) (image.Image, string, error) {
+      var img image.Image
+      var format string
+      var err error
+
+      func() {
+          defer func() {
+              if rec := recover(); rec != nil {
+                  err = fmt.Errorf("image decode panic: %v", rec)
+              }
+          }()
+          img, format, err = image.Decode(r)
+      }()
+
+      return img, format, err
+  }
+  ```
+
+### CVE-2026-39822 — Go runtime security fix (embargoed, imminent)
+- **Status:** In release pipeline for Go 1.25.12 / 1.26.5 (verified 2026-06-21 12:04 UTC via dev.golang.org/release)
+- **Affected:** Go runtime; details under embargo (issue #79005 / #79026 / #79027 marked private per Go security policy)
+- **Action:** Track [golang-announce](https://groups.google.com/g/golang-announce) for the announcement thread; pre-stage builds with the patch within days of release.
+
+### CVE-2026-22786 — Gin-vue-admin path traversal (applies to Gin handlers generally)
+- **Published:** 2026-01-12 | **Severity:** High
+- **Issue:** Concatenating user-supplied filenames with directory paths using `os.OpenFile()` without sanitization allows `../` traversal and arbitrary file writes.
+- **Lesson for raw Gin handlers:** Always sanitize filenames with `filepath.Base()` and reject empty results:
+  ```go
+  import "path/filepath"
+
+  func safeFilename(userInput string) (string, error) {
+      base := filepath.Base(userInput)
+      if base == "." || base == "/" || base == "" || strings.Contains(base, "..") {
+          return "", fmt.Errorf("invalid filename")
+      }
+      // Optional: further restrict to a character class
+      matched, _ := regexp.MatchString(`^[a-zA-Z0-9._-]+$`, base)
+      if !matched {
+          return "", fmt.Errorf("filename contains disallowed characters")
+      }
+      return base, nil
+  }
+  ```
+
+## Production Server Defaults Cheat Sheet
+
+| Timeout              | Recommended | Purpose                                           |
+|----------------------|-------------|---------------------------------------------------|
+| `ReadHeaderTimeout`  | 5–10s       | Bounds slow-header / slowloris DoS                |
+| `ReadTimeout`        | 30s         | Total request body read time                      |
+| `WriteTimeout`       | 30s         | Response write deadline                           |
+| `IdleTimeout`        | 120s        | Keep-alive idle (after Go 1.8)                    |
+| `MaxHeaderBytes`     | 1 MB        | Cap memory per request for headers                |
+| `MaxMultipartMemory` | 8–32 MB     | Gin-specific; cap per-handler multipart memory    |
 
 ## Cross-Origin Isolation (COOP/COEP)
 
