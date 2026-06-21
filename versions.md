@@ -408,6 +408,9 @@ go list -m all
 | mongo-driver | v2 | **BSON support upgraded to v2** |
 | **gin-contrib/cors** | **v1.7.7** | **CORS middleware (github.com/gin-contrib/cors)** |
 | **golang-migrate/migrate** | **v4.19.1** | **SQL migrations (github.com/golang-migrate/migrate)** |
+| **pressly/goose** | **v3.27.1** | **SQL + Go migrations (github.com/pressly/goose/v3); requires Go 1.25+** |
+| **ariga/atlas** | **v1.2.0** | **Declarative schema-as-code + versioned auto-planning (ariga.io/atlas-go-sdk/atlasexec)** |
+| **squaredup/squawk** | **latest** | **PostgreSQL migration linter — CI guard for dangerous DDL** |
 | **jackc/pgx/v5** | **v5.10.0** | **PostgreSQL driver (CVE-2026-33816 fixed in v5.9.0+, CVSS 9.8)** |
 
 ### Common Compatibility Issues
@@ -509,6 +512,9 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **quic-go v0.60.0** — HTTP/3 support (Gin v1.12+); Go 1.25+ required; FIPS 140-3 ready (Go 1.26+)
 - **gin-contrib/cors v1.7.7** — CORS middleware
 - **golang-migrate/migrate v4.19.1** — SQL migrations
+- **pressly/goose v3.27.1** — SQL + Go migrations (Apr 24, 2026); min Go 1.25; Provider API with `WithLogger` for `slog`
+- **ariga/atlas v1.2.0** — declarative schema-as-code + versioned auto-planning (Apr 10, 2026); reads `golang-migrate`/`goose`/`dbmate`/`flyway`/`liquibase` directory formats
+- **squaredup/squawk (latest)** — PostgreSQL migration linter; CI guard for dangerous DDL
 
 ### Sources
 - https://go.dev/dl/?mode=json (authoritative — verified 2026-06-20 12:08 UTC)
