@@ -93,7 +93,7 @@ r.Use(timeout.New(
 ))
 ```
 
-## Recent Gin/Go CVEs (June 2026)
+## Recent Gin/Go CVEs (May–June 2026)
 
 ### CVE-2026-52878 / GHSA-w4c6-7r69-w7j9 — Gin Engine slow-header DoS
 - **Published:** 2026-06-05 | **Severity:** High
@@ -147,6 +147,78 @@ r.Use(timeout.New(
 - **Status:** In release pipeline for Go 1.25.12 / 1.26.5 (verified 2026-06-21 12:04 UTC via dev.golang.org/release)
 - **Affected:** Go runtime; details under embargo (issue #79005 / #79026 / #79027 marked private per Go security policy)
 - **Action:** Track [golang-announce](https://groups.google.com/g/golang-announce) for the announcement thread; pre-stage builds with the patch within days of release.
+
+### CVE-2026-39821 / GO-2026-5026 — golang.org/x/net idna Punycode privilege escalation (CRITICAL, CVSS 10.0)
+- **Published:** 2026-05-22 | **Severity:** Critical
+- **Affected:** `golang.org/x/net` versions < v0.55.0 (idna package — `ToASCII` / `ToUnicode`)
+- **Impact:** The idna package's `ToASCII` / `ToUnicode` incorrectly accept Punycode-encoded labels that decode to ASCII-only labels. Example: `ToUnicode("xn--example-.com")` incorrectly returns `"example.com"` instead of an error. **Enables privilege escalation** — a handler that performs allow/deny checks on the ASCII hostname (e.g. validating OAuth `redirect_uri` host against an allowlist) may reject `"example.com"` but **permit `"xn--example-.com"`**, which then normalizes back to `"example.com"` downstream. Bypasses host-based authorization checks.
+- **Gin exposure paths:** webhook receiver handlers that validate `Host` header, OAuth/OIDC `redirect_uri` validators, allowlist middleware for SSO callbacks, anything using `c.Request.Host` plus idna.
+- **Fix:** Upgrade to `golang.org/x/net` **v0.55.0+**. Pin `golang.org/x/net/idna` directly if you only use that subpackage.
+- **Defense-in-depth:** Normalize hostnames with `idna.Lookup.ToASCII` (not raw punycode passthrough) before allowlist comparison.
+
+### CVE-2026-25680 / GO-2026-5028 — golang.org/x/net HTML parser CPU DoS
+- **Published:** 2026-05-22 | **Severity:** Medium
+- **Affected:** `golang.org/x/net` < v0.55.0 (html package)
+- **Impact:** Parsing arbitrary, deeply-nested or pathological HTML can consume excessive CPU time — remote DoS via crafted input.
+- **Gin exposure paths:** any handler that accepts HTML body input and calls `html.Parse` / `golang.org/x/net/html` for sanitization (e.g. rich-text editors, email preview, pastebins).
+- **Fix:** Upgrade to `golang.org/x/net` **v0.55.0+**. Add a request body size limit (already recommended for any user-uploaded HTML).
+- **Workaround:** wrap `html.Parse` with a `context.Context` timeout via goroutine + select pattern, and cap input size before parsing.
+
+### CVE-2026-42502 / GO-2026-5027 — golang.org/x/net html.Render XSS re-introduction
+- **Published:** 2026-05-22 | **Severity:** Medium
+- **Affected:** `golang.org/x/net` < v0.55.0 (html package — `Render` function)
+- **Impact:** Parsing arbitrary HTML which is then rendered using `Render` can produce an unexpected HTML tree that **re-introduces XSS even after input sanitization**. Applications that try to sanitize HTML before rendering can be bypassed.
+- **Gin exposure paths:** any handler using `html.Render` to display user-supplied HTML (markdown preview, comment rendering, email body).
+- **Fix:** Upgrade to `golang.org/x/net` **v0.55.0+**. For new projects, prefer `bluemonday` or `html-sanitizer` for HTML sanitization — never rely on `html.Render` for XSS prevention.
+
+### CVE-2026-39824 / GO-2026-5024 — golang.org/x/sys windows NTUnicodeString overflow
+- **Published:** 2026-05-22 | **Severity:** Medium (Windows-only)
+- **Affected:** `golang.org/x/sys/windows` < v0.46.0 (Debian backport already in sid/forky/trixie; upstream fix in v0.46.0)
+- **Impact:** `NewNTUnicodeString` does not check for string length overflow. When given a string longer than the 16-bit NTUnicodeString max, it **silently returns a truncated string** instead of an error. This can lead to incorrect path/registry operations on Windows.
+- **Gin exposure paths:** Windows-only — affects Gin apps using `golang.org/x/sys/windows` for native Windows API calls (rare in container deployments; relevant for Windows service or IIS-hosted Gin apps).
+- **Fix:** Upgrade to `golang.org/x/sys` **v0.46.0+** (already bundled with Go 1.26 toolchain).
+- **Mitigation:** After calling `NewNTUnicodeString`, validate `len(result) == len(input)` or check for nil/empty result when input was non-empty.
+
+### CVE-2026-46598 / GO-2026-5033 — golang.org/x/crypto ssh/agent ed25519 panic
+- **Published:** 2026-05-22 | **Severity:** Medium
+- **Affected:** `golang.org/x/crypto` < v0.52.0 (ssh/agent package — ed25519 wire-format parsing)
+- **Impact:** Malformed ed25519 wire bytes cast into `ed25519.PrivateKey` cause a **panic when used**. Unauthenticated remote attacker can crash any Gin service that imports `golang.org/x/crypto/ssh/agent` (or its transitive importers).
+- **Gin exposure paths:** rare for HTTP servers — but any service using `ssh-agent` forwarding, jump-host proxies, or build-time SSH key parsing is affected. **Crypto/SSH-facing admin APIs are most at risk.**
+- **Fix:** Upgrade to `golang.org/x/crypto` **v0.53.0+** (v0.52.0 was the initial patch release on 2026-05-22; v0.53.0 is current). Add `defer recover()` around `ed25519.PrivateKey` decoding as defense-in-depth.
+
+### CVE-2026-46597 / GO-2026-5013 — golang.org/x/crypto ssh AES-GCM panic
+- **Published:** 2026-05-22 | **Severity:** Medium
+- **Affected:** `golang.org/x/crypto` < v0.52.0 (ssh package — AES-GCM packet decoder)
+- **Impact:** Incorrectly-placed `bytes→int` cast in AES-GCM packet decoder causes **server-side panic on well-crafted inputs**. Unauthenticated remote DoS against any SSH server using `golang.org/x/crypto/ssh`.
+- **Gin exposure paths:** Gin apps embedding an SSH server or admin shell (rare but used for ops endpoints). Transitive risk: `crypto/ssh` is imported by many ops tools.
+- **Fix:** Upgrade to `golang.org/x/crypto` **v0.53.0+**.
+
+### CVE-2026-39828, CVE-2026-39835, CVE-2026-39827, CVE-2026-39830, CVE-2026-39831, CVE-2026-39829 — golang.org/x/crypto ssh server hardening batch
+- **Published:** 2026-05-22 | **Severity:** Mixed (Medium-High)
+- **Affected:** `golang.org/x/crypto` < v0.52.0 (ssh package — server callbacks, certificate handling, agent key constraints)
+- **Highlights (full list in [golang-announce thread](https://groups.google.com/g/golang-announce/c/a082jnz-LvI)):**
+  - **CVE-2026-39828** — ssh certificate restriction bypass: when SSH server auth callback returns `PartialSuccessError` with non-nil `Permissions`, those permissions were silently discarded, dropping certificate restrictions (e.g. `force-command`) after a second factor succeeded. Now permissions are honored.
+  - **CVE-2026-39835** — ssh server panic during `CheckHostKey`/`Authenticate`.
+  - **CVE-2026-39827** — ssh/agent key constraints not enforced on key use.
+  - **CVE-2026-39830** — ssh client deadlock on unexpected server responses.
+  - **CVE-2026-39831** — ssh server DoS via pathological RSA/DSA parameters.
+  - **CVE-2026-39829** — additional ssh hardening fix.
+- **Gin exposure paths:** any service that ships an embedded SSH admin server / bastion endpoint using `crypto/ssh`.
+- **Fix:** Upgrade to `golang.org/x/crypto` **v0.53.0+** — all six CVEs are fixed in v0.52.0 / v0.53.0.
+
+### CVE-2026-46595 / GO-2026-5023 — golang.org/x/crypto ssh callback source-address authz bypass
+- **Published:** 2026-05-22 | **Severity:** High
+- **Affected:** `golang.org/x/crypto` < v0.52.0 (ssh server — callback handling)
+- **Impact:** Partial fix for CVE-2024-45337 — if a non-public-key callback type was passed, **source-address validation was skipped**, allowing auth bypass when SSH servers are configured with multi-factor callbacks.
+- **Gin exposure paths:** embedded SSH admin endpoints with multi-factor callbacks.
+- **Fix:** Upgrade to `golang.org/x/crypto` **v0.53.0+**.
+
+### CVE-2026-42508 / GO-2026-5021 — golang.org/x/crypto SSH CA SignatureKey revocation check
+- **Published:** 2026-05-22 | **Severity:** Medium
+- **Affected:** `golang.org/x/crypto` < v0.52.0 (ssh server — CA cert handling)
+- **Impact:** A revoked CA `SignatureKey` was not correctly checked for revocation during SSH certificate validation. Now both `key` and `key.SignatureKey` are checked for `@revoked`. SSH clients/servers trusting SSH CA certs could accept certificates signed by a compromised/revoked CA key.
+- **Gin exposure paths:** any embedded SSH endpoint that validates user certificates against an SSH CA (common for bastion/jump-host patterns).
+- **Fix:** Upgrade to `golang.org/x/crypto` **v0.53.0+**.
 
 ### CVE-2026-22786 — Gin-vue-admin path traversal (applies to Gin handlers generally)
 - **Published:** 2026-01-12 | **Severity:** High
@@ -651,3 +723,46 @@ func generateCodeChallenge(verifier string) string {
 - RFC 7636 (PKCE): https://www.rfc-editor.org/rfc/rfc7636
 - MDN Reporting API: https://developer.mozilla.org/en-US/docs/Web/API/Reporting_API
 - COOP/COEP: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cross-Origin-Embedder-Policy
+
+---
+
+## Updated from Research (2026-06-22, 18:04 UTC)
+
+### May 22, 2026 golang.org/x/crypto + x/net + x/sys security batch added
+
+Added nine new CVE entries to the "Recent Gin/Go CVEs (May–June 2026)" section covering the Go security announcements published on 2026-05-22 (T-minus 31 days from today). The skill previously had no coverage of this batch — only the May/June CVE list in versions.md referenced individual CVEs without detail.
+
+**New entries added (security.md):**
+
+1. **CVE-2026-39821 / GO-2026-5026** — golang.org/x/net idna Punycode privilege escalation (**CRITICAL, CVSS 10.0**) — fixed in x/net v0.55.0. Hostname allowlist bypass via `xn--example-.com` → `example.com` normalization. Critical for OAuth redirect-URI validators, webhook host checks, SSO callback allowlists.
+2. **CVE-2026-25680 / GO-2026-5028** — golang.org/x/net HTML parser CPU DoS — fixed in x/net v0.55.0.
+3. **CVE-2026-42502 / GO-2026-5027** — golang.org/x/net `html.Render` XSS re-introduction — fixed in x/net v0.55.0. Affects Gin handlers displaying user HTML (markdown preview, comment rendering).
+4. **CVE-2026-39824 / GO-2026-5024** — golang.org/x/sys/windows `NewNTUnicodeString` integer overflow (Windows-only) — fixed in x/sys v0.46.0 (already in Go 1.26 toolchain). Silently truncates oversized strings instead of erroring.
+5. **CVE-2026-46598 / GO-2026-5033** — golang.org/x/crypto ssh/agent ed25519 wire-byte panic — fixed in x/crypto v0.52.0 (current: v0.53.0).
+6. **CVE-2026-46597 / GO-2026-5013** — golang.org/x/crypto ssh AES-GCM packet decoder panic — fixed in x/crypto v0.52.0+.
+7. **CVE-2026-39828, CVE-2026-39835, CVE-2026-39827, CVE-2026-39830, CVE-2026-39831, CVE-2026-39829** — golang.org/x/crypto ssh server hardening batch (6 CVEs) — certificate restrictions bypass, server panic, agent key constraints, client deadlock, RSA/DSA DoS, additional hardening.
+8. **CVE-2026-46595 / GO-2026-5023** — golang.org/x/crypto ssh callback source-address authz bypass (High) — follow-up to CVE-2024-45337.
+9. **CVE-2026-42508 / GO-2026-5021** — golang.org/x/crypto SSH CA `SignatureKey` revocation check — both `key` and `key.SignatureKey` now checked for `@revoked`.
+
+### Section title updated
+- "Recent Gin/Go CVEs (June 2026)" → "Recent Gin/Go CVEs (May–June 2026)" to reflect the broader date range now covered.
+
+### Why this matters for Gin developers
+- **Most Gin apps are NOT directly exposed** to the x/crypto and x/net SSH/HTML CVEs unless they embed an SSH admin endpoint or render user-supplied HTML.
+- **HOWEVER:** `golang.org/x/net` is a near-universal transitive dependency (HTTP/2, HTML escaping in `template.HTMLEscapeString`, etc.). Go modules resolution means **v0.55.0 should be the minimum pin** to clear all May CVEs.
+- The May 22 batch was released **31 days ago** — agents deploying new Gin services should add these version floors to their go.mod and verify with `govulncheck ./...` in CI.
+
+### Detection
+- Run `govulncheck ./...` against the Gin project to surface any of these CVEs in transitive deps
+- Check `go.mod` for `golang.org/x/net < v0.55.0` and `golang.org/x/crypto < v0.53.0`
+- For Windows deployments: `golang.org/x/sys < v0.46.0`
+
+### Sources
+- https://groups.google.com/g/golang-announce (golang-announce, 2026-05-22 batch)
+  - x/crypto: https://groups.google.com/g/golang-announce/c/a082jnz-LvI
+  - x/net/html: https://groups.google.com/g/golang-announce/c/iI-mYSI0lu8 (CVE-2026-39821)
+  - x/sys: https://groups.google.com/g/golang-announce/c/6MMI8Lj-Atg (CVE-2026-39824)
+- https://pkg.go.dev/vuln/list (GO-2026-5013 through GO-2026-5033)
+- https://nvd.nist.gov/vuln/detail/CVE-2026-39821 (Punycode CVE details)
+- https://go.dev/issue/78760 (idna tracking issue)
+- https://go.dev/cl/770080 (NTUnicodeString fix CL)

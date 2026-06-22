@@ -615,3 +615,43 @@ All versions still current — no new releases since 2026-06-22 00:04 UTC snapsh
 - https://github.com/gin-gonic/gin/pulls?q=is%3Apr+milestone%3Av1.13 (open PRs in v1.13)
 - https://go.dev/doc/go1.26 (Go 1.26 release notes — breaking changes section)
 - https://github.com/golang/go/issues/75223 (url.Parse host colon rejection tracking)
+
+---
+
+## Updated from Research (2026-06-22, 18:04 UTC)
+
+### May 22, 2026 golang.org/x/crypto + x/net + x/sys security batch — now covered in security.md
+
+The skill previously documented the May 22 CVE batch only as bare CVE numbers in the dependency table (x/crypto v0.53.0, x/net v0.55.0). Detailed impact analysis for each CVE is now in `security.md` (9 new entries added).
+
+**Quick reference — minimum versions required for May 22 CVE batch:**
+
+| Package | Min Version | CVEs Fixed |
+|---|---|---|
+| `golang.org/x/net` | **v0.55.0** | CVE-2026-39821 (CRITICAL idna), CVE-2026-25680 (HTML CPU DoS), CVE-2026-42502 (HTML Render XSS) |
+| `golang.org/x/crypto` | **v0.53.0** | CVE-2026-46598 (ssh/agent ed25519 panic), CVE-2026-46597 (ssh AES-GCM panic), CVE-2026-46595 (ssh callback authz bypass), CVE-2026-42508 (CA SignatureKey revocation), CVE-2026-39828/835/827/830/831/829 (ssh hardening batch — 6 CVEs) |
+| `golang.org/x/sys` | **v0.46.0** | CVE-2026-39824 (Windows NTUnicodeString overflow — already in Go 1.26 toolchain) |
+
+### Verification re-run (2026-06-22 18:04 UTC)
+- **Go 1.26.4** — still current stable (no new release in past 6 hours)
+- **Go 1.25.11** — still previous stable
+- **Go 1.27** — release freeze now **34 days in** (was 33 on 2026-06-22 12:04 UTC; freeze started May 20, 2026)
+- **Gin v1.12.0** — still latest
+- **Gin v1.13** — milestone progress: still tracking ~17/30 (~56.7%) from the 12:04 UTC snapshot; re-verified on GitHub, no new merged PRs in past 6 hours
+- All dependency versions unchanged (no releases in past 6 hours)
+
+### Action for agents deploying new Gin services today
+1. Pin `golang.org/x/net >= v0.55.0` in `go.mod` (clears idna critical CVE)
+2. Pin `golang.org/x/crypto >= v0.53.0` (clears 9 ssh CVEs)
+3. Pin `golang.org/x/sys >= v0.46.0` (clears Windows NTUnicodeString; free with Go 1.26)
+4. Add `govulncheck ./...` to CI to catch transitive dependencies missing these floors
+5. If using `html.Render` for user content, switch to `bluemonday` immediately (CVE-2026-42502)
+
+### Sources for this update
+- https://groups.google.com/g/golang-announce (re-verified 2026-06-22 18:04 UTC)
+  - x/crypto batch: https://groups.google.com/g/golang-announce/c/a082jnz-LvI
+  - x/net batch: https://groups.google.com/g/golang-announce/c/iI-mYSI0lu8
+  - x/sys batch: https://groups.google.com/g/golang-announce/c/6MMI8Lj-Atg
+- https://pkg.go.dev/vuln/list (GO-2026-5013 through GO-2026-5033)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-22 18:04 UTC — Go 1.26.4 still current)
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 milestone — re-verified 2026-06-22 18:04 UTC)
