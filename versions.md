@@ -2,29 +2,28 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-22 00:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-22).
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-22 00:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 4 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-22; was 3 on 2026-06-17 — crypto/tls FIPS backport added).
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-22 12:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 6 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-22; was 7 on 2026-06-21).
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-22 12:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 3 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-22; was 4 on 2026-06-21, was 3 on 2026-06-17 — the `crypto/tls` FIPS backport that appeared on 2026-06-21 has since been pulled from the release dashboard, presumably for further work or replacement).
 - **Go 1.24** — Minimum for Gin v1.12 (still security-supported until Go 1.26 + 1 stable)
 
 ## Pending Security Patches (2026-06-22)
 
-The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-22 00:04 UTC) shows pending CLs for two upcoming security patch releases:
+The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-22 12:04 UTC) shows pending CLs for two upcoming security patch releases:
 
-- **Go 1.26.5** — 7 pending CLs across `cmd/compile`, `cmd/fix`, `crypto/tls`, `runtime`, `security`, `x/tools/go/analysis`. Highlights:
+- **Go 1.26.5** — 6 pending CLs across `cmd/compile`, `cmd/fix`, `runtime`, `security`, `x/tools/go/analysis`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on the dashboard on 2026-06-21 is **no longer listed** as of this snapshot. Highlights of the remaining CLs:
   - `security: fix CVE-2026-39822 [1.26 backport]` (embargoed runtime fix)
-  - `crypto/tls: FIPS 140-3 certificate key check is skipped when InsecureSkipVerify=true [1.26 backport]` — *important for TLS servers running in FIPS 140-3 mode*: setting `InsecureSkipVerify=true` (commonly a client-side flag) currently also bypasses the FIPS key-type check, potentially allowing non-FIPS-approved key exchange. After the patch the FIPS check runs independently of `InsecureSkipVerify`. Tracked under Go security policy; no public CVE ID yet.
   - `runtime: version parsing fails [1.26 backport]` — fixes `runtime.Version()` parser edge case (e.g. on pseudo-versions with dirty/suffix tags)
   - `cmd/compile: prove misscompilation in slicemask folding leaves garbage in the upper half of the 32bits of the register when slicing a slice by a non constant value that is < cap [1.26 backport]`
   - `cmd/fix, x/tools/go/analysis: fix can print "applied 8 of 10 fixes; 2 files updated" and fail without actually applying any fixes [1.26 backport]`
-- **Go 1.25.12** — 4 pending CLs across `cmd/compile`, `crypto/tls`, `runtime`, `security`. Highlights:
+  - `runtime: concurrent map read and map write with sync.RWMutex on ppc64le [1.26 backport]` (was already pending — pulled into the highlight section now that the FIPS CL was removed)
+- **Go 1.25.12** — 3 pending CLs across `cmd/compile`, `runtime`, `security`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on 2026-06-21 is no longer listed (same as 1.26.5 above). Highlights:
   - `security: fix CVE-2026-39822 [1.25 backport]`
-  - `crypto/tls: FIPS 140-3 certificate key check is skipped when InsecureSkipVerify=true [1.25 backport]` (same fix backported; see note in 1.26.5 above)
   - `runtime: concurrent map read and map write with sync.RWMutex on ppc64le [1.25 backport]`
   - `cmd/compile: prove misscompilation in slicemask folding [...] [1.25 backport]`
 
 **CVE-2026-39822** (embargoed, per Go security policy): runtime-level security fix. Details under embargo until release announcement. Track [github.com/golang/go/issues/79005](https://github.com/golang/go/issues/79005).
 
-**Action:** Re-run `curl -s https://go.dev/dl/?mode=json` before deploying production builds — the patches may have shipped since this snapshot. Track [dev.golang.org/release](https://dev.golang.org/release) for the announcement thread on [golang-announce](https://groups.google.com/g/golang-announce). The `crypto/tls` FIPS+`InsecureSkipVerify` fix is the highest-impact non-CVE-2026-39822 change for Gin services terminating TLS in FIPS 140-3 mode.
+**Action:** Re-run `curl -s https://go.dev/dl/?mode=json` before deploying production builds — the patches may have shipped since this snapshot. Track [dev.golang.org/release](https://dev.golang.org/release) for the announcement thread on [golang-announce](https://groups.google.com/g/golang-announce). Note that the `crypto/tls` FIPS+`InsecureSkipVerify` CL that previously appeared on the dashboard has since been pulled (likely reverted for further work); if your Gin service terminates TLS in FIPS 140-3 mode, monitor for the fix in a later patch release (Go 1.25.13 / 1.26.6).
 
 ## Version Selector Prompt
 
@@ -58,9 +57,29 @@ Then load the relevant version sections below.
 - **`slices` and `maps` packages** — `maps.Copy()`, `maps.Clone()` for cleaner code
 - **Improved toolchain** — better error messages and diagnostics
 
-**Release:** go1.26.4 — re-verified 2026-06-21 12:04 UTC against `go.dev/dl/?mode=json` (still current)
+**Release:** go1.26.4 — re-verified 2026-06-22 12:04 UTC against `go.dev/dl/?mode=json` (still current)
 
 > ⚠️ **Verify latest before building:** `curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['version']) for p in json.load(sys.stdin)[:5]]"`
+
+### Go 1.26 Breaking Changes Affecting Gin Handlers
+
+These changes are observable when upgrading services from Go 1.25 → 1.26 and may surface in production. Watch for them in CI and staged rollouts.
+
+- **`net/url.Parse` rejects malformed URLs with extra colons in the host** (e.g. `http://::1/`, `http://localhost:80:80/`, `http://localhost:8080:80/`) — RFC 3986 allows a single colon between hostname and port, so multiple colons are unambiguously a parse error. **Affects any Gin handler that calls `url.Parse` on a user-supplied string** (OAuth/OIDC redirect URI validation, webhook URL intake, deep-link parsing, well-known endpoint discovery). On Go 1.25 these parsed as malformed hosts; on Go 1.26 they return `*url.Error` immediately. Re-enable the old behavior with `GODEBUG=urlstrictcolon=0` if your service must accept the historical inputs during a migration. See [go.dev/issue/75223](https://github.com/golang/go/issues/75223).
+  ```go
+  // Recommended: validate with ParseRequestURI for redirect/callback URLs
+  u, err := url.ParseRequestURI(redirect)
+  if err != nil || u.Host == "" {
+      c.JSON(400, gin.H{"error": "invalid redirect_uri"})
+      return
+  }
+  // Then check that u.Host has exactly one colon (or no colon if no port)
+  ```
+- **Hybrid post-quantum TLS key exchanges enabled by default** — `SecP256r1MLKEM768` and `SecP384r1MLKEM1024` are now in `tls.Config.CurvePreferences` by default. Most clients will negotiate successfully; legacy or specialized clients (some older TLS terminators, certain proxies, embedded MQTT brokers) may fail TLS handshake. Test against your real client fleet before enabling in production. Disable with `GODEBUG=tlsmlkem=0` for one release cycle if you need a rollback. Affects Gin services that terminate TLS via `http.Server.TLSConfig` or via a reverse proxy that does its own TLS.
+- **Green Tea GC enabled by default** — improved GC throughput but a small benchmark delta (10–40% GC overhead reduction on small-object workloads). Generally positive; benchmark your service to confirm. No action required.
+- **`go test` vet now runs `stringer` check by default** — flags types with a `String()` method that don't satisfy `fmt.Stringer` interface correctly (e.g. pointer vs value receiver mismatches). Existing test suites that compile fine on Go 1.25 may start failing `go vet` / `go test` on Go 1.26. Run `go test ./...` in CI before upgrading to surface these.
+- **`url.Parse` no longer accepts `localhost:8080:80` (multiple colons)** — same fix as above; both `Parse` and `ParseRequestURI` are affected. Source: [Go 1.26 release notes](https://go.dev/doc/go1.26).
+
 
 ---
 
@@ -70,7 +89,7 @@ The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashb
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 21, 2026 (12:04 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (32 days in as of Jun 21). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-21 12:04 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
+> **No Go 1.27 RC as of June 22, 2026 (12:04 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (33 days in as of Jun 22). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-22 12:04 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
 
 ### New in Go 1.27
 
@@ -511,13 +530,13 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - `encoding/json/jsontext` for streaming token-level JSON processing
 - v1 is **not deprecated** — existing code works unchanged
 
-### Verified Versions (2026-06-21 12:04 UTC — go.dev/dl API)
+### Verified Versions (2026-06-22 12:04 UTC — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, **~55.6% complete (15/27 closed, 12 open)**, not yet released (verified 2026-06-21 12:04 UTC via GitHub API)
-- **Go 1.26.4** — **current stable** (verified via go.dev/dl)
-- **Go 1.25.11** — **previous stable** (verified via go.dev/dl)
-- **Go 1.27** — in release freeze (**32 days as of Jun 21, 2026**), no RC1 yet, expected August 2026
+- **Gin v1.13** — milestone #28, due 2026-06-30, **~56.7% complete (17/30 closed, 13 open)**, not yet released (verified 2026-06-22 12:04 UTC via GitHub API; was 15/27 = 55.6% on 2026-06-21; new issues may be added to the milestone over time, so total grew from 27 → 30)
+- **Go 1.26.4** — **current stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
+- **Go 1.25.11** — **previous stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
+- **Go 1.27** — in release freeze (**33 days as of Jun 22, 2026**), no RC1 yet, expected August 2026
 - **go-redis v9.20.1** — latest stable
 - **golang.org/x/image v0.41.0+** — required to avoid CVE-2026-42500 BMP decode panic
 - **GORM v1.31.1** — latest stable
@@ -538,11 +557,61 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **squaredup/squawk (latest)** — PostgreSQL migration linter; CI guard for dangerous DDL
 
 ### Sources
-- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-21 12:04 UTC)
-- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-21 12:04 UTC)
-- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-21 12:04 UTC)
+- https://go.dev/dl/?mode=json (authoritative — verified 2026-06-22 12:04 UTC)
+- https://github.com/gin-gonic/gin/releases (authoritative — verified 2026-06-22 12:04 UTC)
+- https://github.com/gin-gonic/gin/milestones (Gin v1.13 milestone progress, verified 2026-06-22 12:04 UTC)
+- https://go.dev/doc/go1.26 (Go 1.26 release notes — breaking changes verified)
 - https://go.dev/doc/go1.27 (Go 1.27 release notes)
 - https://github.com/golang/go/issues/76474 (Go 1.27 tracking)
 - https://dev.golang.org/release (Go release dashboard)
 - https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 milestone)
+- https://github.com/golang/go/issues/75223 (Go 1.26 `net/url` host colon rejection)
 - https://github.com/go-jose/go-jose/security/advisories/GHSA-78h2-9frx-2jm8 (go-jose CVE-2026-34986, JWE DoS)
+
+
+---
+
+## Updated from Research (2026-06-22, 12:04 UTC)
+
+### Go Release Dashboard Snapshot Change
+
+- **Go 1.26.5**: CL count dropped from 7 → 6 since the 2026-06-22 00:04 snapshot. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that was added on 2026-06-21 is **no longer listed** on the release dashboard as of 2026-06-22 12:04 UTC. Likely reverted for further work; not in this patch cycle.
+- **Go 1.25.12**: CL count dropped from 4 → 3 since the 2026-06-22 00:04 snapshot. Same `crypto/tls` FIPS+`InsecureSkipVerify` CL was the one removed. Effect: FIPS 140-3 + `InsecureSkipVerify` fix is now expected in a **later** patch release (1.25.13 / 1.26.6), not 1.25.12 / 1.26.5.
+- The remaining CLs in both releases are unchanged (same `cmd/compile` slicemask, `cmd/fix` misleading message, runtime version parsing, runtime RWMutex ppc64le, security CVE-2026-39822).
+- **Action for agents:** do not rely on the FIPS+`InsecureSkipVerify` fix landing in the upcoming 1.25.12 / 1.26.5 release. Pin to a later release if your FIPS deployment depends on it.
+
+### Go 1.27 Release Freeze Day Count
+- Release freeze started **May 20, 2026** → **33 days in as of June 22, 2026** (was 32 on 2026-06-21). No RC1 tagged yet.
+
+### Gin v1.13 Milestone Progress
+- 17/30 issues closed (~56.7%), 13 open. Was 15/27 (~55.6%) on 2026-06-21. The total grew from 27 → 30 (3 issues added to the milestone), but the closed count grew from 15 → 17 (2 issues closed net).
+- Notable in-flight PRs (verified via GitHub):
+  - **#4543** `feat(binding): add support for binding whole request at once` (open, in progress) — would let handlers bind all sources (JSON body, query, headers, URI params) into a single struct with one `ShouldBind` call.
+  - **#4499** `Changed trailing slash redirection behaviour` (open, in progress) — breaking change to Gin's redirect handling; Gin's current default 301-redirects `/foo/` → `/foo` (or vice-versa) for routes registered with the opposite trailing slash. The PR changes this default. Worth reviewing for any service that relies on the current redirect behavior.
+  - **#4498** `fix(form): correctly differentiate between nil / present-but-empty slices` (open, in progress) — fixes a long-standing ambiguity in form binding where `?tags=` (present but empty) was indistinguishable from `?tags` (missing). After the fix, `tags=[]` vs `nil` will be distinguishable. May affect existing tests.
+  - **#4506** `chore(response_writer): add Unwrap() method to ResponseWriter interface` (open, in progress) — needed for `errors.As` to traverse the writer chain (e.g. for `errors.Is(err, http.ErrHandlerTimeout)`). Low-impact but enables better error inspection.
+  - **#4599** `refactor(gin): migrate IP handling to net/netip package` (open, in progress) — replaces internal `net.ParseIP` usage with `netip.ParseAddr`. **Breaking for downstream code** that relies on `c.ClientIP()` returning a `net.IP` — it will become `netip.Addr`. Watch for migration notes when v1.13 ships.
+
+### Go 1.26 Breaking Changes Now Documented
+
+Added a new "Go 1.26 Breaking Changes Affecting Gin Handlers" section to versions.md covering:
+- `net/url.Parse` host colon rejection (OAuth/OIDC redirect validation, webhook URL parsing)
+- Default-on post-quantum TLS key exchanges (`SecP256r1MLKEM768`, `SecP384r1MLKEM1024`)
+- Green Tea GC default-on (benchmark delta; positive)
+- `go test` vet now runs `stringer` check (CI impact)
+- `url.ParseRequestURI` behavior change for malformed hosts
+
+### Verified Versions (Snapshot 2026-06-22 12:04 UTC)
+
+All versions still current — no new releases since 2026-06-22 00:04 UTC snapshot:
+- Go 1.26.4 (current stable), Go 1.25.11 (previous stable), Go 1.27 (release freeze, no RC1)
+- Gin v1.12.0 (latest), Gin v1.13 (milestone progress updated)
+- quic-go v0.60.0, go-redis v9.20.1, GORM v1.31.1, jackc/pgx v5.10.0, golang-jwt/jwt v5.3.1
+- goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, golang-migrate v4.19.1
+
+### Sources for This Update
+- https://dev.golang.org/release (re-verified 2026-06-22 12:04 UTC)
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 — re-verified 2026-06-22 12:04 UTC)
+- https://github.com/gin-gonic/gin/pulls?q=is%3Apr+milestone%3Av1.13 (open PRs in v1.13)
+- https://go.dev/doc/go1.26 (Go 1.26 release notes — breaking changes section)
+- https://github.com/golang/go/issues/75223 (url.Parse host colon rejection tracking)

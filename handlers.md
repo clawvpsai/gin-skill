@@ -2,6 +2,8 @@
 
 > **Performance tip (Go 1.27+):** Gin's `c.JSON()` / `c.ShouldBindJSON()` use `encoding/json` v1. For 2.7–10.2× faster unmarshaling, register a custom `render.Render` for json/v2 (see `responses.md` → "JSON v2 Custom Renderer"). For request binding with v2, replace `c.ShouldBindJSON` with `jsonv2.UnmarshalRead(c.Request.Body, &req)`.
 
+> **Go 1.26 breaking change:** `url.Parse` and `url.ParseRequestURI` now reject malformed URLs with extra colons in the host subcomponent (e.g. `http://localhost:8080:80/`). Affects handlers that validate user-supplied URLs (OAuth/OIDC redirect_uri, webhook intake, link unfurlers). Use `url.ParseRequestURI` and validate `u.Host` explicitly. See `routing.md` → "Updated from Research (2026-06-22)" for the full pattern.
+
 ## Handler Structure
 
 ```go
@@ -459,6 +461,20 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 - **Hijacking**: `upgrader.Upgrade` calls `http.Hijacker` on the underlying `http.ResponseWriter` — Gin's writer supports this, but be aware that after upgrade, Gin no longer mediates the connection.
 - **Sticky sessions / load balancers**: WebSocket connections are long-lived. Behind a load balancer, configure sticky sessions (cookie-based) or run the WS endpoints on a dedicated hostname that bypasses the LB.
 - **Graceful shutdown**: `conn.Close()` from the shutdown signal will not flush in-flight messages. Track connections in a `sync.WaitGroup` and call `conn.WriteControl(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseGoingAway, ""), time.Now().Add(time.Second))` to send a clean close frame.
+
+## Gin v1.13 In-Flight Changes Affecting Handlers (Verify Before Upgrade)
+
+Gin v1.13 (milestone #28, due 2026-06-30, ~57% complete as of 2026-06-22) has several open PRs that change handler behavior. Watch these when v1.13 ships:
+
+- **`fix(form): correctly differentiate between nil / present-but-empty slices`** (PR #4498) — form binding currently cannot distinguish `?tags=` (present but empty string) from `?tags` (missing entirely); both produce a `nil` slice. After the fix, `tags=[]` vs `tags=nil` will be distinguishable. **Action:** audit form-binding handlers that rely on the current `nil == empty` semantics. Existing tests that compare against `nil` will need updating.
+- **`feat(binding): add support for binding whole request at once`** (PR #4543) — one `ShouldBind` call will populate a single struct from JSON body, query params, headers, and URI params simultaneously. Useful for thin CRUD handlers; the exact API is not yet documented. Track for merged API before adopting.
+- **`Changed trailing slash redirection behaviour`** (PR #4499) — Gin's 301 redirect between `/foo` and `/foo/` may change defaults. If your service relies on the current redirect for SEO/canonical URLs, set `engine.RedirectTrailingSlash = true` explicitly post-upgrade.
+- **`chore(response_writer): add Unwrap() method to ResponseWriter interface`** (PR #4506) — enables `errors.As(err, &http.ResponseWriter)` and `errors.Is(err, http.ErrHandlerTimeout)` to traverse the Gin writer chain. Low impact but improves error inspection for handler-timeout logic.
+
+**For now (Gin v1.12.x):** none of these changes are applied yet. v1.12.x behavior is preserved.
+
+See `routing.md` → "Updated from Research (2026-06-22)" for the `net/netip` IP migration (PR #4599) which also affects `c.ClientIP()` consumers.
+
 
 ## Common Mistakes
 

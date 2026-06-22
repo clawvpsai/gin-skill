@@ -325,3 +325,71 @@ server {
 - https://github.com/quic-go/quic-go/releases
 - https://github.com/gin-gonic/gin/issues (HTTP/3 tracking)
 - Nginx QUIC: https://nginx.org/en/docs/quic.html
+
+---
+
+## Updated from Research (2026-06-22)
+
+### Go 1.26 `net/url` Breaking Change Affects URL-Validating Handlers
+
+Gin itself does not call `url.Parse` on request URLs, but **handlers that validate user-supplied URLs** are affected by a Go 1.26 stdlib change:
+
+- `url.Parse` and `url.ParseRequestURI` now **reject malformed URLs with multiple colons in the host subcomponent** (e.g. `http://localhost:8080:80/`, `http://::1/`). Previously these parsed silently with a malformed `Host` field. On Go 1.26 they return `*url.Error`.
+- **Affected Gin handlers:** OAuth/OIDC redirect-URI validation, webhook URL intake, deep-link parsing, well-known endpoint discovery, link unfurlers. Anywhere your code does `url.Parse(someUserString)`.
+- **Action for agents:** wrap `url.Parse` calls in handlers that take URLs from clients with explicit validation. The fix is also a security improvement (RFC 3986 compliance); the `GODEBUG=urlstrictcolon=0` opt-out exists for compatibility only.
+  ```go
+  // Wrong: passes malformed URLs through Go 1.26 will reject them
+  u, err := url.Parse(userRedirectURI)
+  
+  // Right: explicit + better error for clients
+  u, err := url.ParseRequestURI(userRedirectURI)
+  if err != nil || u.Host == "" || u.Scheme != "https" {
+      c.JSON(400, gin.H{"error": "invalid redirect_uri"})
+      return
+  }
+  // Also: verify only one colon in Host (or none if no port)
+  if strings.Count(u.Host, ":") > 1 && !strings.HasPrefix(u.Host, "[") {
+      c.JSON(400, gin.H{"error": "invalid host"})
+      return
+  }
+  ```
+- Source: [go.dev/issue/75223](https://github.com/golang/go/issues/75223), [Go 1.26 release notes](https://go.dev/doc/go1.26).
+
+### Gin v1.13 — `net/netip` IP Migration (PR #4599, in progress)
+
+Gin v1.13 (milestone #28, due 2026-06-30, ~57% complete as of 2026-06-22) is migrating internal IP handling from `net.ParseIP` (`net.IP` / `[]byte`) to `net/netip` (`netip.Addr`):
+
+- `c.ClientIP()` may return `netip.Addr` instead of `net.IP` in Gin v1.13.
+- **Security note:** `netip.Prefix.Contains` does **not** auto-convert IPv4-mapped IPv6 addresses the way `net.IPNet.Contains` did. If you maintain a CIDR allowlist (rate-limit, geo-block, internal-network check) and switch from `net.ParseCIDR` to `netip.ParsePrefix`, **IPv4-mapped IPv6 addresses (`::ffff:1.2.3.4`) will no longer be contained by IPv4 CIDRs.** Either:
+  1. Add explicit IPv6 CIDRs alongside IPv4 ones, OR
+  2. Call `addr.Unmap()` on the address before the `Contains` check (converts IPv4-mapped IPv6 → IPv4), OR
+  3. Validate that your service only ever sees one address family (typical for internet-facing APIs).
+  ```go
+  // MIGRATION GOTCHA: netip.Prefix.Contains differs from net.IPNet.Contains
+  cidr := netip.MustParsePrefix("10.0.0.0/8")
+  addr := netip.MustParseAddr("::ffff:10.1.2.3") // IPv4-mapped IPv6
+  fmt.Println(cidr.Contains(addr))               // false (was true with net.IPNet!)
+  fmt.Println(cidr.Contains(addr.Unmap()))        // true after explicit conversion
+  ```
+- **Action for agents:** when Gin v1.13 ships, audit any code that touches `c.ClientIP()` or maintains IP CIDR allowlists. Migrating to `netip` is generally a net win (smaller, immutable, no `nil`) but the IPv4-mapped IPv6 behavior change is a real security footgun if you don't account for it.
+
+### Gin v1.13 — Trailing Slash Redirect Behavior Change (PR #4499, in progress)
+
+Gin's current behavior 301-redirects `/foo/` → `/foo` (or vice-versa) depending on registration. PR #4499 changes this default. **Review your route registrations if you rely on the existing redirect behavior:**
+
+- Current: `r.GET("/foo", ...)` and `r.GET("/foo/", ...)` are equivalent routes; Gin issues a 301 redirect from one to the other based on registration.
+- After #4499: the redirect may be disabled or changed. Existing services that rely on the redirect (e.g. for SEO or canonical URL enforcement) may need to set `engine.RedirectTrailingSlash = true` explicitly.
+
+### Gin v1.13 — Whole-Request Binding (PR #4543, in progress)
+
+PR #4543 adds a "bind whole request at once" feature — bind JSON body, query params, headers, and URI params into a single struct in one `ShouldBind` call. Useful for thin CRUD handlers but currently no docs; track the PR for the merged API.
+
+### Sources for This Update
+- https://github.com/gin-gonic/gin/pull/4599 (net/netip migration)
+- https://github.com/gin-gonic/gin/pull/4499 (trailing slash redirect)
+- https://github.com/gin-gonic/gin/pull/4543 (whole-request binding)
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13)
+- https://github.com/golang/go/issues/75223 (url.Parse host colon rejection)
+- https://go.dev/doc/go1.26 (Go 1.26 release notes)
+- https://adam-p.ca/blog/2022/03/go-netip-flaw/ (IPv4-mapped IPv6 behavior in netip)
+
