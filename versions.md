@@ -2,20 +2,29 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-21 12:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-17).
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-21 12:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 3 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-17).
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-22 00:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-22).
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-22 00:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 4 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-22; was 3 on 2026-06-17 — crypto/tls FIPS backport added).
 - **Go 1.24** — Minimum for Gin v1.12 (still security-supported until Go 1.26 + 1 stable)
 
-## Pending Security Patches (2026-06-21)
+## Pending Security Patches (2026-06-22)
 
-The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-21 12:04 UTC) shows pending CLs for two upcoming security patch releases:
+The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-22 00:04 UTC) shows pending CLs for two upcoming security patch releases:
 
-- **Go 1.26.5** — 7 pending CLs (includes **CVE-2026-39822 runtime fix** [1.26 backport, issue #79027] + cmd/compile bugfixes + crypto/tls fixes). Expected within days.
-- **Go 1.25.12** — 3 pending CLs (includes **CVE-2026-39822 runtime fix** [1.25 backport, issue #79026]). Expected within days.
+- **Go 1.26.5** — 7 pending CLs across `cmd/compile`, `cmd/fix`, `crypto/tls`, `runtime`, `security`, `x/tools/go/analysis`. Highlights:
+  - `security: fix CVE-2026-39822 [1.26 backport]` (embargoed runtime fix)
+  - `crypto/tls: FIPS 140-3 certificate key check is skipped when InsecureSkipVerify=true [1.26 backport]` — *important for TLS servers running in FIPS 140-3 mode*: setting `InsecureSkipVerify=true` (commonly a client-side flag) currently also bypasses the FIPS key-type check, potentially allowing non-FIPS-approved key exchange. After the patch the FIPS check runs independently of `InsecureSkipVerify`. Tracked under Go security policy; no public CVE ID yet.
+  - `runtime: version parsing fails [1.26 backport]` — fixes `runtime.Version()` parser edge case (e.g. on pseudo-versions with dirty/suffix tags)
+  - `cmd/compile: prove misscompilation in slicemask folding leaves garbage in the upper half of the 32bits of the register when slicing a slice by a non constant value that is < cap [1.26 backport]`
+  - `cmd/fix, x/tools/go/analysis: fix can print "applied 8 of 10 fixes; 2 files updated" and fail without actually applying any fixes [1.26 backport]`
+- **Go 1.25.12** — 4 pending CLs across `cmd/compile`, `crypto/tls`, `runtime`, `security`. Highlights:
+  - `security: fix CVE-2026-39822 [1.25 backport]`
+  - `crypto/tls: FIPS 140-3 certificate key check is skipped when InsecureSkipVerify=true [1.25 backport]` (same fix backported; see note in 1.26.5 above)
+  - `runtime: concurrent map read and map write with sync.RWMutex on ppc64le [1.25 backport]`
+  - `cmd/compile: prove misscompilation in slicemask folding [...] [1.25 backport]`
 
 **CVE-2026-39822** (embargoed, per Go security policy): runtime-level security fix. Details under embargo until release announcement. Track [github.com/golang/go/issues/79005](https://github.com/golang/go/issues/79005).
 
-**Action:** Re-run `curl -s https://go.dev/dl/?mode=json` before deploying production builds — the patches may have shipped since this snapshot. Track [dev.golang.org/release](https://dev.golang.org/release) for the announcement thread on [golang-announce](https://groups.google.com/g/golang-announce).
+**Action:** Re-run `curl -s https://go.dev/dl/?mode=json` before deploying production builds — the patches may have shipped since this snapshot. Track [dev.golang.org/release](https://dev.golang.org/release) for the announcement thread on [golang-announce](https://groups.google.com/g/golang-announce). The `crypto/tls` FIPS+`InsecureSkipVerify` fix is the highest-impact non-CVE-2026-39822 change for Gin services terminating TLS in FIPS 140-3 mode.
 
 ## Version Selector Prompt
 
