@@ -430,9 +430,9 @@ go list -m all
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+** |
 | **github.com/redis/go-redis/v9** | v9.x | **Current: v9.20.1** |
-| golang.org/x/crypto | v0.53.0+ | Latest stable; Gin main uses v0.49.0 |
+| golang.org/x/crypto | v0.53.0+ | Latest stable; **Gin v1.13 (master, post PR #4707) will pull v0.52.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.53.0+ in your go.mod when adopting Gin v1.13** |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
-| golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain |
+| golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain; **Gin v1.13 (master, post PR #4707) will pull v0.45.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.46.0+ in your go.mod when adopting Gin v1.13** |
 | golang.org/x/text | v0.38.0 | Text encoding, Unicode |
 | golang.org/x/arch | v0.28.0 | CPU architecture support |
 | **golang.org/x/sync** | **v0.21.0** | **errgroup, semaphore — used in concurrency.md** |
@@ -444,6 +444,7 @@ go list -m all
 | **ariga/atlas** | **v1.2.0** | **Declarative schema-as-code + versioned auto-planning (ariga.io/atlas-go-sdk/atlasexec)** |
 | **squaredup/squawk** | **latest** | **PostgreSQL migration linter — CI guard for dangerous DDL** |
 | **jackc/pgx/v5** | **v5.10.0** | **PostgreSQL driver (CVE-2026-33816 fixed in v5.9.0+, CVSS 9.8)** |
+| **go-playground/validator/v10** | **v10.30.3** | **Gin v1.13 transitive (PR #4707 merged 2026-06-23 12:08 UTC, security-driven: "fixes multiple critical vulnerabilities from golang.org/x/crypto"). Validator v10.30.3's go.mod pulls x/crypto v0.52.0 + x/text v0.37.0 + x/sys v0.45.0 — see Floor-Piercing Risk section below. Released 2026-05-29 (skipped v10.30.2)** |
 
 ### Common Compatibility Issues
 
@@ -758,3 +759,115 @@ Two PRs opened before the 00:11 UTC snapshot but missed by that update's PR swee
 - https://api.github.com/repos/gin-gonic/gin/issues/4714 (status flush fix — full body reviewed)
 - https://api.github.com/repos/gin-gonic/gin/issues/4712 (codec opt-in subpackages — full body reviewed, includes binary-size measurements)
 - https://go.dev/dl/?mode=json (re-verified 2026-06-23 06:16 UTC — Go 1.26.4 still current, no new release)
+
+
+---
+
+## Updated from Research (2026-06-23, 12:13 UTC)
+
+### Six-Hour Re-Verification — Gin v1.13 validator Security Bump + Floor-Piercing Risk
+
+This is the third 6-hour cycle in 24 hours. The Go release dashboard is unchanged (1.26.5: 7 CLs, 1.25.12: 4 CLs). The Go 1.27 freeze is still day 34. The substantive finding is **PR #4707 merged 5 minutes before this cron ran** — a security-driven validator bump that creates a new floor-piercing risk for downstream users adopting Gin v1.13.
+
+### Event 1 — PR #4707 MERGED into gin-gonic/gin master
+
+- **PR #4707** `update validator library to version 10.30.3` — **merged 2026-06-23T12:08:30Z** (~5 minutes before this verification cycle)
+- Bumps `github.com/go-playground/validator/v10` from **v10.30.1 → v10.30.3** in `gin-gonic/gin` master go.mod (PR skipped v10.30.2 entirely).
+- **PR body explicitly states**: *"Bump github.com/go-playground/validator/v10 from v10.30.1 to v10.30.3 — This fixes multiple critical vulnerabilities from golang.org/x/crypto"*. Labeled `dependencies`.
+- **Gin master go.mod changes** (6 additions, 6 deletions):
+  - `github.com/go-playground/validator/v10 v10.30.1` → `v10.30.3` (direct dep)
+  - `golang.org/x/crypto v0.49.0` → `v0.52.0` (indirect, via validator)
+  - `golang.org/x/text v0.35.0` → `v0.37.0` (indirect, via validator)
+  - `golang.org/x/sys v0.42.0` → `v0.45.0` (indirect, via validator)
+- **Validator v10.30.3 release notes (2026-05-29)**: includes dependabot bumps `golang.org/x/crypto v0.49.0→v0.50.0→v0.51.0→v0.52.0` and `golang.org/x/text v0.35.0→v0.36.0→v0.37.0` across PRs #1558/#1559/#1571/#1572/#1580 — plus 13 feature commits (UUID case-insensitive, NoneOf validator, bcp47_strict_language_tag, RFC 952 hostname trailing-hyphen fix, cron regex anchor fix, `origin` URL validator, dead-code-elimination build-size reduction, timezone translation support, MIME-type refactor).
+- PR was opened 2026-06-15 (8 days before merge). Now in v1.13 milestone.
+
+### Event 2 — Gin v1.13 milestone moved 21/33 → 22/35 (~62.9%)
+
+- **22/35 issues closed**, 13 open. Was **21/33 (~63.6%)** at 06:16 UTC snapshot 6 hours ago.
+- Numerator: +1 (PR #4707 closed). Denominator: +2 (two new issues added to milestone — likely the in-flight #4712 codec refactor or another tracked issue).
+- Net effect: **progress dropped from ~63.6% to ~62.9%** because the milestone scope expanded faster than the close rate.
+- v1.13 still on pace to ship by **June 30, 2026** (~7 days away).
+
+### 🚨 Floor-Piercing Risk (CRITICAL — affects ALL downstream Gin v1.13 adopters)
+
+**The Problem**: The skill's documented CVE floor (set in 2026-06-22 18:04 UTC update) requires:
+
+- `golang.org/x/crypto ≥ v0.53.0` (clears 9 ssh CVEs from May 22 batch)
+- `golang.org/x/sys ≥ v0.46.0` (clears CVE-2026-39824 Windows NTUnicodeString overflow)
+- `golang.org/x/net ≥ v0.55.0` (clears CVE-2026-39821 critical idna CVSS 10.0)
+
+**What Gin v1.13 will ship with** (after PR #4707 merges into v1.13):
+
+- **x/crypto**: floor v0.53.0+ → Gin v1.13 will ship v0.52.0 (indirect via validator v10.30.3) → **BELOW floor by 1 minor**
+- **x/sys**: floor v0.46.0+ → Gin v1.13 will ship v0.45.0 (indirect via validator v10.30.3) → **BELOW floor by 1 minor**
+- **x/net**: floor v0.55.0+ → Gin v1.13 will ship v0.55.0 (direct) → **at floor** ✅
+- **x/text**: latest v0.38.0 → Gin v1.13 will ship v0.37.0 (indirect via validator) → **1 minor below latest, no known CVE** ⚠️
+
+**Impact**: Go's module Minimum Version Selection (MVS) picks the **highest** version required by any direct or transitive requirement. If a downstream service does NOT have an explicit `require golang.org/x/crypto v0.53.0` in its own go.mod (or higher), then after `go get github.com/gin-gonic/gin@v1.13.0 && go mod tidy`, the resolved `x/crypto` will be v0.52.0 — which is **below the CVE floor** and re-introduces the May 22 ssh CVE batch (CVE-2026-46598 ed25519 panic, CVE-2026-46597 AES-GCM panic, CVE-2026-46595 callback authz bypass, CVE-2026-42508 CA SignatureKey revocation, and 5 more ssh hardening CVEs).
+
+**The remediation** is straightforward but **must be applied to every downstream service before upgrading to Gin v1.13**:
+
+```go
+// go.mod — REQUIRED for Gin v1.13 adoption
+require (
+    github.com/gin-gonic/gin v1.13.0
+    golang.org/x/crypto v0.53.0  // pins above validator v10.30.3's v0.52.0
+    golang.org/x/sys v0.46.0     // pins above validator v10.30.3's v0.45.0
+)
+```
+
+Run `go mod tidy` after adding the pins. Verify with `go list -m golang.org/x/crypto golang.org/x/sys` — both should report the pinned version or higher.
+
+**CI guard** (add to your pre-deploy pipeline):
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+MIN_CRYPTO="v0.53.0"
+MIN_SYS="v0.46.0"
+MIN_NET="v0.55.0"
+fail=0
+for mod in crypto sys net; do
+    case $mod in
+        crypto) min="$MIN_CRYPTO" ;;
+        sys) min="$MIN_SYS" ;;
+        net) min="$MIN_NET" ;;
+    esac
+    actual=$(go list -m "golang.org/x/$mod" | awk '{print $2}')
+    if ! go list -m -f '{{if ge .Version "'"$min"'"}}{{.Version}}{{end}}' "golang.org/x/$mod" | grep -q .; then
+        echo "❌ golang.org/x/$mod is $actual, below required $min"
+        fail=1
+    else
+        echo "✅ golang.org/x/$mod $actual >= $min"
+    fi
+done
+exit $fail
+```
+
+### No-change confirmations
+
+- **Go release dashboard** (re-verified 2026-06-23 12:11 UTC): Go 1.26.5 still at **7 CLs**, Go 1.25.12 still at **4 CLs**. No new CLs in past 6 hours.
+- **Go 1.27 release freeze**: still **34 days in** as of June 23, 2026. No RC1 tagged.
+- **Go stable releases**: Go 1.26.4 still current stable, Go 1.25.11 still previous stable, no new release shipped in the past 6 hours.
+- **Gin v1.13 in-flight PRs** (re-checked at 12:13 UTC): same as 06:16 UTC snapshot — #4714, #4712 still NOT in milestone; #4674, #4662, #4569, #4599, #4543, #4506, #4499, #4708 still open in milestone.
+- **All other dependency versions**: unchanged (no new releases on go-redis, GORM, pgx, golang-jwt, goose, atlas, quic-go, gin-contrib in the past 6 hours).
+
+### Action for agents
+
+1. **🚨 CRITICAL — Floor pins before Gin v1.13 upgrade**: Add explicit `require golang.org/x/crypto v0.53.0` and `require golang.org/x/sys v0.46.0` to your go.mod **before** `go get github.com/gin-gonic/gin@v1.13.0`. Without these pins, `go mod tidy` will resolve x/crypto to v0.52.0 (below floor, re-introducing May 22 ssh CVE batch) and x/sys to v0.45.0 (below floor, re-introducing Windows NTUnicodeString overflow on Windows builds).
+2. **CI guard**: add the bash script above (or equivalent) to your CI pipeline to catch regressions if a transitive dep ever bumps below floor.
+3. **PR #4707 action items from 06:16 UTC snapshot still apply**: (a) audit for `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` callsites if PR #4712 lands; (b) update `httptest.NewRecorder()` assertions to expect correct status codes (200→204 for no-body codes) if PR #4714 lands.
+4. **No Go release patch action yet** — Go 1.26.5 and 1.25.12 still on dashboard but not yet tagged/shipped. Re-verify `https://dev.golang.org/release` before the next deploy.
+5. **Watch for validator v10.30.4+**: if dependabot bumps `x/crypto` to v0.53.0+ in validator itself, the floor-piercing risk resolves automatically. Watch https://github.com/go-playground/validator/releases for new tags.
+
+### Sources for this update
+
+- https://github.com/gin-gonic/gin/pulls/4707 (PR body, merged_at, labels — re-verified 2026-06-23 12:13 UTC)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 milestone — re-verified 2026-06-23 12:13 UTC: 22/35 closed)
+- https://raw.githubusercontent.com/gin-gonic/gin/master/go.mod (master go.mod — re-verified 2026-06-23 12:13 UTC)
+- https://raw.githubusercontent.com/go-playground/validator/v10.30.3/go.mod (validator v10.30.3 transitive requirements)
+- https://raw.githubusercontent.com/go-playground/validator/v10.30.2/go.mod (validator v10.30.2 transitive requirements — for comparison)
+- https://api.github.com/repos/go-playground/validator/releases/latest (v10.30.3 release notes — published 2026-05-29)
+- https://dev.golang.org/release (re-verified 2026-06-23 12:11 UTC — 1.26.5: 7 CLs, 1.25.12: 4 CLs; no change)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-23 12:13 UTC — Go 1.26.4 still current, no new release)
