@@ -712,3 +712,49 @@ The skill previously documented the May 22 CVE batch only as bare CVE numbers in
 - https://github.com/gin-gonic/gin/pulls?q=is%3Apr+milestone%3Av1.13 (open PRs in v1.13)
 - https://go.dev/dl/?mode=json (re-verified 2026-06-23 00:11 UTC — Go 1.26.4 still current)
 - https://api.github.com/repos/gin-gonic/gin/commits?per_page=5 (most recent merged PRs)
+
+
+---
+
+## Updated from Research (2026-06-23, 06:16 UTC)
+
+### Six-Hour Re-Verification (No Material Change to Dashboards)
+
+This is a re-verification cycle run 6 hours after the 2026-06-23 00:11 UTC snapshot. The Go release dashboard, Go 1.27 freeze state, and Gin v1.13 milestone progress are all **unchanged** from the prior snapshot. The substantive finding this cycle is two notable in-flight PRs in gin-gonic/gin that were not captured in the 00:11 UTC update.
+
+### No-change confirmations
+
+- **Go release dashboard** (re-verified 2026-06-23 06:11 UTC): Go 1.26.5 still at **7 CLs**, Go 1.25.12 still at **4 CLs**. The `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr` CL (added 00:11 UTC snapshot) is still present. The `crypto/tls` FIPS+`InsecureSkipVerify` CL remains pulled from both release branches.
+- **Go 1.27 release freeze**: still **34 days in** as of June 23, 2026 (started May 20, 2026). No RC1 tagged.
+- **Gin v1.13 milestone**: still **21/33 closed (~63.6%)**, 12 open. No new merged PRs in the past 6 hours.
+- **Recently merged Gin PRs** (re-fetched via `api.github.com/repos/gin-gonic/gin/pulls?state=closed&per_page=10`): identical to 00:11 UTC snapshot — top 6 merged PRs are still #4713, #4709, #4702, #4699, #4698, #4695.
+- **Go stable releases**: Go 1.26.4 still current stable, Go 1.25.11 still previous stable, no new release shipped in the past 6 hours.
+- **All dependency versions**: unchanged (no new releases on go-redis, GORM, pgx, golang-jwt, goose, atlas, quic-go, gin-contrib in the past 6 hours).
+
+### New in-flight PRs (NOT in 00:11 UTC snapshot — added 2026-06-23 06:16 UTC)
+
+Two PRs opened before the 00:11 UTC snapshot but missed by that update's PR sweep. Both are worth flagging now because v1.13 ships in ~7 days:
+
+- **#4714** `fix: flush status immediately for no-body response codes` (opened 2026-06-22, NOT YET in v1.13 milestone) — Correctness fix: `ctx.Status(code)` does not flush the status code to the underlying `http.ResponseWriter` when no body is written (statuses 1xx, 204, 304). `httptest.ResponseRecorder` sees 200 instead of 204 for `c.Status(http.StatusNoContent)`. Root cause is that `c.Writer.WriteHeader(code)` only buffers the status; `WriteHeaderNow()` is only triggered by a subsequent `Write()`. Fix mirrors `ctx.Render()`'s existing behavior — flush immediately when `bodyAllowedForStatus()` returns false. Tests cover 100/101/102/204/304 (flush) and 200 (buffer until Write). Closes #4071. **Impact**: anyone using `httptest.NewRecorder()` for unit tests of no-body endpoints, or any reverse proxy / middleware that inspects status before body, will get correct behavior on v1.13 (or sooner if backported).
+- **#4712** `feat(render)!: make msgpack/bson/yaml/toml/protobuf opt-in subpackages` (opened 2026-06-21, NOT YET in v1.13 milestone, labeled `break-backward, refactor`) — **BREAKING CHANGE** PR that moves MessagePack, BSON, YAML, TOML, and ProtoBuf out of Gin's core into opt-in subpackages at `github.com/gin-gonic/gin/render/<format>`. Root cause: `binding.Default()` (reachable from any `ShouldBind` call) switched over every concrete binding, and the package-level `var MsgPack/BSON/... = xBinding{}` kept each as a link root the Go linker could not dead-code-eliminate, bloating every binary. Measured impact: a minimal JSON-only Gin binary drops from **~13 MB stripped to ~6.5 MB stripped** (~50% reduction) just by not linking ugorji msgpack (~6 MB) and mongo-driver/bson (~0.25 MB+). Migration pattern: import the subpackage for its `init()` side effect, then use the helper:
+  ```go
+  import _ "github.com/gin-gonic/gin/render/msgpack"
+  // ...
+  msgpack.Render(c, http.StatusOK, obj) // replaces c.MsgPack
+  ```
+  **Impact**: this is the single largest binary-size win proposed for v1.13, but downstream callers of `c.MsgPack`, `c.YAML`, `c.TOML`, `c.ProtoBuf`, `c.BSON`, or their binding equivalents will not compile until they adopt the subpackage imports. Watch this PR closely — if it lands in v1.13, a `find . -name '*.go' | xargs grep -lE '\.MsgPack|\.YAML|\.TOML|\.ProtoBuf|\.BSON'` sweep across your services will be required before upgrading.
+
+### Action for agents
+
+1. **No urgent action items** — the CVE-floor requirements from 2026-06-22 18:04 UTC still hold (x/net ≥ v0.55.0, x/crypto ≥ v0.53.0, x/sys ≥ v0.46.0). The pending Go 1.26.5 / 1.25.12 patches are still imminent but not yet shipped.
+2. **Before upgrading to Gin v1.13** (~7 days away): audit for `c.MsgPack`, `c.YAML`, `c.TOML`, `c.ProtoBuf`, `c.BSON` callsites if #4712 lands — they will need to switch to the `render/<format>` subpackage helpers.
+3. **Test correctness with no-body statuses**: if your test suite uses `httptest.NewRecorder()` and asserts on `recorder.Code` after `c.Status(http.StatusNoContent)` etc., the test currently passes only by accident — `recorder.Code` will be 200 today and 204 after #4714 lands. Update tests to expect the correct code either way.
+4. **Re-verify Go release dashboard** before the next deploy: `curl -s https://dev.golang.org/release | grep -E 'Go1\.(26\.5|25\.12)'` — if a new CL appears, run the impact analysis in this skill.
+
+### Sources for this update
+- https://dev.golang.org/release (re-verified 2026-06-23 06:11 UTC — 1.26.5: 7 CLs, 1.25.12: 4 CLs; no change from 00:11 UTC snapshot)
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 — re-verified 2026-06-23 06:16 UTC: 21/33 closed, no change)
+- https://api.github.com/repos/gin-gonic/gin/pulls?state=closed&per_page=10 (re-verified 2026-06-23 06:16 UTC — same top 6 merged PRs as 00:11 UTC snapshot)
+- https://api.github.com/repos/gin-gonic/gin/issues/4714 (status flush fix — full body reviewed)
+- https://api.github.com/repos/gin-gonic/gin/issues/4712 (codec opt-in subpackages — full body reviewed, includes binary-size measurements)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-23 06:16 UTC — Go 1.26.4 still current, no new release)
