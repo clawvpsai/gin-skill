@@ -2,24 +2,26 @@
 
 ## Active Go Versions
 
-- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-22 12:04 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 6 pending CLs on release-branch.go1.26 per dev.golang.org/release (last snapshot 2026-06-22; was 7 on 2026-06-21).
-- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-22 12:04 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 3 pending CLs on release-branch.go1.25 per dev.golang.org/release (last snapshot 2026-06-22; was 4 on 2026-06-21, was 3 on 2026-06-17 — the `crypto/tls` FIPS backport that appeared on 2026-06-21 has since been pulled from the release dashboard, presumably for further work or replacement).
+- **Go 1.26** — Current stable (go1.26.4, verified 2026-06-23 00:11 UTC via go.dev/dl). **Security patch go1.26.5 is imminent** — 7 pending CLs on release-branch.go1.26 per dev.golang.org/release (snapshot 2026-06-23; was 6 on 2026-06-22 12:04 UTC, was 7 on 2026-06-21).
+- **Go 1.25** — Previous stable (go1.25.11, verified 2026-06-23 00:11 UTC via go.dev/dl). **Security patch go1.25.12 is imminent** — 4 pending CLs on release-branch.go1.25 per dev.golang.org/release (snapshot 2026-06-23; was 3 on 2026-06-22 12:04 UTC, was 4 on 2026-06-21, was 3 on 2026-06-17 — the `crypto/tls` FIPS backport that appeared on 2026-06-21 has since been pulled from the release dashboard; a new `cmd/compile` heap-allocated CL has appeared in its place on 2026-06-23).
 - **Go 1.24** — Minimum for Gin v1.12 (still security-supported until Go 1.26 + 1 stable)
 
-## Pending Security Patches (2026-06-22)
+## Pending Security Patches (2026-06-23)
 
-The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-22 12:04 UTC) shows pending CLs for two upcoming security patch releases:
+The [dev.golang.org/release](https://dev.golang.org/release) dashboard (re-checked 2026-06-23 00:11 UTC) shows pending CLs for two upcoming security patch releases:
 
-- **Go 1.26.5** — 6 pending CLs across `cmd/compile`, `cmd/fix`, `runtime`, `security`, `x/tools/go/analysis`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on the dashboard on 2026-06-21 is **no longer listed** as of this snapshot. Highlights of the remaining CLs:
+- **Go 1.26.5** — 7 pending CLs across `cmd/compile`, `cmd/fix`, `runtime`, `security`, `x/tools/go/analysis`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on the dashboard on 2026-06-21 is **no longer listed** as of this snapshot. A new `cmd/compile` CL appeared on 2026-06-23. Highlights of the remaining CLs:
   - `security: fix CVE-2026-39822 [1.26 backport]` (embargoed runtime fix)
   - `runtime: version parsing fails [1.26 backport]` — fixes `runtime.Version()` parser edge case (e.g. on pseudo-versions with dirty/suffix tags)
   - `cmd/compile: prove misscompilation in slicemask folding leaves garbage in the upper half of the 32bits of the register when slicing a slice by a non constant value that is < cap [1.26 backport]`
   - `cmd/fix, x/tools/go/analysis: fix can print "applied 8 of 10 fixes; 2 files updated" and fail without actually applying any fixes [1.26 backport]`
   - `runtime: concurrent map read and map write with sync.RWMutex on ppc64le [1.26 backport]` (was already pending — pulled into the highlight section now that the FIPS CL was removed)
-- **Go 1.25.12** — 3 pending CLs across `cmd/compile`, `runtime`, `security`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on 2026-06-21 is no longer listed (same as 1.26.5 above). Highlights:
+  - `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr [1.26 backport]` (**NEW** as of 2026-06-23 00:11 UTC snapshot)
+- **Go 1.25.12** — 4 pending CLs across `cmd/compile`, `runtime`, `security`. The `crypto/tls` FIPS+`InsecureSkipVerify` CL that appeared on 2026-06-21 is no longer listed (same as 1.26.5 above); a new `cmd/compile` heap-allocated CL appeared in its place on 2026-06-23. Highlights:
   - `security: fix CVE-2026-39822 [1.25 backport]`
   - `runtime: concurrent map read and map write with sync.RWMutex on ppc64le [1.25 backport]`
   - `cmd/compile: prove misscompilation in slicemask folding [...] [1.25 backport]`
+  - `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr [1.25 backport]` (**NEW** as of 2026-06-23 00:11 UTC snapshot)
 
 **CVE-2026-39822** (embargoed, per Go security policy): runtime-level security fix. Details under embargo until release announcement. Track [github.com/golang/go/issues/79005](https://github.com/golang/go/issues/79005).
 
@@ -533,10 +535,10 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 ### Verified Versions (2026-06-22 12:04 UTC — go.dev/dl API)
 
 - **Gin v1.12.0** — released 2026-02-28, current latest (GitHub API confirmed)
-- **Gin v1.13** — milestone #28, due 2026-06-30, **~56.7% complete (17/30 closed, 13 open)**, not yet released (verified 2026-06-22 12:04 UTC via GitHub API; was 15/27 = 55.6% on 2026-06-21; new issues may be added to the milestone over time, so total grew from 27 → 30)
+- **Gin v1.13** — milestone #28, due 2026-06-30, **~63.6% complete (21/33 closed, 12 open)**, not yet released (verified 2026-06-23 00:11 UTC via GitHub API; was 17/30 = ~56.7% on 2026-06-22 12:04 UTC, was 15/27 = ~55.6% on 2026-06-21; total grew 30 → 33 as new PRs were added to the milestone)
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
-- **Go 1.27** — in release freeze (**33 days as of Jun 22, 2026**), no RC1 yet, expected August 2026
+- **Go 1.27** — in release freeze (**34 days as of Jun 23, 2026**), no RC1 yet, expected August 2026
 - **go-redis v9.20.1** — latest stable
 - **golang.org/x/image v0.41.0+** — required to avoid CVE-2026-42500 BMP decode panic
 - **GORM v1.31.1** — latest stable
@@ -584,13 +586,24 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - Release freeze started **May 20, 2026** → **33 days in as of June 22, 2026** (was 32 on 2026-06-21). No RC1 tagged yet.
 
 ### Gin v1.13 Milestone Progress
-- 17/30 issues closed (~56.7%), 13 open. Was 15/27 (~55.6%) on 2026-06-21. The total grew from 27 → 30 (3 issues added to the milestone), but the closed count grew from 15 → 17 (2 issues closed net).
+- 21/33 issues closed (~63.6%), 12 open. Was 17/30 (~56.7%) on 2026-06-22 12:04 UTC, was 15/27 (~55.6%) on 2026-06-21. The total grew 30 → 33 (3 new issues added to the milestone) and the closed count grew 17 → 21 (4 issues closed net) in the past 12 hours. Four new PRs merged since the 2026-06-22 18:04 UTC snapshot:
+  - **#4713** `chore(deps): bump github.com/quic-go/quic-go to v0.60.0` (merged) — bumps Gin v1.13's HTTP/3 dependency
+  - **#4702** `fix(context): skip chmod on pre-existing dirs in SaveUploadedFile` (merged) — prevents unnecessary `chmod` calls when uploading files into pre-existing directories (avoiding noisy `EPERM` errors in shared-hosting scenarios)
+  - **#4709** `test(context): use t.TempDir() for SaveUploadedFile permission test on WSL` (merged) — test infra fix
+  - **#4699** `test(response_writer): add tests for Flush() with and without http.Flusher` (merged) — covers the new Flush() behavior on `ResponseWriter`
+  - **#4698** `fix(recovery): record recovered panics in c.Errors` (merged) — panics caught by Recovery middleware are now logged into `c.Errors` so they show up via `c.Errors.ByType(ErrorTypePanic)`; previously only stdout/stderr
+  - **#4695** `fix(context): Copy() copies Errors and Accepted fields` (merged) — fixes a long-standing bug where `c.Copy()` (used for goroutine handoff) dropped `c.Errors` and `c.Accepted`, causing silent data loss
 - Notable in-flight PRs (verified via GitHub):
   - **#4543** `feat(binding): add support for binding whole request at once` (open, in progress) — would let handlers bind all sources (JSON body, query, headers, URI params) into a single struct with one `ShouldBind` call.
   - **#4499** `Changed trailing slash redirection behaviour` (open, in progress) — breaking change to Gin's redirect handling; Gin's current default 301-redirects `/foo/` → `/foo` (or vice-versa) for routes registered with the opposite trailing slash. The PR changes this default. Worth reviewing for any service that relies on the current redirect behavior.
   - **#4498** `fix(form): correctly differentiate between nil / present-but-empty slices` (open, in progress) — fixes a long-standing ambiguity in form binding where `?tags=` (present but empty) was indistinguishable from `?tags` (missing). After the fix, `tags=[]` vs `nil` will be distinguishable. May affect existing tests.
   - **#4506** `chore(response_writer): add Unwrap() method to ResponseWriter interface` (open, in progress) — needed for `errors.As` to traverse the writer chain (e.g. for `errors.Is(err, http.ErrHandlerTimeout)`). Low-impact but enables better error inspection.
   - **#4599** `refactor(gin): migrate IP handling to net/netip package` (open, in progress) — replaces internal `net.ParseIP` usage with `netip.ParseAddr`. **Breaking for downstream code** that relies on `c.ClientIP()` returning a `net.IP` — it will become `netip.Addr`. Watch for migration notes when v1.13 ships.
+  - **#4674** `fix(tree): use url.PathUnescape for path parameters` (open, in progress) — security/correctness fix; replaces custom unescape logic with stdlib `url.PathUnescape`, eliminating a class of path-traversal-adjacent parsing bugs (relevant to any service that uses path params with `%xx` escapes, e.g. file IDs, slug routing, OAuth callback state)
+  - **#4662** `feat: add InitSSE(), SSEStream() and fix deprecated CloseNotifier` (open, in progress) — adds proper Server-Sent Events helpers to Gin, including a one-shot `SSEStream()` for streaming a sequence of events. Removes the deprecated `CloseNotifier()` calls in favor of `Request.Context().Done()`. Worth adopting if you build any LLM-token-stream or event-stream endpoints on Gin.
+  - **#4569** `feat(engine): add H2CConfig to allow configuring h2c http2.Server` (open, in progress) — exposes H2C (HTTP/2 cleartext) server configuration via `engine.H2CConfig`. Previously H2C was hardcoded with default settings; now you can set timeouts, read/write deadlines, and MaxConcurrentStreams for in-cluster H2C traffic.
+  - **#4447** `avoid double unescaping` (open, in progress) — paired with #4674 above; prevents URL params from being unescaped twice (once by the router, once by the handler) which was a source of subtle bugs.
+  - **#4217** `Replace deprecated CloseNotify with Request.Context().Done()` (open, in progress) — companion to #4662; finishes the migration off `http.CloseNotifier` (deprecated since Go 1.16).
 
 ### Go 1.26 Breaking Changes Now Documented
 
@@ -655,3 +668,47 @@ The skill previously documented the May 22 CVE batch only as bare CVE numbers in
 - https://pkg.go.dev/vuln/list (GO-2026-5013 through GO-2026-5033)
 - https://go.dev/dl/?mode=json (re-verified 2026-06-22 18:04 UTC — Go 1.26.4 still current)
 - https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 milestone — re-verified 2026-06-22 18:04 UTC)
+
+
+---
+
+## Updated from Research (2026-06-23, 00:11 UTC)
+
+### Go Release Dashboard Snapshot Change
+
+- **Go 1.26.5**: CL count grew from 6 → **7** since the 2026-06-22 18:04 UTC snapshot. A new `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr [1.26 backport]` CL has appeared on the dashboard. The `crypto/tls` FIPS+`InsecureSkipVerify` CL remains pulled.
+- **Go 1.25.12**: CL count grew from 3 → **4** since the 2026-06-22 18:04 UTC snapshot. Same `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr [1.25 backport]` CL is the new addition. FIPS CL remains pulled.
+- The new `cmd/compile` CL is an ICE (internal compiler error) regression fix — **not** a security patch, but it does affect `cmd/compile` builds that hit the `invalid heap allocated var without Heapaddr` error path. If your CI is currently failing on a small percentage of Go 1.25/1.26 builds with this error, the upcoming patch releases will resolve it.
+
+### Go 1.27 Release Freeze Day Count
+- Release freeze started **May 20, 2026** → **34 days in as of June 23, 2026** (was 33 on 2026-06-22, 32 on 2026-06-21). No RC1 tagged yet.
+
+### Gin v1.13 Milestone Progress
+- **21/33 issues closed (~63.6%)**, 12 open. Was 17/30 (~56.7%) on 2026-06-22 12:04 UTC. Six new merged PRs since the last update (4 in the past 12 hours alone): #4713 (quic-go v0.60.0), #4709, #4702, #4699, #4698, #4695.
+- New in-flight PRs of note (added to v1.13 milestone since last update):
+  - **#4674** `fix(tree): use url.PathUnescape for path parameters` — security-relevant path-param escape fix
+  - **#4662** `feat: add InitSSE(), SSEStream()` — proper SSE helper API
+  - **#4569** `feat(engine): add H2CConfig` — H2C server configuration
+  - **#4447** `avoid double unescaping` — paired with #4674
+  - **#4217** `Replace deprecated CloseNotify with Request.Context().Done()` — finishes CloseNotifier migration
+- v1.13 is on pace to ship by the June 30, 2026 milestone date (~7 days away).
+
+### Verification re-run (2026-06-23 00:11 UTC)
+- **Go 1.26.4** — still current stable (no new release in past 6 hours)
+- **Go 1.25.11** — still previous stable
+- **Gin v1.12.0** — still latest released
+- **Gin v1.13** — milestone now at 21/33 (~63.6%) — see above
+- All dependency versions unchanged (no releases in past 6 hours)
+
+### Action for agents
+1. No urgent action items this cycle. The previous update's CVE-floor requirements still hold (x/net ≥ v0.55.0, x/crypto ≥ v0.53.0, x/sys ≥ v0.46.0).
+2. When Gin v1.13 ships (~7 days), review the migration notes — `c.ClientIP()` will change type to `netip.Addr` (PR #4599), and trailing-slash redirect behavior will change (PR #4499).
+3. If you're building SSE endpoints (e.g. for LLM token streaming), PR #4662 will add proper helpers — wait for v1.13 or backport the pattern.
+4. If you terminate H2C traffic in-cluster, PR #4569 will let you configure `http2.Server` timeouts; useful for backpressure.
+
+### Sources for this update
+- https://dev.golang.org/release (re-verified 2026-06-23 00:11 UTC — 1.26.5: 7 CLs, 1.25.12: 4 CLs)
+- https://github.com/gin-gonic/gin/milestone/28 (Gin v1.13 — re-verified 2026-06-23 00:11 UTC: 21/33 closed)
+- https://github.com/gin-gonic/gin/pulls?q=is%3Apr+milestone%3Av1.13 (open PRs in v1.13)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-23 00:11 UTC — Go 1.26.4 still current)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=5 (most recent merged PRs)
