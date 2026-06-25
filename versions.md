@@ -446,7 +446,7 @@ go list -m all
 | Go | 1.25+ | **Required for quic-go v0.60.0+** |
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+** |
-| **github.com/redis/go-redis/v9** | v9.x | **Current: v9.20.1** |
+| **github.com/redis/go-redis/v9** | v9.x | **Current: v9.21.0** (2026-06-22, supersedes v9.20.1) |
 | golang.org/x/crypto | v0.53.0+ | Latest stable; **Gin v1.13 (master, post PR #4707) will pull v0.52.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.53.0+ in your go.mod when adopting Gin v1.13** |
 | golang.org/x/net | v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers |
 | golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain; **Gin v1.13 (master, post PR #4707) will pull v0.45.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.46.0+ in your go.mod when adopting Gin v1.13** |
@@ -557,9 +557,9 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
 - **Go 1.27** — **RC1 released 2026-06-18** (verified via go.dev/dl/?mode=json 2026-06-25 00:15 UTC), final expected August 2026
-- **go-redis v9.20.1** — latest stable
+- **go-redis v9.21.0** — latest stable (2026-06-22, supersedes v9.20.1)
 - **golang.org/x/image v0.41.0+** — required to avoid CVE-2026-42500 BMP decode panic
-- **GORM v1.31.1** — latest stable
+- **GORM v1.31.2** — latest stable (2026-06-22, supersedes v1.31.1)
 - **jackc/pgx v5 v5.10.0** — latest stable (Jun 3, 2026); **CVE-2026-33816 fixed in v5.9.0+** (critical memory-safety, CVSS 9.8); CVE-2026-33815 also patched in v5.10.0
 - **golang-jwt/jwt v5.3.1** — latest stable
 - **go-jose/go-jose** — if used (OIDC, JWE workflows): require **v3.0.5+** or **v4.1.4+** for **CVE-2026-34986 / GHSA-78h2-9frx-2jm8** (DoS panic in JWE decryption when `alg` is a `KW` key-wrap algorithm and `encrypted_key` is empty; CVSS 7.5; disclosed 2026-03-31)
@@ -637,7 +637,7 @@ Added a new "Go 1.26 Breaking Changes Affecting Gin Handlers" section to version
 All versions still current — no new releases since 2026-06-22 00:04 UTC snapshot:
 - Go 1.26.4 (current stable), Go 1.25.11 (previous stable), Go 1.27 (release freeze, no RC1)
 - Gin v1.12.0 (latest), Gin v1.13 (milestone progress updated)
-- quic-go v0.60.0, go-redis v9.20.1, GORM v1.31.1, jackc/pgx v5.10.0, golang-jwt/jwt v5.3.1
+- quic-go v0.60.0, go-redis v9.21.0, GORM v1.31.2, jackc/pgx v5.10.0, golang-jwt/jwt v5.3.1
 - goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, golang-migrate v4.19.1
 
 ### Sources for This Update
@@ -1134,3 +1134,80 @@ The fix from PR #4660 is small (sync.Mutex around the Keys map or deep-copy in C
 - https://api.github.com/repos/gin-gonic/gin/pulls/4705 (AsciiJSON non-BMP fix; duplicate of #4693)
 - https://api.github.com/repos/gin-gonic/gin/pulls/4693 (AsciiJSON non-BMP fix; duplicate of #4705)
 - https://api.github.com/repos/gin-gonic/gin/pulls/4689 (binding refactor)
+
+## Auto-update 2026-06-25 12:07 UTC (Cycle)
+
+Six-hour cron cycle. **Quiet 6-hour window**: zero new Gin master commits, zero new merged PRs, zero new CVEs, no Gin v1.13 milestone progress (still 23/35 = ~65.7%). Go release dashboard unchanged at unique-issue level. The only delta worth noting is **two minor patch releases from 2026-06-22 that the skill had not yet caught up on** — fixed in this cycle.
+
+### Substantive findings
+
+1. **Gin v1.13 milestone progress**: still **23/35 closed (~65.7%)**. Same as 2026-06-25 06:09 UTC.
+2. **Go release dashboard**: unchanged at unique-issue level. Go 1.26.5 = 7 unique issues (header shows 8, double-counts #77800), Go 1.25.12 = 4 unique. Same set as 2026-06-25 06:09 UTC.
+3. **Go stable releases**: unchanged — Go 1.26.4 / Go 1.25.11. No patch shipped.
+4. **Go 1.27 RC1**: unchanged. `go1.27rc1` (tagged 2026-06-18T17:05:58Z) still latest. No RC2 yet.
+5. **Validator floor-piercing risk** (from 2026-06-23 cycle's PR #4707): still active. `validator v10.30.3` still pins `x/crypto v0.52.0` + `x/sys v0.45.0`. No validator v10.30.4 yet.
+6. **Zero new CVEs** in the past 6 hours affecting the Gin dependency tree (searched NVD for golang-keyword CVEs 2026-06-23 → 2026-06-25 — only Caddy 2.11.3 and Gogs 0.14.3 unrelated CVEs found).
+
+### Refreshed dependency versions (minor bumps from 2026-06-22)
+
+While checking for `proxy.golang.org/@latest` against the dependency table in this cycle, found two package versions that had been superseded but not yet propagated through the skill:
+
+| Package | Old | New | Released | Severity |
+|---|---|---|---|---|
+| `github.com/redis/go-redis/v9` | v9.20.1 | **v9.21.0** | 2026-06-22 | Patch — drop-in, no API breakage. No CVE content in the release notes. |
+| `gorm.io/gorm` | v1.31.1 | **v1.31.2** | 2026-06-22 | Patch — drop-in, no API breakage. No CVE content in the release notes. |
+
+Refreshed in:
+- `database.md` — "Updated from Research" section: go-redis line and GORM line updated; added a "Refreshed 2026-06-25" subsection.
+- `versions.md` — dependency table row for go-redis/v9, the "Verified Versions" bullet list, and the cycle summary for 2026-06-22.
+
+### Gin GitHub activity in the past 6 hours (since 2026-06-25 06:09 UTC)
+
+Searched `https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-25T06:09:00Z`:
+- **Zero closed** PRs/issues
+- **Zero merged** PRs
+- **One** open PR touched: #4689 (binding tryToSetValue refactor, cosmetic, updated 2026-06-25 06:42 UTC — **NOTE**: this update happened AFTER the prior cycle's 06:12 UTC commit so the prior cycle did not see it; the prior cycle's listing of #4689 as "updated 2026-06-25 06:42:31" came from the GitHub API snapshot at commit time. Author's own PR body describes the change as "completely negligible".)
+- All other open PRs (#4660 data race, #4701 AbortedByHandler, #4705/#4693 AsciiJSON non-BMP, #4687 SkipMethodNotAllowed, #4712 BREAKING render refactor, #4714 ctx.Status no-body, etc.) unchanged from prior cycle.
+
+### Gin master commits in past 6 hours
+
+`https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-25T06:09:00Z` → **0 results**.
+
+### No-change confirmations
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged.
+- **go-playground/validator/v10** — still at v10.30.3 (released 2026-05-29, no v10.30.4 yet). Floor-piercing risk unchanged.
+- **golang.org/x/crypto** — still at v0.53.0 (released 2026-06-08, no newer release). v0.52.0 still pinned transitively by validator.
+- **golang.org/x/sys** — still at v0.46.0 (released 2026-05-27, no newer release). v0.45.0 still pinned transitively by validator.
+- **golang.org/x/text** — still at v0.38.0 / v0.37.0 (no newer release).
+- **jackc/pgx/v5** — still at v5.10.0 (released 2026-06-03).
+- **quic-go v0.60.0** — still current (released 2026-06-04).
+- **golang-jwt/jwt/v5** — still at v5.3.1 (released 2026-01-28).
+- **pressly/goose/v3** — still at v3.27.1 (released 2026-04-24).
+- **ariga/atlas** — still at v1.2.0.
+- **gin-contrib/sse** — still at v1.1.1 (released 2026-03-08).
+
+### Action for agents
+
+1. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes into your Gin service go.mod. Both are drop-in, no migration needed.
+2. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from PR #4707 finding in 2026-06-23 12:13 UTC cycle).
+3. **Audit goroutine usage** in any Gin service for the data race pattern from PR #4660 (from 2026-06-25 06:09 UTC cycle).
+4. **Go 1.26.5 / 1.25.12 still imminent** but not yet shipped. Re-verify `https://dev.golang.org/release` before next deploy.
+5. **Go 1.27 RC1 still latest** — no RC2 yet. RC1 → RC2 cadence typically ~3 weeks, so RC2 expected ~2026-07-09 if the pattern holds. Watch `https://groups.google.com/g/golang-announce`.
+
+### Sources for this update
+
+- https://proxy.golang.org/github.com/redis/go-redis/v9/@latest (verified 2026-06-25 12:07 UTC — v9.21.0, released 2026-06-22)
+- https://proxy.golang.org/gorm.io/gorm/@latest (verified 2026-06-25 12:07 UTC — v1.31.2, released 2026-06-22)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (verified 2026-06-25 12:07 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-25 12:07 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@v/list (verified 2026-06-25 12:07 UTC — latest still v10.30.3)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-25 12:07 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-25 12:07 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 — re-verified 2026-06-25 12:07 UTC: **23/35 closed, ~65.7%**; same as 2026-06-25 06:09 UTC)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-25T06:09:00Z (zero new master source commits in past 6 hours)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-25T06:09:00Z (one open PR touched: #4689 at 06:42:31 UTC, no closures, no merges)
+- https://api.github.com/repos/golang/go/milestones/438 (Go 1.25.12: open=4 closed=4, unchanged)
+- https://api.github.com/repos/golang/go/milestones/439 (Go 1.26.5: open=7 closed=8, unchanged at unique-issue level)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=golang&pubStartDate=2026-06-23T00:00:00.000 (no Gin/Go stdlib CVEs in past 3 days)
+

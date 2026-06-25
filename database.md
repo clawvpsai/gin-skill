@@ -305,11 +305,14 @@ func RedisHealthCheck(ctx context.Context) error {
 ### go-redis v9 Pipelines & Locks
 - **Pipeline** usage now recommended for batch Redis operations — reduces round trips significantly
 - **Distributed locking** patterns with `SetNX` for coordination across instances
-- Latest stable: **v9.20.1** (2026-06-11)
+- Latest stable: **v9.21.0** (2026-06-22) — patch release superseding v9.20.1; check release notes for the small set of bug fixes (no CVE content)
 
 ### GORM v1.31 Updates
-- **GORM v1.31.1** (Nov 2025) — ensure compatibility with latest GORM
+- **GORM v1.31.2** (2026-06-22) — patch release superseding v1.31.1; ensure compatibility with latest GORM
 - Transaction callback pattern is stable and preferred over manual session management
+
+### Refreshed 2026-06-25 (this cycle)
+- Verified via `proxy.golang.org` that `github.com/redis/go-redis/v9@v9.21.0` and `gorm.io/gorm@v1.31.2` are current (both released 2026-06-22, ~3 days prior to this refresh). No API breakage — drop-in upgrades.
 
 ### Sources
 - https://github.com/redis/redis/releases
