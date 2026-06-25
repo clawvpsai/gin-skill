@@ -85,13 +85,13 @@ These changes are observable when upgrading services from Go 1.25 → 1.26 and m
 
 ---
 
-## Go 1.27 (Release Freeze — Expected Aug 2026)
+## Go 1.27 (RC1 Released 2026-06-18 — Final Expected Aug 2026)
 
 The Go 1.27 release freeze began **May 20, 2026**. Monitor the [Go release dashboard](https://dev.golang.org/release) for RC announcements. The release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) lists all confirmed features. RC1 expected soon. Expected final release: **August 2026**.
 
 **For agents:** When RC1 drops, check the release notes for new stdlib/toolchain features before applying version-specific patterns. macOS 13 Ventura is required in Go 1.27 — use Go 1.26 for macOS 12 environments.
 
-> **No Go 1.27 RC as of June 22, 2026 (12:04 UTC)** — Go 1.27 remains in release freeze with no RC1 tagged yet. Release freeze started May 20, 2026 (33 days in as of Jun 22). Monitor [go.dev/dl](https://go.dev/dl/?mode=json) for RC1. Expected ~August 2026. Last re-verified 2026-06-22 12:04 UTC against go.dev/dl/?mode=json (still go1.26.4 / go1.25.11 stable — no RC1 yet).
+> **Go 1.27 RC1 RELEASED 2026-06-18** — `go1.27rc1` shipped June 18, 2026 (verified 2026-06-25 00:15 UTC via `https://go.dev/dl/?mode=json` returning `go1.27rc1 stable=False`). Release notes: [go.dev/doc/go1.27](https://go.dev/doc/go1.27). The freeze-day count is now superseded by RC-phase: RC1 (Jun 18) → expected RC2 ~3 weeks later → final ~August 2026. **Do NOT run RC1 in production** — `go install golang.org/dl/go1.27rc1@latest && go1.27rc1 download && go1.27rc1 test ./...` to validate test suites against it. Many breaking/toolchain changes that affect Gin projects are listed below; see the [Auto-update 2026-06-25 00:15 UTC] section near the bottom of this file for the per-change callouts. Last re-verified 2026-06-25 00:15 UTC.
 
 ### New in Go 1.27
 
@@ -232,6 +232,15 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 - **`bytes.CutLast(s, sep) (before, after, found)`** — symmetric with `bytes.Cut`, slices around the **last** occurrence of a separator. Useful for parsing paths (`/api/v1/users` → `/api/v1` + `/users`), log lines, and filenames with a single call instead of `LastIndex` + manual slicing.
 - **`net/url.URL.Clone()` / `net/url.Values.Clone()`** — deep copy of URLs and `url.Values` query params. Handlers can safely mutate cloned request URLs without affecting the original.
 - **`crypto/x509.Certificate.RawSignatureAlgorithm`** (and `CertificateRequest.RawSignatureAlgorithm`, `RevocationList.RawSignatureAlgorithm`) — exposes the DER-encoded `AlgorithmIdentifier` even when the high-level `SignatureAlgorithm` field is `UnknownSignatureAlgorithm`. Use when verifying certificates signed with non-standard algorithms (e.g. ML-DSA above).
+- **`crypto/x509.SystemCertPool` + `SSL_CERT_FILE` / `SSL_CERT_DIR` (Windows + Darwin)** — `SystemCertPool` now respects `SSL_CERT_FILE` and `SSL_CERT_DIR` env vars on Windows and Darwin. When set, roots are loaded from disk and the **native Go verifier** is used instead of the platform cert API. Can be disabled with `GODEBUG=x509sslcertoverrideplatform=0`. **Gin impact**: if you set these env vars in production (common in container deployments to inject a custom CA bundle), the platform trust store is replaced by the file/dir contents — `crypto/tls` connections will start succeeding/failing based on what's in those files, not the OS root store. Audit container images for accidental `SSL_CERT_FILE` leakage from base layers.
+- **`crypto/tls.ConnectionState.LocalCertificate`** — new field exposing the certificate chain **presented to the connection peer** during the handshake. Pairs with the existing `PeerCertificates` (what the server received from the client). For Gin servers: use this to log/audit the exact chain the client saw (helpful when debugging "client says my cert is wrong" reports — they may be looking at the leaf, the intermediate, or the root you presented).
+- **`crypto/tls.QUICConfig.ClientHelloInfoConn`** — new field for QUIC server handshakes that lets the TLS config know which `net.Conn` to use for `ClientHelloInfo.Conn` (the listener side). Relevant if you run Gin over HTTP/3 via a custom `quic.Listener` — until now the `Conn` field in the `ClientHelloInfo` was nil for QUIC server handshakes.
+- **`crypto/tls.Config.Rand` deprecated** — for deterministic testing of TLS code paths, use `testing/cryptotest.SetGlobalRandom` (in the new `testing/cryptotest` package). Existing `Config.Rand` users will get a deprecation warning at compile time; plan to migrate before Go 1.30.
+- **`crypto/ecdsa.PrivateKey.Sign` hash length check** — `PrivateKey.Sign` now verifies that the hash length matches the curve's expected output size when a non-nil `SignerOpts` is supplied. Previously a wrong-length hash would silently produce a bad signature that failed remote verification; now it errors at sign time. Tightens an interop footgun.
+- **`database/sql.ConvertAssign` + `database/sql/driver.RowsColumnScanner`** — `ConvertAssign` exposes the type-conversion logic used by `Rows.Scan` so custom drivers can reuse it. The new optional `RowsColumnScanner` interface lets drivers scan directly into user-provided destinations (skipping the `interface{}` round-trip). Relevant for Gin projects that embed a custom driver (e.g. SQLite shim, TimescaleDB extension, in-memory test double).
+- **`go/constant.StringLen`** — returns the length of a string `Value` without fully constructing the `Value`. Useful for static-analysis tools built on top of Gin (e.g. custom linters, request validators, OpenAPI generators that parse Go source).
+- **`go/token.File.String()`** — small QoL: the `File` type now has a `String()` method, so it can be printed directly in error messages and `%v` formatting. Nice for code-gen tools that surface token positions.
+- **`compress/flate` speedup — output bytes may differ** — Go 1.27 ships a faster DEFLATE encoder. The encoded output of `compress/flate.Writer` is **not byte-identical** to Go 1.26 (different implementation, same format). Because DEFLATE is the underlying compression for `archive/zip`, `compress/gzip`, `compress/zlib`, and `image/png`, the **outputs of those packages may also differ** from Go 1.26. **Gin impact**: any code that ships pre-compressed assets and asserts byte-equality of recompression (e.g. golden-file tests for `c.File("foo.zip")` middleware) will need a re-baseline. Also, if you cache `ETag` headers keyed on compressed-byte-length, the length may shift. Standard HTTP `Content-Encoding: gzip` clients tolerate this transparently — only your own test fixtures and cache keys are at risk.
 
 ### Go 1.27 Tools Improvements (Draft Release Notes)
 
@@ -243,6 +252,14 @@ The streaming interface converts certain **O(n²) unmarshaling scenarios into O(
 - **Compiler `//line` relative paths** — `//line` and `/*line*/` directives now resolve relative filenames against the directory of the file containing the directive, matching `go/scanner` behavior.
 - **`go` command + bzr removed** — support for the `bzr` version control system removed from `go get`/`go mod`; cannot fetch modules from bzr servers.
 - **GODEBUG recognition** — `go` command now recognizes deprecated GODEBUG settings in `go.mod` (`go debug` entries) and `//go:debug` comments; accepts if set to final default value, fails if set to old value.
+- **`go doc package@version`** — `go doc` now supports `package@version` syntax (e.g. `go doc example.com/pkg@v1.2.3`) to view docs for a specific module version. Use during code review to check what changed in a dependency before bumping.
+- **`go doc -ex`** — new flag lists executable examples (`Example*` functions in `_test.go` files) of the given package or symbol. Quick way to surface working code snippets for any package — handy when exploring new stdlib APIs (e.g. `go doc -ex uuid`).
+- **`go test -json` `OutputType` field** — `go test -json` annotates `"Action":"output"` lines with an `"OutputType"` field (`"error"`, `"error-continue"`, or `"frame"`). Test runners and IDE plugins that parse test2json output should learn to consume this field for cleaner separation of test failures from test progress logs.
+- **`go tool trace -http=:PORT` now localhost-only by default** — passing only a port (e.g. `-http=:6060`) now restricts the listener to `localhost`, matching `go tool pprof -http` behavior. To listen on all interfaces, pass the address explicitly (`-http=0.0.0.0:6060`). **Gin impact**: in container/VM dev environments where you remote-port-forward to read the trace UI, you must now specify the bind address — otherwise the trace UI will only be reachable from inside the container.
+- **Linker `macos` / `macsdk` flags (macOS only)** — `go build` on macOS now accepts `-ldflags=-macos=<version> -ldflags=-macsdk=<version>` to set the `LC_BUILD_VERSION` load command's minimum-OS and SDK-version fields. Defaults to oldest supported macOS (13.0.0) and a recent SDK (26.2.0). Only relevant for cross-compiled Gin binaries for macOS distribution.
+- **New `go` command: `asynctimerchan` GODEBUG setting REMOVED permanently** — the `GODEBUG=asynctimerchan=1` setting (added in Go 1.23 to allow old buffered `time.Timer`/`time.Ticker` channels) is **gone** in Go 1.27. Channels from the `time` package are **always unbuffered (synchronous)** now, regardless of any GODEBUG. **Gin impact**: any code that relies on the buffered-channel semantics for `time.After` (e.g. select-with-default patterns that assumed non-blocking send to a buffered timer channel) will need to be re-checked. The buffer-1 size that Go 1.22 used is fully retired.
+- **New `go` command: TLS GODEBUG settings REMOVED permanently** — `tlsunsafeekm`, `tlsrsakex`, `tls3des`, `tls10server` (added in Go 1.22), and `x509keypairleaf` (added in Go 1.23) are all **gone** in Go 1.27. These were temporary escape hatches for re-enabling unsafe TLS behaviors — their removal is a security win. If any of your services, load balancers, orginy proxy chains rely on these settings to talk to a legacy peer, they will need to be fixed before upgrading to Go 1.27. **Gin impact**: search your codebase + config for `GODEBUG` settings — most likely you're not using any of these, but check.
+- **`runtime/pprof` goroutine labels in tracebacks (Go 1.27+ modules)** — tracebacks for modules with `go` directives configuring Go 1.27 or later now include `runtime/pprof` goroutine labels in the header line. Helps in production debugging — labels set via `pprof.SetGoroutineLabels` will now appear in the stack header. Opt out with `GODEBUG=tracebacklabels=0` (the setting is expected to be kept indefinitely in case labels carry sensitive data).
 
 ### Go 1.27 Ports Changes
 
@@ -493,7 +510,7 @@ curl -s https://go.dev/dl/?mode=json | python3 -c "import sys,json; [print(p['ve
 Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security patches. **The authoritative go.dev/dl API (verified 2026-06-21 12:04 UTC) confirms the latest stable versions are still go1.26.4 and go1.25.11** — but the dev.golang.org/release dashboard shows both patches are **imminent** (7 CLs for 1.26.5, 3 CLs for 1.25.12, as of 2026-06-17). **Always re-verify at go.dev/dl before deploying — patches may have shipped.**
 
 ### Go 1.27 Development Status
-- Go 1.27 release freeze began **May 20, 2026** — **31 days in as of June 20, 2026**, no RC1 yet
+- Go 1.27 release freeze began **May 20, 2026** — **31 days in as of June 20, 2026**, RC1 tagged June 18, 2026 (see top of section)
 - Release notes page at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) confirmed all features below
 - Expected final release: **August 2026**
 - **macOS 13 Ventura required** — Go 1.27 drops macOS 12 Monterey; Go 1.26 is the last release for macOS 12
@@ -539,7 +556,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **Gin v1.13** — milestone #28, due 2026-06-30, **~65.7% complete (23/35 closed, 12 open)**, not yet released (verified 2026-06-24 00:06 UTC via GitHub API; was 22/35 = ~62.9% on 2026-06-23 12:13 UTC, was 21/33 = ~63.6% on 2026-06-23 00:11 UTC, was 17/30 = ~56.7% on 2026-06-22 12:04 UTC; total grew 33 → 35 as PR #4708 was added to the milestone)
 - **Go 1.26.4** — **current stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
-- **Go 1.27** — in release freeze (**35 days as of Jun 24, 2026**), no RC1 yet, expected August 2026
+- **Go 1.27** — **RC1 released 2026-06-18** (verified via go.dev/dl/?mode=json 2026-06-25 00:15 UTC), final expected August 2026
 - **go-redis v9.20.1** — latest stable
 - **golang.org/x/image v0.41.0+** — required to avoid CVE-2026-42500 BMP decode panic
 - **GORM v1.31.1** — latest stable
@@ -583,7 +600,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - The remaining CLs in both releases are unchanged (same `cmd/compile` slicemask, `cmd/fix` misleading message, runtime version parsing, runtime RWMutex ppc64le, security CVE-2026-39822).
 - **Action for agents:** do not rely on the FIPS+`InsecureSkipVerify` fix landing in the upcoming 1.25.12 / 1.26.5 release. Pin to a later release if your FIPS deployment depends on it.
 
-### Go 1.27 Release Freeze Day Count
+### Go 1.27 Release Status (RC1 Phase)
 - Release freeze started **May 20, 2026** → **33 days in as of June 22, 2026** (was 32 on 2026-06-21). No RC1 tagged yet.
 
 ### Gin v1.13 Milestone Progress
@@ -681,8 +698,8 @@ The skill previously documented the May 22 CVE batch only as bare CVE numbers in
 - **Go 1.25.12**: CL count grew from 3 → **4** since the 2026-06-22 18:04 UTC snapshot. Same `cmd/compile: internal compiler error invalid heap allocated var without Heapaddr [1.25 backport]` CL is the new addition. FIPS CL remains pulled.
 - The new `cmd/compile` CL is an ICE (internal compiler error) regression fix — **not** a security patch, but it does affect `cmd/compile` builds that hit the `invalid heap allocated var without Heapaddr` error path. If your CI is currently failing on a small percentage of Go 1.25/1.26 builds with this error, the upcoming patch releases will resolve it.
 
-### Go 1.27 Release Freeze Day Count
-- Release freeze started **May 20, 2026** → **35 days in as of June 24, 2026** (was 34 on 2026-06-23, 33 on 2026-06-22, 32 on 2026-06-21). No RC1 tagged yet.
+### Go 1.27 Release Status (RC1 Phase)
+- Release freeze started **May 20, 2026** → **36 days in as of June 25, 2026** (was 35 on 2026-06-24, 34 on 2026-06-23, 33 on 2026-06-22, 32 on 2026-06-21). **RC1 tagged 2026-06-18** (supersedes the freeze-day counter for release scheduling — expect RC2 ~3 weeks out, final ~August 2026).
 
 ### Gin v1.13 Milestone Progress
 - **21/33 issues closed (~63.6%)**, 12 open. Was 17/30 (~56.7%) on 2026-06-22 12:04 UTC. Six new merged PRs since the last update (4 in the past 12 hours alone): #4713 (quic-go v0.60.0), #4709, #4702, #4699, #4698, #4695.
@@ -941,3 +958,75 @@ Six-hour cron cycle. Pure re-verification — zero deltas across all tracked das
 - https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-24T00:08:00Z (zero new master source commits)
 - https://dev.golang.org/release (re-verified 2026-06-24 12:09 UTC — 1.26.5: 7 CLs {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`}, 1.25.12: 4 CLs {`#79026`, `#79875`, `#79878`, `#80098`}; counts unchanged since 2026-06-24 00:06 UTC)
 - https://go.dev/dl/?mode=json (re-verified 2026-06-24 12:09 UTC — Go 1.26.4 still current stable, Go 1.25.11 still previous stable, no new release)
+
+
+## Auto-update 2026-06-25 00:15 UTC (Cycle)
+
+Six-hour cron cycle. **MAJOR FINDING: Go 1.27 RC1 shipped 2026-06-18** — the prior 8 cycles of "no RC1 yet" status are now obsolete. Substantive changes below; the top-of-file "## Go 1.27" section has been updated to reflect RC1 status.
+
+### Substantive findings
+
+1. **Go 1.27 RC1 RELEASED 2026-06-18** — `go1.27rc1` is now available in `https://go.dev/dl/?mode=json` (stable=False). Install: `go install golang.org/dl/go1.27rc1@latest && go1.27rc1 download`. Do not run in production; use to validate your test suite ahead of the August GA. The release-notes draft at [go.dev/doc/go1.27](https://go.dev/doc/go1.27) is now in `DRAFT RELEASE NOTES` state with confirmed section structure. The freeze-day counter is superseded by RC-phase tracking: RC1 (Jun 18) → expected RC2 ~3 weeks later → final ~August 2026.
+2. **Release-freeze day count bumped to 36** (was 35 on 2026-06-24). Freeze started May 20, 2026; June 25 = day 36. No longer the leading metric for release readiness (RC phase is).
+3. **Gin v1.13 milestone progress**: still **23/35 closed (~65.7%)**. No new merged PRs in the past 12 hours.
+4. **Go release dashboard**: **unchanged** — Go 1.26.5 still **7 pending CLs**, Go 1.25.12 still **4 pending CLs**. Issue refs: 1.26.5 = {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`}; 1.25.12 = {`#79026`, `#79875`, `#79878`, `#80098`}.
+5. **Go stable releases**: unchanged — Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped.
+6. **Validator floor-piercing risk** (from 2026-06-23 cycle's PR #4707 finding): still active — `validator v10.30.3` transitively pins `x/crypto v0.52.0` and `x/sys v0.45.0`. No validator v10.30.4 yet.
+7. **No new CVEs** in the past 12 hours affecting the Gin dependency tree.
+
+### New Go 1.27 RC1 features captured this cycle (not in prior skill versions)
+
+Audit of the [Go 1.27 release notes](https://go.dev/doc/go1.27) revealed **11 features** that were missing from the prior skill's "New in Go 1.27" / "Other New Standard Library APIs" / "Tools Improvements" sections. Added in this cycle:
+
+**Standard library additions:**
+- `crypto/x509.SystemCertPool` now respects `SSL_CERT_FILE` / `SSL_CERT_DIR` on Windows and Darwin (security-relevant — affects any containerized Gin service that sets those env vars)
+- `crypto/tls.ConnectionState.LocalCertificate` — chain presented TO the peer (pairs with existing `PeerCertificates`)
+- `crypto/tls.QUICConfig.ClientHelloInfoConn` — for Gin services running HTTP/3 via custom `quic.Listener`
+- `crypto/tls.Config.Rand` deprecated — use `testing/cryptotest.SetGlobalRandom` for deterministic TLS testing
+- `crypto/ecdsa.PrivateKey.Sign` hash-length check — signs that previously silently produced broken signatures now error at sign time
+- `database/sql.ConvertAssign` + `database/sql/driver.RowsColumnScanner` — for Gin projects that embed custom DB drivers
+- `go/constant.StringLen` — for static-analysis tools built on top of Gin
+- `go/token.File.String()` — small QoL for code-gen tools
+- `compress/flate` speedup — **output bytes may differ** from Go 1.26 (same format, different implementation). **Downstream effect on `archive/zip`, `compress/gzip`, `compress/zlib`, `image/png` outputs** — Gin impact: golden-file tests for compressed assets will need a re-baseline.
+
+**Tools / build additions:**
+- `go doc package@version` syntax
+- `go doc -ex` flag for executable examples
+- `go test -json` `OutputType` field annotation
+- `go tool trace -http=:PORT` now localhost-only by default (security)
+- Linker `-macos` / `-macsdk` flags for macOS cross-compile
+- `runtime/proof` goroutine labels in tracebacks (Go 1.27+ modules) — opt-out via `GODEBUG=tracebacklabels=0`
+
+**BREAKING changes in Go 1.27 (must plan for):**
+- **`asynctimerchan` GODEBUG setting removed permanently** — `time.Timer`/`time.Ticker` channels are **always unbuffered** now. Any Gin code that relied on the old buffered-1-channel semantics for non-blocking `select` patterns needs re-verification.
+- **5 TLS GODEBUG settings removed permanently** — `tlsunsafeekm`, `tlsrsakex`, `tls3des`, `tls10server`, `x509keypairleaf`. Search your services + config for these strings before upgrading.
+- **`bzr` version control support removed** — cannot fetch modules from bzr servers (already in skill).
+
+### No-change confirmations
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged.
+- **Gin master** — last merged commit 2026-06-23 12:08 UTC (PR #4707 validator bump, already captured in 2026-06-23 12:13 UTC cycle). Zero new master source commits in the past 12 hours.
+- **In-flight Gin PRs** still open: #4674, #4662, #4569, #4599, #4543, #4506, #4499, #4498, #4712, #4714 (statuses unchanged).
+- **go-redis, GORM, pgx, golang-jwt, goose, atlas, quic-go, gin-contrib**: all unchanged.
+
+### Action for agents
+
+1. **RC1 validation is now actionable** — install `go1.27rc1`, run `go1.27rc1 test ./...` against your Gin services. File issues at [go.dev/issue](https://go.dev/issue) for any breakage. Pay special attention to: TLS configs that set removed GODEBUG flags, `time.Timer` select patterns, and compressed-asset byte-equality tests.
+2. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** — still the only critical advisory (from 2026-06-23 12:13 UTC cycle's PR #4707 finding).
+3. **Go 1.26.5 / 1.25.12 still imminent** but not yet shipped. Re-verify `https://dev.golang.org/release` before the next deploy.
+4. **Gin v1.13** (~5 days away as of this cycle) — review migration notes for `c.ClientIP()` → `netip.Addr` (PR #4599), trailing-slash behavior (PR #4499), and `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+
+### Sources for this update
+
+- https://go.dev/dl/?mode=json (re-verified 2026-06-25 00:15 UTC — `go1.27rc1` present, Go 1.26.4 still current stable, Go 1.25.11 still previous stable)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-25 00:15 UTC — content `go1.27rc1\ntime 2026-06-18T17:05:58Z`, confirming RC1 tag date)
+- https://raw.githubusercontent.com/golang/website/master/_content/doc/go1.27.md (Go 1.27 release notes source — full content audited 2026-06-25 00:15 UTC)
+- https://github.com/golang/go/issues/78779 (Go 1.27 release notes tracking issue — open, no `okay-after-rc1` label yet)
+- https://groups.google.com/g/golang-announce/c/Cu9HkstbtpA (RC1 announcement referenced by byteiota.com coverage 2026-06-21)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 — re-verified 2026-06-25 00:15 UTC: **23/35 closed, ~65.7%**; same as 2026-06-24 12:09 UTC)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-24T12:09:00Z (zero new master source commits in past 12 hours)
+- https://dev.golang.org/release (re-verified 2026-06-25 00:15 UTC — 1.26.5: 7 CLs, 1.25.12: 4 CLs; unchanged)
+- https://byteiota.com/go-1-27-rc1-generic-methods-land-heres-what-changes-now (RC1 coverage 2026-06-21)
+- https://nesbitt.io/2026/06/20/this-week-in-package-management.html (TWiPM mention of Go 1.27rc1)
+- https://lmika.org/2026/06/19/go-rc-just-dropped-it.html (RC1 mention 2026-06-19)
+
