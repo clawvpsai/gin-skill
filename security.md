@@ -847,3 +847,80 @@ os.Setenv("GODEBUG", "tracebacklabels=0")
 - https://groups.google.com/g/golang-announce/c/Cu9HkstbtpA (RC1 announcement — referenced by 2026-06-21 byteiota.com coverage)
 - https://byteiota.com/go-1-27-rc1-generic-methods-land-heres-what-changes-now (RC1 community coverage)
 
+
+## Updated from Research (2026-06-25, 06:09 UTC)
+
+### Gin Context data race — PR #4660 (correctness/security-relevant)
+
+A reproducible data race was documented in PR [#4660](https://github.com/gin-gonic/gin/pull/4660) (open since 2026-05-22, updated 2026-06-25). The race is between `gin.Context.Set()` / `gin.Context.Keys` writes and `gin.Context.Copy()` reads, when `Copy()` is invoked from a goroutine while another goroutine writes keys via `Set()`.
+
+**Reproducer** (from the PR body, simplified):
+```go
+e.GET("/hello", func(ctx *gin.Context) {
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        for i := 0; i < 20; i++ {
+            ctx.Set("key", i)   // map write
+        }
+    }()
+    wg.Add(1)
+    go func() {
+        defer wg.Done()
+        for i := 0; i < 20; i++ {
+            _ = ctx.Copy()      // map read
+        }
+    }()
+    wg.Wait()
+})
+```
+
+`go run -race` reports `WARNING: DATA RACE`. Root cause: `Context.Copy()` performs a shallow copy of the `Keys map[any]any` reference without locking. PR #4695 (merged 2026-06-22) fixed `Errors` and `Accepted` copying but **missed `Keys`** — the underlying map reference is shared, so concurrent write + read races on the map internals.
+
+### Severity
+
+**Medium-high** for Gin services that spawn goroutines from request handlers and use `ctx.Set()` / `ctx.Get()` / `ctx.Copy()` across those goroutines. Concrete impact scenarios:
+
+1. **Map corruption** — concurrent map read + write is a fatal Go runtime panic in Go 1.21+ (`fatal error: concurrent map read and map write`). Under `go run -race` this is detected; under production builds it can crash the process.
+2. **Information disclosure via torn reads** — if a write to `ctx.Keys` is partially visible to another goroutine during `Copy()`, the read may observe a half-written `any` interface value, causing a `runtime.Error: invalid memory address or nil pointer dereference` (or worse, leaking bits of other goroutines' memory if the type assertion path is exploitable).
+3. **Race-detector false negatives in test** — without `-race`, the race often goes undetected for months until production load triggers it.
+
+### Affected Gin versions
+
+- **All versions up to and including v1.12.0** (current stable, released 2026-02-28) are affected.
+- **Gin v1.13** (in development, ~65.7% milestone completion) — **NOT** in the v1.13 milestone. Will not be fixed in v1.13 unless the milestone is re-scoped.
+- **No CVE assigned** as of this writing. Maintainers have not yet committed to a fix.
+
+### Audit checklist
+
+For each Gin handler in your service, check:
+- [ ] Does the handler spawn goroutines (e.g. `go func() { ... ctx.X(...) ... }()`)?
+- [ ] Do those goroutines call `ctx.Set()`, `ctx.Get()`, `ctx.MustGet()`, `ctx.Copy()`, or `ctx.Keys`?
+- [ ] Is there any path where one goroutine writes while another reads?
+
+If yes to all three, your service is affected. Fix options (in order of preference):
+
+1. **Per-goroutine context**: don't share `*gin.Context` across goroutines. Pass `context.Context` instead and attach keys to the new context.
+2. **Application-level mutex**: wrap `ctx.Keys` access in a `sync.Mutex` in your service code.
+3. **Cherry-pick PR #4660** (once it lands upstream) or apply the patch manually — it's small, ~10 lines around `Context.Copy()`.
+
+### Race-detector sweep
+
+Run on every affected service:
+```bash
+go build -race -o myservice-race ./cmd/myservice
+# load-test with realistic concurrent traffic
+hey -n 10000 -c 100 http://localhost:8080/endpoint
+```
+
+If no `WARNING: DATA RACE` is reported after a representative load test, your service is likely safe in production (modulo the standard caveat that race-detector coverage is not exhaustive).
+
+### Why this matters here
+
+`security.md` is for correctness/availability issues that could affect a Gin service's security posture, not just CVEs. A production crash from a map race is a denial-of-service incident. Information leakage from torn reads is a confidentiality incident. Both fall under "security" in the broader sense, and `ctx.Set` + goroutines is a common pattern in fan-out handlers (e.g. aggregating multiple backend calls).
+
+### Sources
+- https://github.com/gin-gonic/gin/pull/4660 (PR body with reproducer, race detector output, codecov report)
+- https://github.com/gin-gonic/gin/pull/4695 (predecessor that fixed `Errors`/`Accepted` but missed `Keys`; merged 2026-06-22)
+- https://go.dev/wiki/GoMap ("Maps are not safe for concurrent use" — Go runtime fatal error reference)

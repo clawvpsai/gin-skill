@@ -1030,3 +1030,107 @@ Audit of the [Go 1.27 release notes](https://go.dev/doc/go1.27) revealed **11 fe
 - https://nesbitt.io/2026/06/20/this-week-in-package-management.html (TWiPM mention of Go 1.27rc1)
 - https://lmika.org/2026/06/19/go-rc-just-dropped-it.html (RC1 mention 2026-06-19)
 
+## Auto-update 2026-06-25 06:09 UTC (Cycle)
+
+Six-hour cron cycle. **Six-hour window yielded modest new activity**: 5 Gin issues/PRs updated, 1 PR (#4716) missed by the prior cycle. Go release dashboard unchanged at unique-CL level (Go 1.26.5 dashboard header counts "8" but only 7 unique issues — #77800 is counted under both `cmd/fix` and `x/tools/go/analysis` directories, same as in all prior cycles). Most important finding: PR #4660 documents a real, reproducible data race in `gin.Context.Set()` + `Context.Copy()` — security/correctness-relevant; flagged in `security.md` too.
+
+### Substantive findings
+
+1. **Gin v1.13 milestone progress**: still **23/35 closed (~65.7%)**. No new merged PRs in the past 6 hours.
+2. **Go release dashboard**: **unchanged** at unique-issue level. Dashboard header counts (with double-counts):
+   - Go 1.26.5 — header shows **8**, unique issues = **7** (counts #77800 twice: `cmd/fix` + `x/tools/go/analysis`): {#80099, #79876, #77800, #80131, #79879, #79893, #79027}. Issue list identical to 2026-06-25 00:15 UTC snapshot.
+   - Go 1.25.12 — header shows **4**, unique issues = **4** (no double-counts): {#80098, #79875, #79878, #79026}. Unchanged.
+3. **Go stable releases**: unchanged — Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped.
+4. **Go 1.27 RC1 status**: unchanged — `go1.27rc1` (tagged 2026-06-18T17:05:58Z) still latest. No RC2 yet. RELEASE-NOTES draft at `https://go.dev/doc/go1.27` unchanged from prior cycle's audit.
+5. **Validator floor-piercing risk** (from 2026-06-23 cycle's PR #4707 finding): still active — `validator v10.30.3` transitively pins `x/crypto v0.52.0` and `x/sys v0.45.0`. No validator v10.30.4 yet.
+6. **No new CVEs** in the past 6 hours affecting the Gin dependency tree.
+
+### New/updated Gin issues & PRs in the past 6 hours
+
+Captured via `https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-25T00:15:00Z`:
+
+| # | Type | Title | Status | Notes |
+|---|------|-------|--------|-------|
+| **#4660** | PR (open) | `fix(context): data race` | open since 2026-05-22, updated 2026-06-25 05:16 UTC | **CORRECTNESS/SECURITY-RELEVANT** — reproducible data race between `ctx.Set()` and `ctx.Copy()`. See below. |
+| **#4701** | PR (open) | `feat(context): add AbortedByHandler() and AbortedBy() to track abort origin` | open since 2026-06-10, updated 2026-06-25 04:14 UTC | Observability feature for tracking which handler in the middleware chain called `Abort()`. Useful for logging/conditional middleware. Adds two new exported methods on `*gin.Context`. |
+| **#4705** | PR (open) | `fix: encode non-BMP characters as UTF-16 surrogate pairs in AsciiJSON` | open since 2026-06-13, updated 2026-06-25 00:32 UTC | Bug fix in `AsciiJSON` rendering for emoji / CJK Extension B characters (>U+FFFF). Currently emits invalid 5+ hex-digit `\u1f389` instead of valid `\ud83c\udf89` surrogate pairs. Duplicate of #4693. |
+| **#4693** | PR (open) | `fix(render): correctly escape non-BMP Unicode in AsciiJSON` | open since 2026-06-03, updated 2026-06-25 02:22 UTC | Same bug as #4705 — duplicate PR. Both authors independently identified the same `fmt.Appendf(buf, "\u%04x", r)` overflow bug. |
+| **#4689** | PR (open) | `refactor(binding): simplify tryToSetValue option handling` | open since 2026-06-03, updated 2026-06-25 01:25 UTC | Cosmetic refactor of `tryToSetValue` in binding code. Removes redundant temporary variable and redundant empty-string check. The author themselves note "this issue is completely negligible." Low value; expect merge if maintainers feel like it. |
+
+### Newly-captured PR missed by prior cycles: #4716
+
+| # | Type | Title | Status | Notes |
+|---|------|-------|--------|-------|
+| **#4716** | PR (open) | `chore(deps): bump the actions group across 1 directory with 3 updates` | open since 2026-06-23 22:32 UTC | Dependabot batched bump: `actions/checkout` 6→7, `actions/cache` ?, `codecov/codecov-action` ?. Pure CI dep bump, NOT in v1.13 milestone, doesn't affect Go module consumers. The 2026-06-25 00:15 UTC cycle listed open PRs but omitted #4716 — added to the master open-PR list now. |
+
+### New findings carried over from 2026-06-25 00:15 UTC cycle
+
+Unchanged: PR #4707 (validator v10.30.3 floor-piercing risk → require explicit `golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` pins in go.mod for any Gin service adopting v1.13). Documented in `security.md`.
+
+### In-flight Gin PRs — complete open list as of this snapshot
+
+Per `https://api.github.com/repos/gin-gonic/gin/issues?state=all` filtered to open PRs in milestone/28 + active unmerged PRs:
+
+- **In v1.13 milestone (open, not yet merged):** #4674 url.PathUnescape, #4662 SSE helpers, #4569 H2CConfig, #4599 net/netip, #4543 whole-request binding, #4506 ResponseWriter.Unwrap, #4499 trailing slash, #4498 form nil-vs-empty, #4483 multi-write warning, #4712 BREAKING render/<format> opt-in, #4714 ctx.Status no-body flush, #4696 rune-boundary safety
+- **Open, NOT in v1.13 milestone:** #4701 AbortedByHandler (feature, observability), #4660 data race (correctness), #4705/#4693 AsciiJSON non-BMP (duplicate pair), #4689 tryToSetValue refactor (cosmetic), #4711 `go fix` application (chore), #4706 "my first contribution", #4703 OSS-Fuzz integration (large feature), #4694 codecov-action bump (chore), #4697 codecov/codecov-action 6→7 (chore, stale), #4716 actions group bump (chore)
+- **Closed-not-merged:** #4710 (GitHub Actions bump — stale-superseded)
+
+### Deep-dive: PR #4660 (data race)
+
+**Severity: medium-high** for any Gin service that spawns goroutines that touch `*gin.Context`. Reproducer in the PR body:
+
+```go
+wg.Add(1)
+go func() {
+    defer wg.Done()
+    for i := 0; i < n; i++ {
+        ctx.Set("key", i)  // map write
+    }
+}()
+wg.Add(1)
+go func() {
+    defer wg.Done()
+    for i := 0; i < n; i++ {
+        _ = ctx.Copy()     // map read (during Keys copy)
+    }
+}()
+```
+
+`go run -race` reports `WARNING: DATA RACE — Write at 0x... by goroutine 10`. Root cause: `Context.Copy()` performs a shallow copy of the `Keys map[any]any` reference without synchronization. The previous partial fix in PR #4695 (closed 2026-06-22) added `Errors` and `Accepted` to `Copy()` but missed `Keys` (the map itself, not the slice).
+
+**Action for agents working on Gin services:**
+1. **Audit** any code path where a goroutine spawned by a handler (or middleware) calls `ctx.Set()` / `ctx.Get()` / `ctx.Copy()` after the handler returns. Replace with a per-goroutine `context.Context` or serialize access with a mutex.
+2. **Do not** depend on PR #4660 landing in Gin v1.13 — it is NOT in the v1.13 milestone. Pin a fork or apply the patch manually if your service is affected.
+3. **Race-detector sweep recommended**: `go build -race` + load test on any Gin handler that fans out goroutines.
+
+The fix from PR #4660 is small (sync.Mutex around the Keys map or deep-copy in Copy()). Codecov report attached to PR shows 98.37% coverage and tests added. Expect upstream merge in v1.13.x or v1.14 if maintainers re-scope the milestone.
+
+### No-change confirmations
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged.
+- **Gin master** — last merged source commit 2026-06-23 12:08 UTC (PR #4707 validator bump). Zero new merged source commits in past 6 hours.
+- **go-redis, GORM, pgx, golang-jwt, goose, atlas, quic-go, gin-contrib**: all unchanged. No new releases in past 6 hours.
+- **Go 1.27 release-freeze day count**: 36 days in (May 20 freeze; June 25 = day 36). RC-phase tracking supersedes day-count.
+
+### Action for agents
+
+1. **Audit goroutine usage** in any Gin service for the data race pattern from PR #4660. This is the most important actionable item from this cycle.
+2. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from PR #4707 finding in 2026-06-23 12:13 UTC cycle).
+3. **Go 1.26.5 / 1.25.12 still imminent** but not yet shipped. Re-verify `https://dev.golang.org/release` before next deploy.
+4. **PR #4701 (AbortedByHandler) and PR #4705/#4693 (AsciiJSON non-BMP)** — both are good-merge candidates; if you're running a Gin fork, consider cherry-picking once they land.
+5. **No new CVE or breaking change** to plan for in this 6-hour window.
+
+### Sources for this update
+
+- https://go.dev/dl/?mode=json (re-verified 2026-06-25 06:09 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-25 06:09 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 — re-verified 2026-06-25 06:09 UTC: **23/35 closed, ~65.7%**; same as 2026-06-25 00:15 UTC)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-25T00:15:00Z (zero new master source commits in past 6 hours)
+- https://dev.golang.org/release (re-verified 2026-06-25 06:09 UTC — 1.26.5 header=8 / unique=7; 1.25.12 header=4 / unique=4; same unique issue set as 2026-06-25 00:15 UTC)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-25T00:15:00Z (5 issues/PRs updated in past 6 hours: #4660, #4701, #4705, #4693, #4689)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4660 (data race reproducer + fix — NOT in v1.13 milestone)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4716 (actions group bump, missed by prior cycle)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4701 (AbortedByHandler feature)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4705 (AsciiJSON non-BMP fix; duplicate of #4693)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4693 (AsciiJSON non-BMP fix; duplicate of #4705)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4689 (binding refactor)

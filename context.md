@@ -456,6 +456,34 @@ func betterAsyncHandler(c *gin.Context) {
     c.JSON(202, gin.H{"message": "accepted"})
 }
 ```
+### ⚠️ Concurrency warning — `c.Copy()` + `c.Set()` data race (PR #4660)
+
+**Do NOT call `c.Set()` / `c.Get()` / `c.Copy()` from a goroutine while the parent handler (or another goroutine) is still writing to the same context's `Keys` map.** `c.Copy()` performs a shallow copy of `Keys map[any]any` — the underlying map reference is shared between the original and the copy. Concurrent writes (via `c.Set`) and reads (via `c.Copy` + the copy's own `c.Get`) trigger a Go runtime fatal error: `fatal error: concurrent map read and map write`. PR #4695 (merged 2026-06-22) added `Errors` and `Accepted` to `Copy()` but **missed `Keys`** — see PR [#4660](https://github.com/gin-gonic/gin/pull/4660) for the reproducible race.
+
+**Safe pattern — use Go `context.Context` for goroutines:**
+
+```go
+func safeAsyncHandler(c *gin.Context) {
+    ctx := c.Request.Context()  // Go's stdlib context — safe for goroutines
+
+    go func(ctx context.Context) {
+        // Pass values explicitly via function args or via ctx (stdlib only).
+        // NEVER call c.Set/c.Get/c.Copy here.
+        userID := ctx.Value(userIDKey).(int)
+        processAsync(userID, ctx)
+    }(ctx)
+
+    c.JSON(202, gin.H{"message": "accepted"})
+}
+```
+
+**If you must use `c.Copy()`:** serialize all `c.Set` / `c.Get` calls across goroutines with a `sync.Mutex` scoped to the copied context, or accept the Keys map as shared and document the risk. There is no upstream fix in Gin v1.13 (PR #4660 is NOT in the v1.13 milestone).
+
+**Audit checklist for existing code:**
+- [ ] Search for `c.Set(` inside any `go func(` — replace with per-goroutine context or mutex
+- [ ] Search for `c.Copy()` where the copy's `Keys` map is read concurrently with the original's writes
+- [ ] Run `go test -race ./...` on every handler that fans out goroutines
+
 
 ## Context Values and Type Safety
 
