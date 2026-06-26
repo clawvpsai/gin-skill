@@ -143,6 +143,14 @@ r.Use(timeout.New(
   }
   ```
 
+### CVE-2026-46602 / GO-2026-5062 — golang.org/x/image/tiff unbounded tile memory
+- **Published:** 2026-06-25 (CVE published 2026-06-25) | **Severity:** Medium (no CVSS yet; CWE-789 memory allocation with excessive size value)
+- **Affected:** `golang.org/x/image/tiff` versions **< v0.43.0**. Fix is in v0.43.0 (released 2026-06-15 — fix predated public CVE by 10 days).
+- **Impact:** The TIFF decoder does not impose a limit on tile size in tiled images. A maliciously crafted TIFF can claim an excessively large tile dimension in the header, causing the decoder to allocate up to 4 GiB (or more) of memory per tile. Unauthenticated remote DoS against any Gin handler that calls `tiff.Decode` / `tiff.DecodeConfig` / `image.Decode` (which falls back to `tiff` if registered). Pattern is identical to the older CVE-2026-33809 / CVE-2022-41727 family — unbounded-size resource consumption via header-mutable inputs.
+- **Gin exposure paths:** image-upload endpoints that whitelist TIFF (medical imaging, scanner/PDF ingestion, scientific data, screenshot uploads), any service that registers `tiff.Decode` with `image.RegisterFormat` for auto-detection, OCR pipelines, document conversion services.
+- **Fix:** Upgrade `golang.org/x/image` to **v0.43.0+** (the skill's prior floor of v0.41.0 is **insufficient** — v0.41.0 fixed CVE-2026-42500 BMP panic, not this TIFF tile CVE). Run `go get golang.org/x/image@v0.43.0` and `go mod tidy`.
+- **Defense-in-depth:** Same patterns as CVE-2026-42500 — (1) reject TIFF at the MIME sniff level if your domain doesn't need it (`"image/tiff"` is NOT in the standard `http.DetectContentType` whitelist, but `image.Decode` will still try TIFF if registered), (2) wrap `image.Decode` in `defer recover()` (see CVE-2026-42500 section), (3) cap decoded image dimensions with `image.DecodeConfig` before allocating a full decode buffer (`cfg.Width * cfg.Height * 4` byte ceiling — reject if > a sane limit like 50M pixels).
+
 ### CVE-2026-39822 — Go runtime security fix (embargoed, imminent)
 - **Status:** In release pipeline for Go 1.25.12 / 1.26.5 (verified 2026-06-21 12:04 UTC via dev.golang.org/release)
 - **Affected:** Go runtime; details under embargo (issue #79005 / #79026 / #79027 marked private per Go security policy)
