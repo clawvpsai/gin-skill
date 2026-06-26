@@ -156,6 +156,15 @@ r.Use(timeout.New(
 - **Affected:** Go runtime; details under embargo (issue #79005 / #79026 / #79027 marked private per Go security policy)
 - **Action:** Track [golang-announce](https://groups.google.com/g/golang-announce) for the announcement thread; pre-stage builds with the patch within days of release.
 
+### CVE-2026-42505 — Go `crypto/tls` PSK in ECH outer client hello (public-track privacy degradation)
+- **Published:** 2026-05-08 (issue #79282 public-track per Go Security Policy); fix backports opened 2026-06-26 (#80174 for Go 1.25, #80175 for Go 1.26). **Severity:** Low–Medium (privacy degradation; no RCE/auth-bypass).
+- **Affected:** Go `crypto/tls` client when negotiating TLS 1.3 with **Encrypted Client Hello (ECH)** outer ClientHello and a configured PSK. Affects any Gin service whose outbound HTTPS client uses `http.Transport` with a `tls.Config` that sets both `tls.Config.ECHConfigs` (or relies on ECH negotiation) and `tls.Config.PSK` / `tls.Config.PSKIdentity`.
+- **Impact:** Including the PSK extension in the *outer* ClientHello allows an on-path attacker to harvest outer ClientHellos and replay them with arbitrary guessed SNI values. If the server accepts the PSK, the binder check fails (handshake errors); the privacy degradation is the fingerprintable SNI+PSK combination, not a credential leak. PSK is not leaked in the clear.
+- **Fix:** Patched in **Go 1.25.12** (via #80174) and **Go 1.26.5** (via #80175). When these releases ship, the Go TLS client omits the PSK extension from the ECH outer ClientHello by default; only the inner ECH ClientHello carries the PSK.
+- **Gin exposure paths:** (1) any outbound `http.Client` from a Gin handler that uses a pre-configured `tls.Config` with PSK + ECH (rare but used in zero-trust mTLS / mesh sidecars); (2) Go HTTP clients following redirects to HTTPS endpoints that negotiate ECH; (3) any service that does **not** set PSK but relies on `crypto/tls` defaults is **NOT** affected — the bug only triggers when the caller explicitly configured a PSK.
+- **Workaround for current Go (1.25.11 / 1.26.4 and earlier):** if your Gin service uses `tls.Config.PSK`, disable ECH for outbound calls (`tls.Config.ECHConfigs = nil` and do not set `EncryptedClientHelloConfigList` via QUIC/HTTP3). This is acceptable in nearly all Gin deployments because ECH + PSK is a niche combination. Track [golang-announce](https://groups.google.com/g/golang-announce) for the official advisory thread once Go 1.25.12 / 1.26.5 ship.
+- **Related:** issue [#79282](https://github.com/golang/go/issues/79282) (public-track; details above), backports [#80174](https://github.com/golang/go/issues/80174) (Go 1.25) and [#80175](https://github.com/golang/go/issues/80175) (Go 1.26). NVD record not yet populated as of 2026-06-26 (CVE reserved).
+
 ### CVE-2026-39821 / GO-2026-5026 — golang.org/x/net idna Punycode privilege escalation (CRITICAL, CVSS 10.0)
 - **Published:** 2026-05-22 | **Severity:** Critical
 - **Affected:** `golang.org/x/net` versions < v0.55.0 (idna package — `ToASCII` / `ToUnicode`)
@@ -932,3 +941,75 @@ If no `WARNING: DATA RACE` is reported after a representative load test, your se
 - https://github.com/gin-gonic/gin/pull/4660 (PR body with reproducer, race detector output, codecov report)
 - https://github.com/gin-gonic/gin/pull/4695 (predecessor that fixed `Errors`/`Accepted` but missed `Keys`; merged 2026-06-22)
 - https://go.dev/wiki/GoMap ("Maps are not safe for concurrent use" — Go runtime fatal error reference)
+
+
+---
+
+## Updated from Research (2026-06-26, 18:19 UTC)
+
+### Go 1.25.12 / 1.26.5 imminent — two new Security-labeled CLs detected in past 6h
+
+A live re-pull of `https://dev.golang.org/release` at 2026-06-26 18:24 UTC (cycle start) found **two new Security-labeled CLs added to the patch-release dashboards since the 12:14 UTC cycle**. Both are non-embargoed (public-track per Go Security Policy). This update documents the upstream disclosures and adds Gin-impact context for each.
+
+### Deltas from prior cycle (2026-06-26, 12:14 UTC)
+
+| Release dashboard | Prior count (12:14 UTC) | Now (18:24 UTC) | Delta | New CLs |
+|---|---|---|---|---|
+| Go1.25.12 | 4 | **5** | **+1** | **#80174** `crypto/tls: omit PSK in ECH outer client hello [1.25 backport]` |
+| Go1.26.5 | 8 | **10** | **+2** | **#80175** `crypto/tls: omit PSK in ECH outer client hello [1.26 backport]`; **#80154** `html/template: iframe srcdoc attribute not properly escaped` |
+| Go1.27 | 271 | 271 | 0 | — |
+| Go1.28 | 95 | 95 | 0 | — |
+| Pending CLs | 5418 | **5429** | **+11** | mixed (not individually fetched) |
+| Pending Proposals | 1229 | **1228** | **−1** | one proposal closed |
+
+### New CVE entry added to "Recent Gin/Go CVEs (May–June 2026)": CVE-2026-42505
+
+Full entry now in security.md (between CVE-2026-39822 and CVE-2026-39821). Summary:
+
+- **CVE-2026-42505** — `crypto/tls` PSK in ECH outer client hello. Public-track (issue [#79282](https://github.com/golang/go/issues/79282)); fix backports opened 2026-06-26 ([#80174](https://github.com/golang/go/issues/80174) for 1.25, [#80175](https://github.com/golang/go/issues/80175) for 1.26). NVD record not yet populated as of 2026-06-26 (CVE reserved by Go Security Team). Severity Low–Medium: on-path attacker can fingerprint SNI+PSK pair from outer ClientHello, but PSK itself is not leaked.
+- **Gin exposure**: requires `tls.Config` to have BOTH PSK configured AND ECH negotiation enabled (niche combination — zero-trust mTLS / mesh sidecars only). Default Gin deployments are **NOT** affected.
+- **Workaround until Go 1.25.12 / 1.26.5 ship**: set `tls.Config.ECHConfigs = nil` if you have `tls.Config.PSK` configured.
+- **Related CLs**: #80174 (1.25 backport), #80175 (1.26 backport). Both CherryPickCandidate + Security labeled.
+
+### html/template iframe srcdoc escape — security hardening, no CVE yet
+
+- **Issue**: [#80154](https://github.com/golang/go/issues/80154) `html/template: iframe srcdoc attribute not properly escaped`. Labels: `Security`, `NeedsFix`. Milestone: Go1.26.5 (not 1.25.12).
+- **Impact**: When `iframe srcdoc` action content is placed in a Go html/template, the content is not treated as HTML for escaping purposes. The Go Security Team's own triage note in the issue body says: *"we are treating this as a security hardening issue"* — low exploitability (template author must explicitly place attacker-controlled input into a srcdoc action), but the fix is in the same 1.26.5 release.
+- **Gin exposure paths**: (1) any handler using `c.HTML()` with a template that contains `<iframe srcdoc="{{.X}}">` (or equivalent `template.HTML` / `template.JS` interop); (2) admin/CMS UIs that let users embed arbitrary HTML inside iframe sandboxes. For most Gin apps using html/template purely for read-only views, this is **NOT** exploitable because the template doesn't contain a `srcdoc` action at all.
+- **No CVE assigned** as of 2026-06-26 18:24 UTC (issue created 2026-06-25 17:54 UTC; Security + NeedsFix labels applied but no CVE reservation by Go Security Team). Will be auto-documented if a CVE is assigned before Go 1.26.5 ships.
+- **Gin mitigation pattern**: avoid passing user input into `srcdoc` attributes. If you must, post-escape with `html.EscapeString()` before interpolation:
+
+  ```go
+  // UNSAFE — Gin user-supplied HTML in iframe srcdoc
+  c.HTML(200, "embed.html", gin.H{"src": userHTML})
+
+  // SAFER — escape before interpolating into srcdoc context
+  c.HTML(200, "embed.html", gin.H{"src": html.EscapeString(userHTML)})
+  ```
+
+### Gin dashboard deltas (also worth noting)
+
+- **Gin v1.13 milestone: 23/35 → 24/35 (~68.6%)** — ONE new merge since 12:14 UTC cycle: **#4717** `docs: fix BindXML comment referencing nonexistent binding.BindXML` (merged 2026-06-26 16:48:16Z). Trivial 1-line docstring fix (`binding.BindXML` → `binding.XML`); doesn't change behavior but closes a long-standing documentation gap. Remaining open count: **11** (was 12). Milestone still due 2026-06-30 (4 days).
+- **Gin master commits in past 6h**: 1 (#4717 docs fix only). No source code commits.
+- **Gin PRs touched in past 6h**: 0 (no comments, no new pushes).
+- **Gin v1.12.0** still current stable. No v1.13 release tagged.
+
+### Why this matters for Gin developers
+
+1. **The Go 1.25.12 / 1.26.5 patch release window is narrowing.** Two new Security-labeled CLs added in past 6 hours, plus the previously-tracked CVE-2026-39822 fix. Release likely within 24–72 hours.
+2. **CVE-2026-42505 affects a narrow but real slice of Gin services**: any handler using outbound `http.Client` with `tls.Config.PSK` + `tls.Config.ECHConfigs`. Audit your outbound TLS configurations and disable ECH if PSK is in use.
+3. **#80154 html/template hardening**: most Gin apps don't use iframe srcdoc, but template-driven admin UIs / CMSes should audit for `srcdoc` action usage.
+4. **Gin v1.13 milestone at 68.6%, 4 days from due-date** — 11 open PRs remaining. Closing this milestone cleanly will require landing several in-flight PRs (#4712 render/<format> subpackages, #4701 AbortedByHandler, #4696 rune-boundary safety, #4674 url.PathUnescape, etc.) before 2026-06-30.
+
+### Sources for this update
+
+- `https://dev.golang.org/release` (live fetch 2026-06-26 18:24 UTC — `5 Go1.25.12`, `10 Go1.26.5`, `271 Go1.27`, `95 Go1.28`, `5429 Pending CLs`, `1228 Pending Proposals`)
+- `https://github.com/golang/go/issues/79282` (CVE-2026-42505 public-track disclosure)
+- `https://github.com/golang/go/issues/80154` (html/template iframe srcdoc Security+NeedsFix, Go1.26.5)
+- `https://github.com/golang/go/issues/80174` (Go 1.25 backport for CVE-2026-42505, Security+CherryPickCandidate)
+- `https://github.com/golang/go/issues/80175` (Go 1.26 backport for CVE-2026-42505, Security+CherryPickCandidate)
+- `https://github.com/gin-gonic/gin/milestone/28` (v1.13 — verified 2026-06-26 18:24 UTC: **24/35 closed, ~68.6%**, due 2026-06-30)
+- `https://github.com/gin-gonic/gin/pull/4717` (BindXML doc fix; merged 2026-06-26 16:48:16Z)
+- `https://github.com/golang/go/issues/80154` milestone: `Go1.26.5` (verified via API)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-42505` (verified 2026-06-26 18:24 UTC — `CVE_RECORD_DNE`, not yet populated)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505` (verified 2026-06-26 18:24 UTC — `totalResults: 0`)
