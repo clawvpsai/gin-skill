@@ -1381,3 +1381,63 @@ Six-hour cron cycle. **Genuinely quiet** — zero deltas across all tracked dash
 - https://proxy.golang.org/golang.org/x/crypto/@latest (verified 2026-06-26 06:06 UTC — v0.53.0 unchanged)
 - https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-26 06:06 UTC — v0.46.0 unchanged)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (verified 2026-06-26 06:06 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+
+---
+
+## Auto-update 2026-06-26, 12:14 UTC
+
+Six-hour cron cycle. **Quiet 6-hour window — second consecutive zero-delta cycle**: zero new Gin master commits, zero PRs touched, zero new CVEs, no Gin v1.13 milestone progress (still 23/35 = ~65.7%). Go 1.26.5 dashboard unchanged at 8 CLs; Go 1.25.12 unchanged at 4 CLs. Only non-trivial deltas this cycle are bookkeeping: Go 1.27 dashboard CL count moved 274 → 271 and Pending CLs 5415 → 5418 (delta matches — 3 CLs moved from Go1.27 → Pending CLs, pure housekeeping, not new content). Go 1.28 dashboard count now 95 (was not separately reported in prior cycles). All dependency floors unchanged. Validator floor-piercing risk from 2026-06-23 PR #4707 still active.
+
+### Verifications performed
+
+- `https://api.github.com/repos/gin-gonic/gin/milestone/28`: **23/35 closed (~65.7%)**, 12 open, due 2026-06-30 (4 days from this cycle). Same as 2026-06-26 06:06 UTC.
+- `https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-26T06:06:00Z`: **0 commits** in past 6 hours.
+- `https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-26T06:06:00Z`: **0 PRs touched, 0 opened, 0 closed, 0 merged** in past 6 hours. (Prior cycle had 2 PRs touched for housekeeping — this cycle is even quieter.)
+- `https://dev.golang.org/release` (live fetch, 2026-06-26 12:14 UTC): `4 Go1.25.12`, `8 Go1.26.5`, `271 Go1.27`, `95 Go1.28`, `5418 Pending CLs`, `1229 Pending Proposals`. Compare to prior cycle's snapshot (Thu Jun 25 20:25 UTC): `4/8/274/-/5415/1229`. Go1.27 -3 and Pending CLs +3 match — pure housekeeping CL move, not new content.
+- `https://go.dev/dl/?mode=json` (re-verified 2026-06-26 12:14 UTC): top stable `go1.26.4 stable=true`, `go1.25.11 stable=true`. No patch release shipped since prior cycle.
+- `https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION` (re-verified 2026-06-26 12:14 UTC): still `go1.27rc1`, time `2026-06-18T17:05:58Z`. RC1 is now 8 days old; RC2 cadence prediction unchanged at ~2026-07-09.
+- `https://pkg.go.dev/vuln/list`: no new CVE entries since GO-2026-5062 / CVE-2026-46602 (caught in 2026-06-26 00:08 UTC cycle).
+
+### Notable noise (not action-required)
+
+- **Go 1.27 dashboard CL count drop (274 → 271)**: 3 CLs moved from "Go1.27" bucket to "Pending CLs" bucket. Sum (Go1.27 + Pending) is preserved. This is normal CL housekeeping (e.g., a CL was re-tagged, retargeted, or had its release-branch association removed). No new content. Not a release-readiness signal.
+- **Go 1.28 dashboard at 95 CLs**: the release dashboard shows a separate Go1.28 bucket. Prior skill cycles did not separately track Go1.28 because it was not on a release branch yet. With the dashboard now showing ~95 CLs (modest growth from a near-empty state), the Go 1.28 release cadence is beginning to take shape — but Go 1.28 is not yet on a release branch and is therefore not a near-term concern for Gin services. Tracking continues; no action needed.
+
+### No-change confirmations (re-verified)
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged.
+- **Gin v1.13 milestone #28** still **23/35 closed (~65.7%)**, 12 open. **Due 2026-06-30** (4 days from this cycle). Same 12 open PRs as 2026-06-26 06:06 UTC.
+- **Go 1.27 RC1** still `go1.27rc1` (time `2026-06-18T17:05:58Z`), 8 days old. No RC2 tagged. Cadence prediction unchanged at ~2026-07-09.
+- **Go 1.27 release-freeze day count remains 37** — we are still on 2026-06-26 UTC; count advances to **38 at 2026-06-27 00:00 UTC**.
+- **Go 1.26.4 / Go 1.25.11** still current/previous stable. No new patch release in past 6 hours.
+- **Go 1.26.5 pending CL count** still **8 CLs** (unchanged for 18 hours). Issue refs unchanged: {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`, (plus subref `79893`)}.
+- **Go 1.25.12 pending CL count** still **4 CLs** (unchanged for 3 days). Issue refs unchanged: {`#79026`, `#79875`, `#79878`, `#80098`}.
+- **Gin master branch commits in past 6 hours**: **0** (24-hour rolling total also **0** — last merge was #4707 at 2026-06-23 12:08:30Z, 3 days ago).
+- **Gin GitHub activity in past 6 hours**: 0 PRs touched, 0 comments, 0 commits, 0 closures — a true dead-quiet window.
+- **Dependencies unchanged**: validator v10.30.3, quic-go v0.60.0, go-redis v9.21.0, gorm v1.31.2, golang-jwt v5.3.1, x/crypto v0.53.0, x/sys v0.46.0, x/net v0.56.0, x/image v0.43.0, goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, gin-contrib/zap v1.1.7, jackc/pgx/v5 v5.10.0, gin-contrib/sse v1.1.1.
+- **Validator floor-piercing risk** (from 2026-06-23 PR #4707 finding): still active. No validator v10.30.4 yet.
+- **New CVEs in past 6 hours**: **none**. `https://pkg.go.dev/vuln/list` shows no fresh entries since GO-2026-5062 / CVE-2026-46602 (caught in 2026-06-26 00:08 UTC cycle).
+
+### Action for agents
+
+1. **No new actions.** Cycle is purely a quiet re-verification (second consecutive zero-delta cycle).
+2. **`go get golang.org/x/image@v0.43.0 && go mod tidy`** still required on Gin services handling image uploads (from 2026-06-26 00:08 UTC cycle).
+3. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from 2026-06-23 12:13 UTC cycle).
+4. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes (from 2026-06-22 12:04 UTC cycle). Drop-in, no migration needed.
+5. **Gin v1.13 ships in 4 days** (due 2026-06-30). When it ships, audit for: (a) `c.ClientIP()` type change to `netip.Addr` (PR #4599), (b) trailing-slash behavior change (PR #4499), (c) `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+6. **Go 1.26.5 / Go 1.25.12 imminent** — patch releases have been at 8 CLs / 4 CLs respectively for 18h+ with no new CLs; release likely within 24h. Re-run `curl -s https://go.dev/dl/?mode=json` before next deploy.
+7. **Go 1.27 RC1 still latest** — no RC2 yet. RC1 is now 8 days old; RC2 cadence prediction unchanged at ~2026-07-09.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-06-26 12:14 UTC — `4 Go1.25.12`, `8 Go1.26.5`, `271 Go1.27`, `95 Go1.28`, `5418 Pending CLs`, `1229 Pending Proposals`)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-26 12:14 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-26 12:14 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 — re-verified 2026-06-26 12:14 UTC: **23/35 closed, ~65.7%**, due 2026-06-30; same as 2026-06-26 06:06 UTC)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-26T06:06:00Z (zero new master source commits in past 6 hours)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-26T06:06:00Z (zero PRs touched in past 6 hours — even quieter than the prior cycle)
+- https://pkg.go.dev/vuln/list (re-verified 2026-06-26 12:14 UTC — no new entries since GO-2026-5062 / CVE-2026-46602 from prior cycle)
+- https://proxy.golang.org/golang.org/x/image/@latest (verified 2026-06-26 12:14 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (verified 2026-06-26 12:14 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-26 12:14 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (verified 2026-06-26 12:14 UTC — v10.30.3 unchanged; floor-piercing risk still active)
