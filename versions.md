@@ -1313,4 +1313,71 @@ Six-hour cron cycle. ONE meaningful delta: **new CVE-2026-46602 / GO-2026-5062 p
 - https://proxy.golang.org/golang.org/x/image/@latest (verified 2026-06-26 00:08 UTC — v0.43.0 current; v0.41.0 confirmed insufficient for CVE-2026-46602)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (verified 2026-06-26 00:08 UTC — v10.30.3 unchanged; floor-piercing risk still active)
 - https://proxy.golang.org/golang.org/x/crypto/@latest (verified 2026-06-26 00:08 UTC — v0.53.0 unchanged)
-- https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-26 00:08 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-26 00:08 UTC — v0.46.0 unchanged)## Auto-update 2026-06-26 06:06 UTC (Cycle)
+
+Six-hour cron cycle. **Genuinely quiet** — zero deltas across all tracked dashboards. No new CVEs, no new Gin master commits, no new Gin merges, no dependency releases, no new Go releases. Only two minor Gin housekeeping touches on already-open PRs (#4693 and #4687, both prior-cycle-known). Skill state remains identical to the 2026-06-26 00:08 UTC cycle.
+
+### Deltas from prior cycle (2026-06-26 00:08 UTC)
+
+**None.** All dashboards unchanged:
+
+- `golang.org/x/image` v0.43.0 (still current, still required floor for CVE-2026-46602).
+- `golang.org/x/crypto` v0.53.0 (still required floor; validator floor-piercing risk still active).
+- `golang.org/x/sys` v0.46.0 (still required floor).
+- All other pinned dependencies unchanged.
+- Go release dashboard (dev.golang.org/release): 1.26.5 = 8 CLs, 1.25.12 = 4 CLs — unchanged from prior two cycles.
+- `https://go.dev/dl/?mode=json`: go1.26.4 stable, go1.25.11 previous-stable, go1.27rc1 latest — all unchanged.
+- `https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION`: still `go1.27rc1` (time `2026-06-18T17:05:58Z`).
+- Gin v1.13 milestone #28: still **23/35 closed (~65.7%)**, due 2026-06-30 (4 days from this cycle).
+- `https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-26T00:08:00Z`: **0 commits** in past 6 hours.
+- `https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-26T00:08:00Z`: 4 PRs appear in the `since` query — all 4 were touched (housekeeping/state-update) but **0 new PRs opened**, **0 merged**, **0 closed**:
+  - **#4693** `fix(render): correctly escape non-BMP Unicode in AsciiJSON` — touched at 2026-06-26 05:26 UTC. Single commit at 2026-06-03; no new commits in this window, no new comments. Touch was likely internal-state housekeeping (reviewer assignment, draft toggle, etc.).
+  - **#4687** `feat: add SkipMethodNotAllowedMiddleware option` — touched at 2026-06-26 00:52 UTC. Most recent commit at 2026-06-23 (revert accidental test change); no new commits in this window, no new comments. Touch was likely internal-state housekeeping.
+  - **#4696** `fix(routing): guarantee rune-boundary safety during wildcard` — touched (was already in the prior-cycle's open list).
+  - **#4674** `fix(tree): use url.PathUnescape for path parameters` — touched (was already in the prior-cycle's open list).
+
+### Notable noise (not action-required)
+
+- **Red Hat RHSA-2026:29980** (published 2026-06-25 ~23:06 UTC, ~7 hours before this cycle, ~1 hour AFTER the prior cycle's 00:08 UTC snapshot cutoff) — golang security update for RHEL 10 ELC. Sole CVE in this advisory: **CVE-2026-42507** (`net/textproto: Misleading error messages via input injection`, 5.3 Medium, disclosed 2026-06-03). **Already fully documented** in `security.md` ("CVE-2026-42507 — Go `net/textproto` log injection" section) and `versions.md`. Fix is already shipped in Go 1.25.11+ and Go 1.26.4+, both of which are the skill's documented stable floors. **No action needed** — purely a Red Hat repackaging of the upstream Go 1.26.4 fix batch that the skill already tracks.
+
+### No-change confirmations (re-verified)
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged.
+- **Gin v1.13 milestone #28** still **23/35 closed (~65.7%)**, 12 open. **Due 2026-06-30** (4 days from this cycle). Same 12 open PRs as prior cycle.
+- **Go 1.27 RC1** still `go1.27rc1` (time `2026-06-18T17:05:58Z`), now 8 days old. No RC2 tagged. Cadence prediction unchanged at ~2026-07-09.
+- **Go 1.27 release-freeze day count remains 37** — we are still on 2026-06-26 UTC; count advances to **38 at 2026-06-27 00:00 UTC**.
+- **Go 1.26.4 / Go 1.25.11** still current/previous stable. No new patch release in past 6 hours.
+- **Go 1.26.5 pending CL count** still **8 CLs** (unchanged for 12 hours). Issue refs unchanged: {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`, (plus subref `79893`)}.
+- **Go 1.25.12 pending CL count** still **4 CLs** (unchanged for 3 days). Issue refs unchanged: {`#79026`, `#79875`, `#79878`, `#80098`}.
+- **Gin master branch commits in past 6 hours**: **0**.
+- **Gin GitHub activity in past 6 hours**: 2 open PRs touched (#4693, #4687) for housekeeping — no comment/merge/commit activity, no new PRs, no closures.
+- **Dependencies unchanged**: validator v10.30.3, quic-go v0.60.0, go-redis v9.21.0, gorm v1.31.2, golang-jwt v5.3.1, x/crypto v0.53.0, x/sys v0.46.0, x/net v0.56.0, x/image v0.43.0, goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, gin-contrib/zap v1.1.7, jackc/pgx/v5 v5.10.0, gin-contrib/sse v1.1.1.
+- **Validator floor-piercing risk** (from 2026-06-23 PR #4707 finding): still active. No validator v10.30.4 yet.
+- **New CVEs in past 6 hours**: **none**. `https://pkg.go.dev/vuln/list` shows no fresh entries since GO-2026-5062 / CVE-2026-46602 (caught in prior cycle).
+
+### Action for agents
+
+1. **No new actions.** Cycle is purely a quiet re-verification.
+2. **`go get golang.org/x/image@v0.43.0 && go mod tidy`** still required on Gin services handling image uploads (from 2026-06-26 00:08 UTC cycle).
+3. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from 2026-06-23 12:13 UTC cycle).
+4. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes (from 2026-06-22 12:04 UTC cycle). Drop-in, no migration needed.
+5. **Gin v1.13 ships in 4 days** (due 2026-06-30). When it ships, audit for: (a) `c.ClientIP()` type change to `netip.Addr` (PR #4599), (b) trailing-slash behavior change (PR #4499), (c) `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+6. **Go 1.26.5 / Go 1.25.12 imminent** — patch releases have been at 8 CLs / 4 CLs respectively for 12h+ with no new CLs; release likely within 24h. Re-run `curl -s https://go.dev/dl/?mode=json` before next deploy.
+7. **Go 1.27 RC1 still latest** — no RC2 yet. Re-verify `https://go.dev/dl/?mode=json` before next deploy.
+
+### Sources for this update
+
+- https://dev.golang.org/release (verified 2026-06-26 06:06 UTC — 1.26.5: 8 CLs unchanged, 1.25.12: 4 CLs unchanged)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-26 06:06 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-26 06:06 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestone/28 (v1.13 — re-verified 2026-06-26 06:06 UTC: **23/35 closed, ~65.7%**, due 2026-06-30; same as 2026-06-26 00:08 UTC)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=20&since=2026-06-26T00:08:00Z (zero new master source commits in past 6 hours)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-26T00:08:00Z (2 PRs touched: #4693 at 05:26 UTC, #4687 at 00:52 UTC; both housekeeping only — no comments, no new commits)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4693/commits (last commit 2026-06-03, no activity in past 6h)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4687/commits (last commit 2026-06-23, no activity in past 6h)
+- https://pkg.go.dev/vuln/list (re-verified 2026-06-26 06:06 UTC — no new entries since GO-2026-5062 / CVE-2026-46602 from prior cycle)
+- https://access.redhat.com/errata/RHSA-2026:29980 (verified 2026-06-26 06:06 UTC — Red Hat repackaging of Go 1.26.4 fix batch; sole CVE CVE-2026-42507 already documented in skill)
+- https://proxy.golang.org/golang.org/x/image/@latest (verified 2026-06-26 06:06 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (verified 2026-06-26 06:06 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (verified 2026-06-26 06:06 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (verified 2026-06-26 06:06 UTC — v10.30.3 unchanged; floor-piercing risk still active)
