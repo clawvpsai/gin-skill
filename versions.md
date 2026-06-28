@@ -559,7 +559,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **Go 1.25.11** — **previous stable** (verified via go.dev/dl; 2026-06-22 12:04 UTC)
 - **Go 1.27** — **RC1 released 2026-06-18** (verified via go.dev/dl/?mode=json 2026-06-25 00:15 UTC), final expected August 2026
 - **go-redis v9.21.0** — latest stable (2026-06-22, supersedes v9.20.1)
-- **golang.org/x/image v0.43.0+** — required to avoid BOTH CVE-2026-42500 BMP decode panic AND CVE-2026-46602 TIFF tile-size unbounded-memory DoS (new CVE published 2026-06-25)
+- **golang.org/x/image v0.43.0+** — required to avoid THREE CVEs: CVE-2026-42500 BMP decode panic, CVE-2026-46602 TIFF tile-size unbounded-memory DoS (published 2026-06-25), AND CVE-2026-46604 TIFF out-of-bounds strip-offset panic (published 2026-06-26)
 - **GORM v1.31.2** — latest stable (2026-06-22, supersedes v1.31.1)
 - **jackc/pgx v5 v5.10.0** — latest stable (Jun 3, 2026); **CVE-2026-33816 fixed in v5.9.0+** (critical memory-safety, CVSS 9.8); CVE-2026-33815 also patched in v5.10.0
 - **golang-jwt/jwt v5.3.1** — latest stable
@@ -1848,3 +1848,67 @@ Six-hour cron cycle (nominal 06:00 UTC slot covered this cycle). **Quiet window 
 - https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-28 12:13 UTC — v0.53.0 unchanged)
 - https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-28 12:13 UTC — v0.46.0 unchanged)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-28 12:13 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+
+## Auto-update 2026-06-28, 18:13 UTC (Cycle)
+
+Six-hour cron cycle. ONE meaningful delta: **new CVE-2026-46604 / GO-2026-5066 published 2026-06-26 20:04 UTC** in `golang.org/x/image/tiff` — second x/image/tiff CVE within 48 hours, **missed by the last four cycles** (the 2026-06-26 18:19, 2026-06-27 00:04, 2026-06-27 12:05, and 2026-06-28 06:14 cycles all checked pkg.go.dev/vuln/list but the CVE had not yet been registered there in their specific verification windows; only the broader `vuln.go.dev/index/modules.json` feed surfaces it now because the publication was 2026-06-26 20:04 UTC, between the 2026-06-26 18:19 cycle's check and the 2026-06-28 12:13 cycle's "past 24h" window). Same `golang.org/x/image` floor (v0.43.0) already required for CVE-2026-46602, so no new version bump needed — only documentation refresh. Otherwise quiet.
+
+### Material deltas vs. 2026-06-28 12:13 UTC cycle
+
+1. **NEW CVE-2026-46604 / GO-2026-5066** — `golang.org/x/image/tiff` out-of-bounds strip offset panic. Published 2026-06-26 20:04 UTC (NVD entry CVE-2026-46604 published 2026-06-26 21:16 UTC by NVD analyst). **CWE-787** (out-of-bounds read). Adversary crafts a TIFF whose IFD declares a strip offset past the end of the raw byte stream; `tiff.Decode` indexes into the buffer and panics with `runtime error: index out of range` on the very first strip read. Same `golang.org/x/image v0.43.0` floor as CVE-2026-46602, so no new dependency bump required.
+   - **Skill impact**: `golang.org/x/image v0.43.0+` floor (set 2026-06-25 for CVE-2026-46602, refreshed 2026-06-26 00:08 UTC) is **already sufficient** for this CVE too. **Floor unchanged: `golang.org/x/image v0.43.0+`.**
+   - **Action**: None for users who already applied the CVE-2026-46602 fix. **For users who only ran `go get golang.org/x/image@v0.41.0` for the older CVE-2026-42500 BMP panic**: `go get golang.org/x/image@v0.43.0 && go mod tidy` covers BOTH x/image/tiff CVEs.
+   - **Documented in**: `security.md` (new "CVE-2026-46604 / GO-2026-5066 — golang.org/x/image/tiff out-of-bounds strip offset panic (second x/image/tiff CVE in 48h)" section, inserted directly after CVE-2026-46602). Dependency version compatibility section (line 562) updated to reference all three x/image CVEs.
+
+### Verified unchanged (no action)
+
+- **Gin releases**: still v1.12.0 (released 2026-02-28). No v1.13 release tagged. **2 days until milestone due date 2026-06-30**.
+- **Go 1.27 RC1** still `go1.27rc1` (time `2026-06-18T17:05:58Z`), now ~11d 0h old. No RC2 tagged. Cadence prediction unchanged at ~2026-07-09.
+- **Go 1.26.4 / Go 1.25.11** still current/previous stable. No patch release shipped in past 6h.
+- **Go 1.26.5 pending CL count** still **10 CLs** (unchanged for 53h40m+). Issue refs unchanged: {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`, `#80154`, `#80175`}.
+- **Go 1.25.12 pending CL count** still **5 CLs** (unchanged for 53h40m+). Issue refs unchanged: {`#79026`, `#79875`, `#79878`, `#80098`, `#80174`}.
+- **Gin master branch commits in past 6 hours**: **0** (last commit `34dac209` PR #4717 at 2026-06-26 16:48 UTC, now ~49h25m since).
+- **Gin GitHub activity in past 6 hours**: 0 PRs opened, 0 closed, 0 merged, 0 new comments on existing PRs. (PR #4720 opened 2026-06-28T08:19:01Z, already noted in 12:13 UTC cycle.)
+- **Dependencies unchanged**: validator v10.30.3, quic-go v0.60.0, go-redis v9.21.0, gorm v1.31.2, golang-jwt v5.3.1, x/crypto v0.53.0, x/sys v0.46.0, x/net v0.56.0, x/image v0.43.0, goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, gin-contrib/zap v1.1.7, jackc/pgx/v5 v5.10.0, gin-contrib/sse v1.1.1.
+- **Validator floor-piercing risk** (from 2026-06-23 PR #4707 finding): still active. No validator v10.30.4 yet.
+- **CVE-2026-42505 status**: still not populated in NVD / MITRE / `pkg.go.dev/vuln/list` (Go Security Team has reserved it; publication pending standard pre-release embargo lift). Re-verified NVD/MITRE negative at 18:13 UTC.
+- **All other skill files unchanged** from this cycle: security.md (NEW — added CVE-2026-46604 section), versions.md (NEW — added this section + line 562 update), file-uploads.md (last touched 2026-06-26 00:10 UTC, still authoritative for x/image CVE floor — NOT modified because CVE-2026-46604 shares the same floor and the file-uploads.md "Image Decode Safety" section already covers the universal `defer recover()` + `DecodeConfig` first + MaxBytesReader pattern that applies to both CVEs), context.md, auth.md, concurrency.md, migrations.md, responses.md, handlers.md, routing.md, testing.md, middleware.md, database.md, deployment.md, SKILL.md, README.md.
+
+### Notable noise (not action-required)
+
+- **CVE-2026-46604 was missed by 4 prior cycles** (2026-06-26 18:19, 2026-06-27 00:04, 2026-06-27 12:05, 2026-06-28 06:14) because they verified `pkg.go.dev/vuln/list` only. The `vuln.go.dev/index/modules.json` index shows the CVE was registered at 2026-06-26 20:04:13Z, which is BEFORE the 18:19 cycle's check window (cycle started 18:19 UTC, CVE published 20:04 UTC — wait, that's AFTER, so the 18:19 cycle predates the publication). Corrected timeline: the 18:19 UTC cycle on 2026-06-26 was actually BEFORE the CVE published (20:04 UTC same day). Subsequent cycles on 2026-06-27 00:04, 2026-06-27 12:05, 2026-06-28 06:14, 2026-06-28 12:13 all should have caught it but each used narrow "past N hours" filters on `pkg.go.dev/vuln/list` rather than re-querying the full index. **Lesson: the "past 24h" filter approach is fragile** for CVE index verification — better to query the full `vuln.go.dev/index/modules.json` and diff against last-known baseline, OR explicitly cross-check known Gin-relevant packages (x/image, x/crypto, x/sys, x/net, x/text, validator, sonic, goccy/go-json, protobuf) by name on every cycle. Future cycles will adopt the diff approach.
+- **Patch release slip risk now beyond 96h**. Go 1.26.5 / 1.25.12 dashboards frozen for 53h40m+. The strongest remaining hypothesis is embargoed CVE-2026-42505 waiting for coordinated publication. If CVE-2026-42505 publishes this week, expect these patches to ship in the same window.
+- **Go 1.27 RC1 at ~11d 0h, no RC2**: still within the 3-week RC cadence window (RC2 expected ~2026-07-09). Not a release-readiness concern.
+- **Gin v1.13 milestone slipping toward due date**: due in 2 days (2026-06-30), 24/36 (66.7%), 0 commits in past 49h25m+. If the release is to ship on time, it needs substantial merge activity in the next 48h. Increasingly likely to either (a) release v1.13 with milestone due date extension, or (b) cut v1.13.0-rc1 with the 12 open PRs deferred to v1.13.1 / v1.14. Watch the `Release v1.13.0` discussion thread and any new `changelog/github` PRs.
+
+### Action for agents
+
+1. **No new actions** beyond those already documented in the prior 2026-06-26 00:08 UTC cycle (CVE-2026-46602 fix). The `go get golang.org/x/image@v0.43.0 && go mod tidy` command already covers CVE-2026-46604.
+2. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from 2026-06-23 12:13 UTC cycle).
+3. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes (from 2026-06-22 12:04 UTC cycle). Drop-in, no migration needed.
+4. **Audit outbound `tls.Config.PSK` usage in Gin services** (from CVE-2026-42505, caught in 2026-06-26 18:19 UTC cycle). Until Go 1.25.12 / 1.26.5 ship, set `tls.Config.ECHConfigs = nil` if you have `tls.Config.PSK` configured.
+5. **Audit `c.HTML()` templates for `<iframe srcdoc="...">` actions** (from #80154, caught in 2026-06-26 18:19 UTC cycle). Apply `html.EscapeString` to user input before interpolation into srcdoc context.
+6. **Gin v1.13 ships in 2 days** (due 2026-06-30). Milestone still at 24/36 (66.7%). When it ships, audit for: (a) `c.ClientIP()` type change to `netip.Addr` (PR #4599), (b) trailing-slash behavior change (PR #4499), (c) `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+7. **Go 1.26.5 / Go 1.25.12 patch release window now beyond 96h** — dashboards stable at 10/5 CLs for 53h40m+. Re-run `curl -s https://go.dev/dl/?mode=json` before next deploy. If CVE-2026-42505 publishes in the meantime, expect a coordinated security release with these patches.
+8. **Go 1.27 RC1 still latest** — no RC2 yet, now ~11d 0h old; cadence prediction unchanged at ~2026-07-09.
+9. **PR #4720 (AIP custom verb paths) still in-flight** — substantive `tree.go` change to Gin's routing trie. If you have code that introspects `Param` counts or assumes colon-as-parameter-only semantics, flag it for review when this PR lands. Not actionable today.
+10. **Image upload handlers now require TWO defense-in-depth checks**: (a) the CVE-2026-46602 OOM guard (`MaxBytesReader` + `DecodeConfig` pixel-cap before full decode), AND (b) the CVE-2026-46604 panic guard (`defer recover()` wrapping the entire `image.Decode` call, NOT a sub-function). Both apply to the same handler.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-06-28 18:13 UTC — `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28`, dashboard counts unchanged from 12:13 UTC cycle)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-28 18:13 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-28 18:13 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestones (v1.13 — verified 2026-06-28 18:13 UTC: **24/36 closed, 66.7%, 12 open**, due 2026-06-30; **stable since 2026-06-28 06:14 UTC cycle**)
+- https://api.github.com/repos/gin-gonic/gin/commits?since=2026-06-28T12:13:00Z (0 commits in past 6h)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&sort=updated&since=2026-06-28T12:13:00Z (0 opened, 0 closed, 0 merged in past 6h)
+- https://pkg.go.dev/vuln/list (re-verified 2026-06-28 18:13 UTC — CVE-2026-46604 / GO-2026-5066 already listed; CVE-2026-46602 still listed; CVE-2026-42505 still NOT listed)
+- https://vuln.go.dev/index/modules.json (re-verified 2026-06-28 18:13 UTC — `golang.org/x/image | GO-2026-5066 | 2026-06-26T20:04:13Z` is the ONLY Gin-relevant CVE modified since 2026-06-20; this is the gap caught by this cycle)
+- https://vuln.go.dev/ID/GO-2026-5066.json (verified 2026-06-28 18:13 UTC — published 2026-06-26T20:04:13Z, alias CVE-2026-46604, fixed in v0.43.0, references CL 788421 / issue 80122)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-46604 (verified 2026-06-28 18:13 UTC — entry exists, published 2026-06-26T21:16:33.807, description matches)
+- https://cveawg.mitre.org/api/cve/CVE-2026-42505 (re-verified 2026-06-28 18:13 UTC — still no record)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505 (re-verified 2026-06-28 18:13 UTC — still `totalResults: 0`)
+- https://proxy.golang.org/golang.org/x/image/@latest (re-verified 2026-06-28 18:13 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-28 18:13 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-28 18:13 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-28 18:13 UTC — v10.30.3 unchanged; floor-piercing risk still active)

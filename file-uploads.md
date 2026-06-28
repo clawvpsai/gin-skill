@@ -221,14 +221,16 @@ func getPresignedURL(ctx context.Context, key string) (string, error) {
 }
 ```
 
-## Image Decode Safety (CVE-2026-42500 + CVE-2026-46602)
+## Image Decode Safety (CVE-2026-42500 + CVE-2026-46602 + CVE-2026-46604)
 
 **CVE-2026-42500** (published 2026-05-29, Medium severity): Decoding a paletted BMP file with an out-of-range palette index **panics** in `golang.org/x/image/bmp`. Affects any Gin handler that accepts image uploads and runs `image.Decode` / `image.DecodeConfig` without restricting formats. Fixed in `golang.org/x/image` v0.41.0+.
 
 **CVE-2026-46602 / GO-2026-5062** (published 2026-06-25, Medium severity, CWE-789): The TIFF decoder in `golang.org/x/image/tiff` does not limit tile size in tiled images. A crafted TIFF can claim a huge tile dimension in the header, causing the decoder to allocate gigabytes of memory — unauthenticated remote DoS. **Fixed in `golang.org/x/image` v0.43.0** (released 2026-06-15). The prior v0.41.0 floor is **insufficient** for this CVE — must upgrade.
 
+**CVE-2026-46604 / GO-2026-5066** (published 2026-06-26 20:04 UTC, Medium severity, CWE-787): The TIFF decoder reads strip offsets from the IFD without bounds checking. A crafted TIFF whose IFD declares a strip offset past the end of the underlying byte stream causes the decoder to index into the raw buffer and panic with `runtime error: index out of range`. Unauthenticated remote DoS — **fires on the first strip read**, so the `defer recover()` guard must wrap the entire `image.Decode` call (not a sub-function). **Fixed in the same `golang.org/x/image` v0.43.0** release as CVE-2026-46602 — both TIFF CVEs shipped together; same upgrade covers both.
+
 **Mitigations:**
-1. **Upgrade `golang.org/x/image` to v0.43.0+** — covers both CVEs in one bump.
+1. **Upgrade `golang.org/x/image` to v0.43.0+** — covers all three CVEs (BMP panic + TIFF tile OOM + TIFF strip panic) in one bump.
 2. **Restrict accepted formats at the content sniff level.** Reject any upload that isn't JPEG/PNG/WebP before decoding (do **not** register `tiff` unless your domain needs it):
    ```go
    var allowedFormats = map[string]bool{
@@ -320,7 +322,7 @@ func uploadFile(c *gin.Context) {
 4. **Public S3 bucket** — keep bucket private, use presigned URLs or CloudFront signed URLs
 5. **Not setting content type** — `Content-Type` header affects how browsers handle downloads
 6. **No virus scanning** — scan uploaded files with ClamAV before serving
-13. **Not restricting decoded image formats** — CVE-2026-42500 BMP panic + CVE-2026-46602 TIFF tile-size DoS; sniff content type before decoding, pin `golang.org/x/image` ≥ v0.43.0
+13. **Not restricting decoded image formats** — CVE-2026-42500 BMP panic + CVE-2026-46602 TIFF tile-size DoS + CVE-2026-46604 TIFF strip-offset panic; sniff content type before decoding, pin `golang.org/x/image` ≥ v0.43.0, wrap `image.Decode` in `defer recover()` (must wrap the full call, not a sub-function, due to CVE-2026-46604 firing on first IFD read)
 14. **Trusting `file.Filename` for filesystem paths** — CVE-2026-22786 path traversal; always sanitize with `filepath.Base` + regex whitelist
 
 ## Updated from Research (2026-05)
