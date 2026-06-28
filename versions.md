@@ -1767,3 +1767,84 @@ Eighteen-hour cron cycle (3× the nominal 6-hour slot — covering ~18:00 UTC 20
 - https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-28 06:14 UTC — v0.46.0 unchanged)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-28 06:14 UTC — v10.30.3 unchanged; floor-piercing risk still active)
 
+
+## Auto-update 2026-06-28, 12:13 UTC
+
+Six-hour cron cycle (nominal 06:00 UTC slot covered this cycle). **Quiet window with one new in-flight PR — seventh zero-content-cycle-since-CVE in a row for security/version dashboards** (the last non-quiet cycle was 2026-06-26 18:19 UTC with CVE-2026-42505 + #80154 additions; the last Gin master commit was 2026-06-26 16:48:16Z — now **43h25m+ since last master commit**). This cycle is pure bookkeeping + one new in-flight PR. **Only material delta is PR #4720 (AIP custom verb paths, opened 2026-06-28 08:19:01Z by @KurodaKayn, no milestone, in early review — substantive 132 +29 line change to `tree.go` plus 104 lines in `routes_test.go` and 61+5 in `tree_test.go`).** Dashboard counts: Pending CLs +1 (5453 → 5454), Pending Proposals -1 (1229 → 1228), Closed Last Week -1 (175 → 174). Sum preserved at 5833 (5+10+269+95+5454 = 5833, prior cycle 5832, delta +1 matches Pending CLs +1). No changes to security.md or any other skill file.
+
+### Verifications performed
+
+- `https://api.github.com/repos/gin-gonic/gin/milestones`: **v1.13 = 24/36 closed (66.7%)**, 12 open, due 2026-06-30 (**2 days from this cycle**). **Compare to 2026-06-28 06:14 UTC cycle: 24/36 closed (~66.7%), 12 open.** No change in either numerator or denominator — milestone scope stable for the full 6h window. v2.0 still 0/3 (3 issues), v1.x still 1/18 (~94.4%, 1 open). **Open PRs in v1.13 milestone (12) unchanged**: #4674 url.PathUnescape, #4662 SSE helpers, #4599 netip migration, #4569 H2CConfig, #4543 whole-request binding, #4506 ResponseWriter.Unwrap, #4499 trailing slash, #4498 form nil-vs-empty, #4483 multi-write warning, #4482 SaveUploadedFile chmod, #4447 double unescape, #4217 CloseNotify deprecation.
+- `https://api.github.com/repos/gin-gonic/gin/commits?since=2026-06-28T06:14:00Z`: **0 commits** in past 5h59m. Last commit remains `34dac209` (2026-06-26 16:48:16Z) from PR #4717 doc fix (now **43h25m+ since last master commit**).
+- `https://api.github.com/repos/gin-gonic/gin/issues?state=all&sort=updated&since=2026-06-28T06:14:00Z`: **1 PR opened (#4720)** in past 5h59m, 0 closed, 0 merged. PR #4720 is the only new activity. **PR #4720 details**: `feat(router): support AIP custom verb paths` by @KurodaKayn, opened 2026-06-28T08:19:01Z, last update 2026-06-28T08:37:11Z, target branch `master`, **no milestone assigned**. 4 files changed: `tree.go` (+132 -29, core routing logic), `routes_test.go` (+104 -0), `tree_test.go` (+61 -5), `docs/doc.md` (+10 -0). Substantive PR, not just hygiene. Changes how `countParams` walks the path (now iterates via `findWildcard` with `skipLeadingColon` flag rather than counting all `:` characters), adds new helpers `isParamStart`, `findStaticParamChild`, `staticParamChildCanMatch`, `childIndex`, and modifies the `insert` path inside `node.addRoute` to allow literal `:verb` suffixes on param routes (Google AIP-style `batchGet` / `mutate` / `search` verb patterns). Author reports `go test ./...` + `make test` + `git diff --check master...HEAD` all pass; `golangci-lint run` failed on unrelated existing issues in `context.go` and `binding*.go` (pre-existing, not from this PR). **No v1.13 milestone label** — will likely land in v1.14 or later unless explicitly backported. **No security impact** — purely a routing-feature PR. Not yet merged.
+- `https://dev.golang.org/release` (live fetch, 2026-06-28 12:13 UTC): `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28`, `5454 Pending CLs`, `1228 Pending Proposals`, `174 Closed Last Week`. **Compare to 2026-06-28 06:14 UTC cycle: `5/10/269/95/5453/1229/175`.** Deltas: Pending CLs +1 (5453 → 5454), Pending Proposals -1 (1229 → 1228), Closed Last Week -1 (175 → 174). All Go1.x dashboard CL counts unchanged. **Sum preservation check**: Go1.25.12 + Go1.26.5 + Go1.27 + Go1.28 + Pending = 5 + 10 + 269 + 95 + 5454 = 5833 (prior cycle 5832, delta +1 matches Pending CLs +1 exactly). Closed Last Week -1 matches -1 net flow out of that bucket.
+- `https://go.dev/dl/?mode=json` (re-verified 2026-06-28 12:13 UTC): top stable `go1.26.4 stable=true`, `go1.25.11 stable=true`. **No patch release shipped in past 5h59m.** Go 1.25.12 / 1.26.5 still pending. Both release dashboards now stable at 5 / 10 CLs for **47h40m+** (since ~12:33 UTC 2026-06-26, post the 12:14 UTC CVE-2026-42505 cycle's last dashboard motion). Patch release window now beyond 72h — strongly suggests coordinated embargo waiting (CVE-2026-42505 publication) or slip into next week.
+- `https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION` (re-verified 2026-06-28 12:13 UTC): still `go1.27rc1`, time `2026-06-18T17:05:58Z`. RC1 is now **~10 days, 19 hours old**. No RC2 tagged. Cadence prediction unchanged at ~2026-07-09 (RC2 expected at ~3-week cadence from RC1).
+- `https://pkg.go.dev/vuln/list` (via `vuln.go.dev/index/modules.json`): no new entries since GO-2026-5062 / CVE-2026-46602 (caught in 2026-06-26 00:08 UTC cycle). Verified 0 entries modified in past 24h across all tracked modules. CVE-2026-42505 still not in vuln list.
+- `https://cveawg.mitre.org/api/cve/CVE-2026-42505` (re-verified 2026-06-28 12:13 UTC): still no record (state None, containers empty).
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505` (re-verified 2026-06-28 12:13 UTC): still `totalResults: 0`.
+- `https://proxy.golang.org/golang.org/x/image/@latest` (re-verified 2026-06-28 12:13 UTC): v0.43.0 unchanged.
+- `https://proxy.golang.org/golang.org/x/crypto/@latest` (re-verified 2026-06-28 12:13 UTC): v0.53.0 unchanged.
+- `https://proxy.golang.org/golang.org/x/sys/@latest` (re-verified 2026-06-28 12:13 UTC): v0.46.0 unchanged.
+- `https://proxy.golang.org/github.com/go-playground/validator/v10/@latest` (re-verified 2026-06-28 12:13 UTC): v10.30.3 unchanged; floor-piercing risk still active.
+
+### Material deltas
+
+1. **NEW IN-FLIGHT PR #4720: `feat(router): support AIP custom verb paths`** — opened 2026-06-28T08:19:01Z by @KurodaKayn. Substantive code change to Gin's routing trie (`tree.go` +132 -29) enabling Google AIP-style custom verb patterns like `/users:batchGet` and `/customers/:customer_id:mutate`. Not merged, no milestone, no security impact. Worth noting because (a) it touches the same `tree.go` that v1.13 milestone PRs #4499 (trailing slash) and #4674 (url.PathUnescape) touch, and (b) `countParams` rewrite may interact with any future route-counting introspection tools. Likely v1.14+ unless explicitly backported. Not added to `routing.md` (in-flight, not merged).
+2. **Pending CLs +1 (5453 → 5454)** — pure dashboard bookkeeping. Sum preserved: 5+10+269+95+5454 = 5833; prior 5832 (delta +1 matches exactly).
+3. **Pending Proposals -1 (1229 → 1228)** — pure dashboard bookkeeping (one proposal moved out of Pending bucket this cycle, likely to Active/Accepted/Done).
+4. **Closed Last Week -1 (175 → 174)** — pure dashboard bookkeeping (one CL closed in past 7 days and dropped off the rolling window — or reclassified). Net flow consistent with normal churn.
+5. **Go 1.26.5 / Go 1.25.12 patch release window now beyond 72h**. Both dashboards stable at 10 / 5 CLs for **47h40m+**. The 72h prediction from the 2026-06-26 18:19 UTC cycle has now lapsed without either release shipping. Strongly suggests embargoed CVE-2026-42505 publication may be coordinated with these patches. Re-check `go.dev/dl/?mode=json` before any production deploy this week.
+6. **Gin v1.13 milestone stable at 24/36 (66.7%)**. No numerator or denominator change in the past 6h. **2 days until milestone due date 2026-06-30**. Given 0 commits in past 43h25m+ and the milestone due date approaching, v1.13 is very likely to slip past 2026-06-30 or be released with the current 12 open PRs still open. Watch for `Release v1.13.0` tag announcement or milestone due-date extension on the milestone page.
+
+### No-change confirmations (re-verified)
+
+- **Gin v1.12.0** (released 2026-02-28) still current stable. No v1.13 release tagged. **2 days until milestone due date 2026-06-30**.
+- **Go 1.27 RC1** still `go1.27rc1` (time `2026-06-18T17:05:58Z`), now ~10d 19h old. No RC2 tagged. Cadence prediction unchanged at ~2026-07-09.
+- **Go 1.26.4 / Go 1.25.11** still current/previous stable. No patch release shipped in past 5h59m.
+- **Go 1.26.5 pending CL count** still **10 CLs** (unchanged for 47h40m+). Issue refs unchanged (9 unique, 10 items — `#77800` listed under both `cmd/fix` and `x/tools/go/analysis`): {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`, `#80154`, `#80175`}.
+- **Go 1.25.12 pending CL count** still **5 CLs** (unchanged for 47h40m+). Issue refs unchanged: {`#79026`, `#79875`, `#79878`, `#80098`, `#80174`}.
+- **Gin master branch commits in past 6 hours**: **0**.
+- **Gin GitHub activity in past 6 hours**: 1 PR opened (#4720), 0 closed, 0 merged, 0 new comments on existing PRs.
+- **Dependencies unchanged**: validator v10.30.3, quic-go v0.60.0, go-redis v9.21.0, gorm v1.31.2, golang-jwt v5.3.1, x/crypto v0.53.0, x/sys v0.46.0, x/net v0.56.0, x/image v0.43.0, goose v3.27.1, atlas v1.2.0, gin-contrib/cors v1.7.7, gin-contrib/zap v1.1.7, jackc/pgx/v5 v5.10.0, gin-contrib/sse v1.1.1.
+- **Validator floor-piercing risk** (from 2026-06-23 PR #4707 finding): still active. No validator v10.30.4 yet.
+- **CVE-2026-42505 status**: still not populated in NVD / MITRE / `pkg.go.dev/vuln/list` (Go Security Team has reserved it; publication pending standard pre-release embargo lift).
+- **All other skill files unchanged**: security.md (last touched 2026-06-26 18:19 UTC, authoritative for CVE-2026-42505 + #80154), file-uploads.md (last touched 2026-06-26 00:10 UTC, authoritative for x/image CVE floor), context.md, auth.md, concurrency.md, migrations.md, responses.md, handlers.md, routing.md, testing.md, middleware.md, database.md, deployment.md, SKILL.md, README.md.
+
+### Notable noise (not action-required)
+
+- **PR #4720 (AIP custom verb paths)** is substantive but pre-review and not merged. Not added to `routing.md` until a maintainer signs off — adding speculative PR content to a production skill would be premature. If a v1.14 release notes announcement references it, add it then.
+- **Pending CLs +1 / Pending Proposals -1 / Closed Last Week -1** is normal dashboard churn. Not a release signal — Go 1.26.5 / 1.25.12 dashboards themselves haven't moved in 47h40m+.
+- **Patch release slip risk now beyond 72h**. Go 1.26.5 / 1.25.12 dashboards frozen for 47h40m+. The strongest remaining hypothesis is embargoed CVE-2026-42505 waiting for coordinated publication. If CVE-2026-42505 publishes this week, expect these patches to ship in the same window.
+- **Go 1.27 RC1 at ~10d 19h, no RC2**: still within the 3-week RC cadence window (RC2 expected ~2026-07-09). Not a release-readiness concern.
+- **Gin v1.13 milestone slipping toward due date**: due in 2 days (2026-06-30), 24/36 (66.7%), 0 commits in past 43h25m+. If the release is to ship on time, it needs substantial merge activity in the next 48h. Increasingly likely to either (a) release v1.13 with milestone due date extension, or (b) cut v1.13.0-rc1 with the 12 open PRs deferred to v1.13.1 / v1.14. Watch the `Release v1.13.0` discussion thread and any new `changelog/github` PRs.
+
+### Action for agents
+
+1. **No new actions.** Cycle is purely quiet re-verification + bookkeeping + one new in-flight PR noted.
+2. **`go get golang.org/x/image@v0.43.0 && go mod tidy`** still required on Gin services handling image uploads (from 2026-06-26 00:08 UTC cycle).
+3. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from 2026-06-23 12:13 UTC cycle).
+4. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes (from 2026-06-22 12:04 UTC cycle). Drop-in, no migration needed.
+5. **Audit outbound `tls.Config.PSK` usage in Gin services** (from CVE-2026-42505, caught in 2026-06-26 18:19 UTC cycle). Until Go 1.25.12 / 1.26.5 ship, set `tls.Config.ECHConfigs = nil` if you have `tls.Config.PSK` configured.
+6. **Audit `c.HTML()` templates for `<iframe srcdoc="...">` actions** (from #80154, caught in 2026-06-26 18:19 UTC cycle). Apply `html.EscapeString` to user input before interpolation into srcdoc context.
+7. **Gin v1.13 ships in 2 days** (due 2026-06-30). Milestone still at 24/36 (66.7%). When it ships, audit for: (a) `c.ClientIP()` type change to `netip.Addr` (PR #4599), (b) trailing-slash behavior change (PR #4499), (c) `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+8. **Go 1.26.5 / Go 1.25.12 patch release window now beyond 72h** — dashboards stable at 10/5 CLs for 47h40m+. Re-run `curl -s https://go.dev/dl/?mode=json` before next deploy. If CVE-2026-42505 publishes in the meantime, expect a coordinated security release with these patches.
+9. **Go 1.27 RC1 still latest** — no RC2 yet, now ~10d 19h old; cadence prediction unchanged at ~2026-07-09.
+10. **PR #4720 (AIP custom verb paths) noted as in-flight** — substantive `tree.go` change to Gin's routing trie. If you have code that introspects `Param` counts or assumes colon-as-parameter-only semantics, flag it for review when this PR lands. Not actionable today.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-06-28 12:13 UTC — `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28`, `5454 Pending CLs`, `1228 Pending Proposals`, `174 Closed Last Week`)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-28 12:13 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-28 12:13 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestones (v1.13 — verified 2026-06-28 12:13 UTC: **24/36 closed, 66.7%, 12 open**, due 2026-06-30; **stable since 2026-06-28 06:14 UTC cycle**)
+- https://api.github.com/repos/gin-gonic/gin/commits?since=2026-06-28T06:14:00Z (0 commits in past 5h59m)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&sort=updated&since=2026-06-28T06:14:00Z (1 opened [PR #4720], 0 closed, 0 merged in past 5h59m)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4720 (PR #4720 — `feat(router): support AIP custom verb paths`, opened 2026-06-28T08:19:01Z by @KurodaKayn, no milestone, 4 files changed, no security impact)
+- https://pkg.go.dev/vuln/list (re-verified 2026-06-28 12:13 UTC via `vuln.go.dev/index/modules.json` — 0 entries modified in past 24h; GO-2026-5062 / CVE-2026-46602 still latest)
+- https://cveawg.mitre.org/api/cve/CVE-2026-42505 (re-verified 2026-06-28 12:13 UTC — still no record)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505 (re-verified 2026-06-28 12:13 UTC — still `totalResults: 0`)
+- https://proxy.golang.org/golang.org/x/image/@latest (re-verified 2026-06-28 12:13 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-28 12:13 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-28 12:13 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-28 12:13 UTC — v10.30.3 unchanged; floor-piercing risk still active)
