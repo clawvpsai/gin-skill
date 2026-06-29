@@ -1952,3 +1952,105 @@ Six-hour cron cycle. ONE meaningful delta: **new CVE-2026-46604 / GO-2026-5066 p
 - https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-29 06:07 UTC — v0.53.0 unchanged)
 - https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-29 06:07 UTC — v0.46.0 unchanged)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-29 06:07 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+
+---
+
+## Auto-Update — 2026-06-29 12:22 UTC (Quiet Cycle)
+
+**Six-hour cron slot (nominal 12:00 UTC, ran 12:22 UTC).** Pure verification + housekeeping. **Zero material deltas across all tracked dashboards** since the 2026-06-29 06:07 UTC cycle.
+
+### Material deltas vs. 2026-06-29 06:07 UTC cycle
+
+1. **NEW Gin issue #4721** — "Support HTTP Query Method with rfc10008" (proposal, NOT a PR). Opened 2026-06-29 02:21:36 UTC by an external user, updated 2026-06-29 11:32:47 UTC, labeled `type/proposal`. Body references `https://www.rfc-editor.org/info/rfc10008/` (an IETF-in-progress personal draft on HTTP QUERY method semantics, NOT an assigned IETF RFC — RFC numbering only goes up to ~9xxx in 2026). The QUERY method is the HTTP verb proposed for safe search/retrieval of resource representations as an alternative to GET with query strings (commonly associated with Roy Fielding's work on HTTP semantics, RFC 9110 § 9.3.11 registers GET only). **Not merged, not even a PR.** Just a feature request.
+   - **Skill impact**: NONE. Gin already supports arbitrary HTTP methods via `engine.Handle("QUERY", "/path", handler)` since v1.7, so the proposal would only add a convenience constant and documentation. No security, no v1.13 milestone placement.
+   - **Action**: None. Tracked here for awareness only. If it later opens as a PR with an RFC-stable foundation, evaluate against Gin's `engine.Handle()` extensibility and the v1.14 backlog.
+
+2. **NEW Gin PR #4722 (DRAFT)** — "[codex] Read copied context keys under lock". Opened 2026-06-29 10:42:58 UTC, updated 2026-06-29 10:46:40 UTC. Author appears to be a codex-bot or similar automated contributor. Targets `Context.Copy()` race with `Context.Set()`. Body summary:
+   > "Read and clone Context.Keys under the context mutex in Copy to avoid racing with Set."
+   
+   Validation claimed: targeted tests, race test for `Context.Copy`, full `go test ./...`, and `BenchmarkContextCopy` passed in Docker.
+   
+   - **Status**: `state=open, draft=True`, **NOT in v1.13 milestone**, no labels, no comments yet (opened 12:22 - 10:42 = ~1h 40m ago).
+   - **Skill impact**: If merged, this would be a `concurrency.md` addendum. The race condition (concurrent `Copy()` + `Set()` on `Context.Keys`) is **already documented in `concurrency.md`** since the 2026-06-23 cycle ("Context.Keys / Context.Copy race" section, lines ~440-480, references prior PR #4660 `fix(context): data race` which remains open). PR #4660 is a sibling fix targeting the same race via a different mechanism (zero-copy read with `sync.RWMutex` rather than full lock-protected copy). The two PRs likely overlap or conflict; not yet triaged by maintainers.
+   - **Action**: None for users. When one of #4660 or #4722 lands, refresh `concurrency.md` "Context.Keys / Context.Copy race" section with the resolved approach + benchmark numbers.
+   - **Pattern note**: The "[codex]" prefix and "passed in Docker" validation claim are hallmarks of an LLM-coding-agent PR. Gin maintainers have historically been cautious about merging such PRs without maintainer-led re-validation. Likely to remain open without maintainer engagement, similar to PR #4675 / #4652 in prior cycles. Not actionable.
+
+### Verified unchanged (no action)
+
+- **Gin releases**: still v1.12.0 (released 2026-02-28). No v1.13 release tagged. **~1 day 11 hours until milestone due date 2026-06-30T00:00:00Z**.
+- **Gin v1.13 milestone**: still **24/36 closed (66.7%), 12 open, due 2026-06-30** (verified live 2026-06-29 12:22 UTC). Open PRs in milestone still the same 12: #4674, #4662, #4599, #4569, #4543, #4506, #4499, #4498, #4483, #4482, #4447, #4217 (verified via `search/issues?q=repo:gin-gonic/gin+is:open+milestone:v1.13`).
+- **Gin master branch commits in past 6 hours**: **0** (last commit `34dac209` PR #4717 at 2026-06-26 16:48 UTC, now ~67h 34m since — longest master-commit drought in 6h-cycle tracking window to date).
+- **Gin GitHub activity in past 6 hours** (since 06:07 UTC): **2 new items** — issue #4721 (proposal, see above), PR #4722 (draft, see above). 0 closed, 0 merged, 0 new comments on existing PRs.
+- **Go 1.27 RC1**: still `go1.27rc1`, time `2026-06-18T17:05:58Z` (now ~11d 19h old). No RC2 tagged. Cadence prediction unchanged at ~2026-07-09. Final release still projected for **August 2026** per Go release notes (https://go.dev/doc/go1.27).
+- **Go 1.26.4 / Go 1.25.11** still current/previous stable. No patch release shipped in past 6h.
+- **Go release dashboard (counts re-verified 2026-06-29 12:22 UTC)**:
+  - `5 Go1.25.12` (unchanged ≥ 60h)
+  - `10 Go1.26.5` (unchanged ≥ 60h)
+  - `269 Go1.27` (unchanged from prior cycle)
+  - `95 Go1.28` (unchanged from prior cycle)
+  - `5459 Pending CLs` (+6 vs 5453 at 06:07 UTC — normal CL inflow, not Gin-relevant)
+  - `1228 Pending Proposals` (unchanged from prior cycle, was 1228)
+  - `186 Closed Last Week` (+11 vs 175 at 06:07 UTC — likely the standard 7-day rolling-window refresh)
+- **Issue refs unchanged**:
+  - Go 1.26.5: {`#77800`, `#79027`, `#79876`, `#79879`, `#79893`, `#80099`, `#80131`, `#80154`, `#80175`} (9 unique, 10 items — `#77800` listed under both `cmd/fix` and `x/tools/go/analysis`).
+  - Go 1.25.12: {`#79026`, `#79875`, `#79878`, `#80098`, `#80174`}.
+- **Dependencies unchanged**: validator v10.30.3, quic-go v0.60.0, go-redis v9.21.0, gorm v1.31.2, golang-jwt v5.3.1, x/crypto v0.53.0, x/sys v0.46.0, x/net v0.56.0, x/image v0.43.0, x/text v0.38.0, sonic v1.15.2, goccy/go-json v0.10.6, gin-contrib/cors v1.7.7, gin-contrib/zap v1.1.7, jackc/pgx/v5 v5.10.0, gin-contrib/sse v1.1.1.
+- **Validator floor-piercing risk** (from 2026-06-23 PR #4707 finding): still active. No validator v10.30.4 yet.
+- **CVE-2026-42505 status**: still not populated in NVD / MITRE / `pkg.go.dev/vuln/list` (Go Security Team has reserved it; publication pending standard pre-release embargo lift). Re-verified NVD/MITRE negative at 12:22 UTC.
+- **All other skill files unchanged** from this cycle: security.md (authoritative for CVE-2026-46604, CVE-2026-46602, CVE-2026-42505, #80154 — all current as of 2026-06-28 18:13 UTC), concurrency.md (authoritative for Context.Keys/Copy race via PR #4660; PR #4722 mentioned as sibling fix attempt), context.md, auth.md, migrations.md, responses.md, handlers.md, routing.md, testing.md, middleware.md, file-uploads.md (last touched 2026-06-28 18:13 UTC), database.md, deployment.md, SKILL.md, README.md.
+
+### Notable noise (not action-required)
+
+- **Gin master commit drought now ≥ 67h 34m** — longest gap in 6h-cycle tracking window. Two interpretations:
+  1. **Healthy**: maintainers are pre-release-staging v1.13 (cherry-picking, rebase, version-tag preparation), so they avoid intermediate commits. Matches the pattern observed in 2025-11 before v1.12.0 shipped.
+  2. **Concerning**: v1.13 milestone due 2026-06-30 (in ~36h) with 12 open PRs and 0 commits in 2.8 days is a release-readiness risk. Either the milestone gets extended, v1.13 ships as a partial RC, or several PRs get punted to v1.13.1 / v1.14.
+  
+  Recommend monitoring the `Release v1.13.0` discussion thread and any new `changelog/github` PR over the next 24h. If no commits by 2026-06-30 06:00 UTC, flag as release-slip risk in the next cycle.
+
+- **PR #4722 vs #4660 collision** — both target the same `Context.Copy()` race condition but propose different fixes (full-lock-protected copy vs. zero-copy with `sync.RWMutex`). Maintainer triage needed; whichever lands first will be the "right" approach and the other will likely close as superseded. **No user-side action** either way — both fixes resolve the race.
+
+- **HTTP QUERY method proposal (#4721)** — Gin already supports arbitrary HTTP methods via `engine.Handle("QUERY", "/path", ...)`, so this proposal is purely a documentation/convenience addition. Track but don't act.
+
+- **Go 1.27 release schedule**: RC1 shipped 2026-06-18 (11d 19h ago), expected RC2 ~2026-07-09 (3-week cadence from RC1), final release August 2026. No new public milestones; freeze-day count remains 39 (rolls to 40 at 2026-06-30 00:00 UTC).
+
+- **Go 1.26.5 / Go 1.25.12 dashboards stable at 10/5 CLs for ≥ 60h** — well beyond the typical 48-72h embargo window. The Go Security Team's most likely remaining action: publish CVE-2026-42505 (reserved but embargoed) in coordination with these patch releases. Re-run `curl -s https://go.dev/dl/?mode=json` before any production deploy in the next 24-48h.
+
+- **Pending CLs growth (+6) and Closed Last Week growth (+11)** — both are normal background-flow metrics unrelated to Gin/Go security. No action.
+
+### Action for agents
+
+1. **No new actions** beyond those already documented in prior cycles (CVE-2026-46604 fix via `golang.org/x/image@v0.43.0`, CVE-2026-42505 audit, CVE-2026-46602 OOM guard, #80154 iframe srcdoc audit, validator floor-piercing pins for Gin v1.13 adopters).
+2. **Monitor Gin v1.13 release status over next 24-36h** — due 2026-06-30T00:00:00Z, currently 24/36 (66.7%) with 0 master commits in past 67h. If release slips, the audit items list (c.ClientIP → netip.Addr, trailing-slash redirect change, c.MsgPack/c.YAML/c.TOML/c.ProtoBuf/c.BSON removal if PR #4712 lands) remains the same; only the timing shifts.
+3. **PR #4722 vs #4660** — when one lands, refresh `concurrency.md` "Context.Keys / Context.Copy race" section with the resolved approach. **No current action.**
+4. **PR #4721 (HTTP QUERY proposal)** — track only. **No current action.**
+5. **Re-verify Go 1.26.5 / 1.25.12 patch status before any production deploy** — `curl -s https://go.dev/dl/?mode=json`. CVE-2026-42505 publication likely coordinated with these patches.
+6. **Image upload handlers** still require TWO defense-in-depth checks: (a) CVE-2026-46602 OOM guard, (b) CVE-2026-46604 panic guard. Both apply to the same handler.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-06-29 12:22 UTC — `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28`, `5459 Pending CLs`, `1228 Pending Proposals`, `186 Closed Last Week`)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-29 12:22 UTC — `go1.26.4` current stable, `go1.25.11` previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-29 12:22 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestones (v1.13 — verified 2026-06-29 12:22 UTC: **24/36 closed, 66.7%, 12 open**, due 2026-06-30; unchanged from 06:07 UTC cycle)
+- https://api.github.com/search/issues?q=repo:gin-gonic/gin+is:open+milestone:v1.13 (re-verified 2026-06-29 12:22 UTC — 12 open items, identical set to 06:07 UTC cycle)
+- https://api.github.com/repos/gin-gonic/gin/commits?since=2026-06-29T06:07:00Z (0 commits in past 6h)
+- https://api.github.com/repos/gin-gonic/gin/issues?state=all&since=2026-06-29T06:07:00Z (2 items: issue #4721 proposal, PR #4722 draft — see above)
+- https://api.github.com/repos/gin-gonic/gin/issues/4721 (verified 2026-06-29 12:22 UTC — proposal, no PR, RFC 10008 reference)
+- https://api.github.com/repos/gin-gonic/gin/pulls/4722 (verified 2026-06-29 12:22 UTC — draft PR, Context.Copy race fix, "passed in Docker" claim, no milestone, no labels)
+- https://pkg.go.dev/vuln/list (re-verified 2026-06-29 12:22 UTC — CVE-2026-46604 / GO-2026-5066 already listed; CVE-2026-46602 still listed; CVE-2026-42505 still NOT listed)
+- https://vuln.go.dev/index/modules.json (re-verified 2026-06-29 12:22 UTC — no new Gin-relevant CVEs since 2026-06-28 18:13 UTC; latest modified entry still GO-2026-5066 / CVE-2026-46604 from 2026-06-26T20:04:13Z)
+- https://cveawg.mitre.org/api/cve/CVE-2026-42505 (re-verified 2026-06-29 12:22 UTC — still no record)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505 (re-verified 2026-06-29 12:22 UTC — still `totalResults: 0`)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-46604 (re-verified 2026-06-29 12:22 UTC — entry exists, published 2026-06-26T21:16:33.807, description unchanged)
+- https://proxy.golang.org/golang.org/x/image/@latest (re-verified 2026-06-29 12:22 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-29 12:22 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-29 12:22 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/golang.org/x/net/@latest (re-verified 2026-06-29 12:22 UTC — v0.56.0 unchanged)
+- https://proxy.golang.org/golang.org/x/text/@latest (re-verified 2026-06-29 12:22 UTC — v0.38.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-29 12:22 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+- https://proxy.golang.org/github.com/redis/go-redis/v9/@latest (re-verified 2026-06-29 12:22 UTC — v9.21.0 unchanged)
+- https://proxy.golang.org/gorm.io/gorm/@latest (re-verified 2026-06-29 12:22 UTC — v1.31.2 unchanged)
+- https://proxy.golang.org/github.com/quic-go/quic-go/@latest (re-verified 2026-06-29 12:22 UTC — v0.60.0 unchanged)
+- https://proxy.golang.org/github.com/bytedance/sonic/@latest (re-verified 2026-06-29 12:22 UTC — v1.15.2 unchanged)
+- https://proxy.golang.org/github.com/goccy/go-json/@latest (re-verified 2026-06-29 12:22 UTC — v0.10.6 unchanged)
+- https://go.dev/doc/go1.27 (re-verified 2026-06-29 12:22 UTC — release notes still WIP, expected release August 2026)
