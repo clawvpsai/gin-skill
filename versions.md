@@ -1912,3 +1912,43 @@ Six-hour cron cycle. ONE meaningful delta: **new CVE-2026-46604 / GO-2026-5066 p
 - https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-28 18:13 UTC — v0.53.0 unchanged)
 - https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-28 18:13 UTC — v0.46.0 unchanged)
 - https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-28 18:13 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+
+---
+
+## Auto-Update — 2026-06-29 06:07 UTC (Quiet Cycle)
+
+**Twelve-hour cron gap** (slot 00:00 UTC missed overnight; morning slot caught). Pure bookkeeping + freeze-day rollover 38 → 39 (UTC date 2026-06-29). **Zero material deltas** across all tracked dashboards since the 2026-06-28 18:13 UTC cycle:
+
+- **Go release dashboard**: counts unchanged — `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28` (verified live 2026-06-29 06:07 UTC). Stale ≥ 60h on the 10/5 patch CL counts.
+- **Go 1.27 RC1**: still `go1.27rc1`, time `2026-06-18T17:05:58Z` (now ~11d 13h old). No RC2 tagged. Cadence prediction unchanged at ~2026-07-09.
+- **Go stable releases**: still `go1.26.4` / `go1.25.11` (verified via `go.dev/dl/?mode=json`). No patch release shipped.
+- **Gin master**: zero new commits in past 12h (last commit still `34dac209` PR #4717 from 2026-06-26 16:48 UTC, now 61h+ since).
+- **Gin v1.13 milestone**: still **24/36 closed (66.7%), 12 open, due 2026-06-30** (verified live 2026-06-29 06:07 UTC). Stable since 2026-06-28 06:14 UTC cycle (~24h).
+- **Gin open PRs (top 10 by updated, all unchanged from 2026-06-28 18:13 UTC snapshot)**: #4720 (AIP custom verbs), #4696 (rune-boundary safety), #4689 (binding tryToSetValue), #4682 (stale workflow), #4716 (deps bump), #4687 (SkipMethodNotAllowed), #4693 (AsciiJSON non-BMP), #4674 (url.PathUnescape), #4701 (AbortedBy* helpers), #4660 (context race).
+- **CVEs**: zero new. CVE-2026-42505 still embargoed (NVD/MITRE/CVE.org/pkg.go.dev/vuln/list all negative). CVE-2026-46604 / GO-2026-5066 (TIFF strip-offset panic) and CVE-2026-46602 / GO-2026-5062 (TIFF tile-size OOM) both already documented in security.md from 2026-06-26 / 2026-06-28 cycles respectively. No movement in `vuln.go.dev/index/modules.json` since the GO-2026-5066 catch in the 2026-06-28 18:13 UTC cycle.
+- **All dependency floors unchanged**: x/image v0.43.0 (2026-06-15), x/crypto v0.53.0 (2026-06-08), x/sys v0.46.0 (2026-05-27), validator v10.30.3. Validator floor-piercing risk from 2026-06-23 PR #4707 still active.
+
+**Notes for future cycles:**
+
+1. **Go 1.27 release-freeze day count: 39** (was 38 in prior cycle; rolls to 40 at 2026-06-30 00:00 UTC).
+2. **Gin v1.13 ships in ≤ 1 day** (due 2026-06-30 00:00 UTC). Audit items unchanged from prior cycle: (a) `c.ClientIP()` → `netip.Addr` (PR #4599), (b) trailing-slash redirect change (PR #4499), (c) `c.MsgPack`/`c.YAML`/`c.TOML`/`c.ProtoBuf`/`c.BSON` removal if PR #4712 lands.
+3. **Go 1.26.5 / 1.25.12 dashboards stable at 10/5 CLs for >60h** — release window now beyond the 72h typical embargo. Re-run `curl -s https://go.dev/dl/?mode=json` before next deploy. CVE-2026-42505 publication likely coordinated with these patches.
+4. **PR #4720 (AIP custom verb paths)** still in-flight, updated 2026-06-28 08:37 UTC. If your code introspects `Param` counts or assumes colon-as-parameter-only semantics, flag for review when it lands. Not actionable today.
+5. **Image upload handlers still require TWO defense-in-depth checks**: (a) CVE-2026-46602 OOM guard (`MaxBytesReader` + `DecodeConfig` pixel-cap before full decode), AND (b) CVE-2026-46604 panic guard (`defer recover()` wrapping the entire `image.Decode` call, NOT a sub-function). Both apply to the same handler.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-06-29 06:07 UTC — `5 Go1.25.12`, `10 Go1.26.5`, `269 Go1.27`, `95 Go1.28`; unchanged from 2026-06-28 18:13 UTC)
+- https://go.dev/dl/?mode=json (re-verified 2026-06-29 06:07 UTC — `go1.27rc1` present, Go 1.26.4 current stable, Go 1.25.11 previous stable, no patch shipped)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-06-29 06:07 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged)
+- https://github.com/gin-gonic/gin/milestones (v1.13 — verified 2026-06-29 06:07 UTC: **24/36 closed, 66.7%, 12 open**, due 2026-06-30; unchanged)
+- https://api.github.com/repos/gin-gonic/gin/commits?since=2026-06-28T18:13:00Z (0 commits in past 12h)
+- https://api.github.com/repos/gin-gonic/gin/pulls?state=open&sort=updated&direction=desc&per_page=10 (verified 2026-06-29 06:07 UTC — top 10 unchanged from 2026-06-28 18:13 UTC snapshot)
+- https://vuln.go.dev/index/modules.json (re-verified 2026-06-29 06:07 UTC — no new Gin-relevant CVEs since 2026-06-28 18:13 UTC; latest modified entry still GO-2026-5066 / CVE-2026-46604)
+- https://cveawg.mitre.org/api/cve/CVE-2026-42505 (re-verified 2026-06-29 06:07 UTC — still no record)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505 (re-verified 2026-06-29 06:07 UTC — still `totalResults: 0`)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-46604 (re-verified 2026-06-29 06:07 UTC — entry exists, published 2026-06-26T21:16:33.807, description unchanged)
+- https://proxy.golang.org/golang.org/x/image/@latest (re-verified 2026-06-29 06:07 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-06-29 06:07 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-06-29 06:07 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-06-29 06:07 UTC — v10.30.3 unchanged; floor-piercing risk still active)
