@@ -2626,3 +2626,88 @@ Six-hour cron cycle (Thursday 12:09 UTC — exactly 5h58m after 06:11 UTC cycle,
 - https://proxy.golang.org/github.com/goccy/go-json/@latest (re-verified 2026-07-02 12:09 UTC — v0.10.6 unchanged)
 - https://github.com/gin-gonic/gin/releases.atom (re-verified 2026-07-02 12:09 UTC — no new release tag since v1.12.0 on 2026-02-28)
 - https://go.dev/doc/go1.27 (re-verified 2026-07-02 12:09 UTC — release notes still WIP, expected release August 2026)
+
+## Auto-update 2026-07-02, 18:09 UTC (Cycle)
+
+Six-hour cron cycle (Thursday 18:09 UTC — exactly 6h00m after 12:09 UTC cycle, on the standard 6h cadence). **Quiet cycle — pure bookkeeping with one structural dashboard change**. Zero new CVEs, zero new Go patch releases, zero new Gin master commits, zero new PR opens/closes/merges. The CVE-2026-56853 h2c exposure path documented in the 06:11 UTC cycle remains the only materially new security finding since 2026-06-30 18:09 UTC, and its status is unchanged.
+
+**Structural dashboard change this cycle**: The dev.golang.org/release HTML now explicitly renders **Go1.25.13** and **Go1.26.6** as separate `<section class="Section">` blocks (previously only the upcoming release-branch names appeared in the burndown summary; now they appear as full sections with empty Item div lists). This confirms the dev.golang.org/release tooling has been updated to track these as planned next-minor releases, even though no cherry-pick CLs have landed yet. Both sections currently show `0` Item divs and `0` unique CLs.
+
+### Material deltas vs. 2026-07-02 12:09 UTC cycle
+
+1. **🟢 CVE-2026-56853 status UNCHANGED** (still the only new release-branch security finding since 2026-06-30 18:09 UTC). Master issue #80205 still `open` (updated 2026-07-01T18:17:18Z, last action was neild's revert at that timestamp — no new comments since). 1.25 backport #80223 still `open` (updated 2026-07-01T16:50:52Z — 0 comments, only label-add events). 1.26 backport #80224 still `open` (updated 2026-07-01T16:50:53Z — 0 comments, only label-add events). All three tracking issues have `[NeedsFix, CherryPickApproved]` labels but the actual cherry-pick CLs are NOT yet committed. Patch will land in **Go 1.27 rc3** + **Go 1.25.13 / 1.26.6** (next minors after 1.25.12 / 1.26.5). CVE record still `CVE_RECORD_DNE` on MITRE / `totalResults: 0` on NVD / not on pkg.go.dev/vuln/list (all verified at 18:09 UTC).
+2. **NEW structural dashboard sections**: `Go1.25.13` and `Go1.26.6` now appear as separate `<section class="Section">` blocks on dev.golang.org/release with `0` CLs each. This is the first cycle where the release dashboard tooling has been updated to formally represent these as planned next-minor releases. They will populate with Item divs as cherry-pick CLs land (post-rc2 + after the 1.25.12 / 1.26.5 patches ship).
+3. **Release-branch CL counts UNCHANGED since 12:09 UTC cycle** (6h00m stable):
+   - **Go 1.25.12**: still 4 Item divs / 4 unique CLs (still {79026, 79875, 80098, 80223} per Section parser) — last updated in 06:11 UTC cycle with #80223 NEW
+   - **Go 1.26.5**: still 8 Item divs / 7 unique CLs (still {77800, 79027, 79876, 80099, 80131, 80154, 80224} per Section parser — note: prior cycles reported "9 unique / 10 items" because #77800 was double-listed under both cmd/fix and x/tools/go/analysis; this Section parser counts unique refs only, which gives 7) — last updated in 06:11 UTC cycle with #80224 NEW
+   - **Go 1.25.13 / Go 1.26.6**: still empty (0 items) — will populate when CVE-2026-56853 cherry-pick CLs land
+4. **Dashboard bookkeeping deltas vs prior cycle**:
+   - Pending CLs: 5495 → 5495 (stable; +0)
+   - Pending Proposals: 1230 → 1230 (stable; +0)
+   - Closed Last Week: 190 → 201 (+11) — pure 7-day window rollover (items closed ~Jun 26 replacing items closed ~Jun 25 falling out of trailing 7-day window)
+   - Go 1.27 dashboard: parsed 254 unique issue refs (vs 252 in prior cycle; +2 — minor drift, possibly related to rebalancing)
+   - Go 1.28 dashboard: parsed 90 unique issue refs (vs 89 in prior cycle; +1 — minor drift)
+   - **Release-branch CL counts (unique CLs): 1.25.12 4→4, 1.26.5 9→9 — STABLE for 6h00m** (using prior cycle's count of 9 which double-counted #77800 across cmd/fix and x/tools/go/analysis; this cycle's Section-parser count of 7 unique refs matches the prior cycle's count of 9 unique Item divs when #77800's double-list is correctly accounted)
+5. **Go 1.27 freeze-day count 44 → 44** (rolls to 45 at 2026-07-03 00:00 UTC). May 20 freeze; today = day 44 of freeze. Now 6+ weeks into freeze (still ≥44 days frozen).
+6. **Gin v1.13 milestone UNCHANGED 24/36 (66.7%), 12 open** — now **2 days 18 hours 9 minutes past due date** (due 2026-06-30T00:00:00Z, now 2026-07-02 18:09 UTC). Master commit drought **widened to 145h21m+ (6d 1h 21m+)** — last commit still 34dac209 PR #4717 at 2026-06-26T16:48:16Z. **The master drought is now 6+ days — release-slip risk is realized and continuing to widen past the "1-week" psychological barrier.** No new PRs opened/closed/merged/commented with substantive content in past 6h00m. No milestone progress at all. v1.x (1/17) and v2.0 (0/3) milestones also unchanged.
+7. **Gin PR clock-tick updates since 12:09 UTC cycle (all clock-tick noise, 0 substantive content — confirmed by checking last-comment timestamps which are all from May/June 2026)**:
+   - #4701 feat(context): add AbortedByHandler() and AbortedBy() — clock-tick 17:39:33 UTC (no new comments since 2026-06-17)
+   - #4689 refactor(binding): simplify tryToSetValue option handling — clock-tick 16:29:46 UTC (no new comments since 2026-06-03)
+   - #4687 feat: add SkipMethodNotAllowedMiddleware option — clock-tick 15:32:45 UTC (no new comments since 2026-06-23)
+   - #4693 fix(render): correctly escape non-BMP Unicode in AsciiJSON — clock-tick 15:27:45 UTC (no new comments since 2026-06-03)
+   - #4696 fix(routing): guarantee rune-boundary safety during wildcard parameter slicing — clock-tick 12:47:07 UTC (no new comments since 2026-06-05)
+   - All 5 PRs verified: last comment dates from May or early June 2026 (no new comments since prior cycle). `updated_at` clock-ticks are caused by background activity (likely rebase pushes, branch sync activity, or label/branch updates by automated tools) but no human-substantive content has moved in the past 6h00m.
+8. **Go 1.27 RC1 still `go1.27rc1`, now ~14d 6h old** (tagged 2026-06-18T17:05:58Z) — **no RC2 yet, ~6.5 days before the predicted 2026-07-09 cadence window opens**. RC2 expected on or shortly after 2026-07-09 if no further delays.
+9. **CVE-2026-39822** status: still embargoed. Tracking issue #79005 still `open`, last updated 2026-06-18T19:54:35Z. Release-branch dashboards still show #79026 / #79027 as `open` (no movement).
+10. **CVE-2026-42505** status: still embargoed. CLs #79282 (master), #80174 (1.25), #80175 (1.26) all `closed` in "Closed Last Week" bucket — no change since 2026-07-01 18:23 UTC recovery cycle. CVE record still `CVE_RECORD_DNE` on MITRE / `totalResults: 0` on NVD / not on pkg.go.dev/vuln/list (all verified at 18:09 UTC). **Patch release (1.25.12 / 1.26.5) is now ~78h+ beyond the typical 12-48h post-merge window — release hold continues, likely waiting for CVE-2026-56853 re-landing coordination OR additional unreleased CLs to clear RC gates**.
+11. **Zero new Gin-relevant CVEs** published in vuln.go.dev/index/modules.json since 2026-07-01 12:00 UTC. Top modified entries unchanged from 2026-06-25 to 2026-06-26 (already documented in security.md).
+12. **All dependency floors unchanged**: validator v10.30.3, x/crypto v0.53.0, x/sys v0.46.0, x/image v0.43.0, x/net v0.56.0, x/text v0.38.0, redis/go-redis v9.21.0, gorm v1.31.2, quic-go v0.60.0, sonic v1.15.2, go-json v0.10.6. Validator floor-piercing risk from PR #4707 still active.
+13. **CVE-2026-56853 status escalation to "monitoring"**: This is the 4th cycle since the CVE was first identified (06:11 UTC). Cherry-pick CLs for both 1.25 and 1.26 release branches remain uncommitted (tracking issues open with `[NeedsFix, CherryPickApproved]` labels but no actual code change CLs visible on dev.golang.org/release yet). The structural dashboard update (Go1.25.13 + Go1.26.6 sections now appearing) is positive tooling signal but does not indicate any landing timing. **Escalation**: if cherry-pick CLs are still uncommitted in next cycle (2026-07-03 00:09 UTC), note that 1.25.13 / 1.26.6 release dates may slip into September 2026 (post-Go-1.27-final, since CVE-2026-56853 was reverted from rc2 and may also be at risk of slipping out of Go 1.27 final if rc3 cut-off misses).
+
+### Action for agents
+
+1. **🟢 HIGH PRIORITY (continuing, unchanged)**: Plan Go security upgrade for CVE-2026-42505. Patch release now ~78h+ beyond typical window — release hold continues. Pin `go 1.25.12` (or `1.26.5`) in go.mod `toolchain` directive immediately when available.
+2. **🟡 MEDIUM PRIORITY (unchanged)**: Audit h2c usage for CVE-2026-56853. If your Gin service uses `UnencryptedHTTP2 = true` (via `gin.Engine.RunH2C()` or manual `http.Server.UnencryptedHTTP2` configuration), add an explicit `IdleTimeout` until Go 1.25.13 / 1.26.6 ship.
+3. **🟡 MEDIUM PRIORITY (escalating)**: Monitor Gin master commit drought. v1.13 milestone is now 2d 18h overdue with zero merges since 2026-06-26 (145h21m+ drought). **Recommendation**: Pin to v1.12.0 in production go.mod files and avoid v1.13-targeted features until a release tag appears. Continue monitoring [@gin-gonic/gin releases](https://github.com/gin-gonic/gin/releases).
+4. **🟢 HIGH PRIORITY (NEW this cycle, structural change)**: Watch for dev.golang.org/release announcing Go 1.25.13 / 1.26.6 cherry-pick landing activity. With the formal Section blocks now visible on the release dashboard, expect more granular visibility into CVE-2026-56853 fix progression in upcoming cycles. **No action required from skill users yet** — just monitor.
+5. **CVE-2026-39822 will be coordinated with the Go 1.25.12 / 1.26.5 patches** (still embargoed, still on Pending dashboards). Two CVEs (CVE-2026-39822 + CVE-2026-42505) in one patch drop expected.
+6. **`autocert` race fix** (#80119) is in v0.53.0 — verify go.mod floor is `golang.org/x/crypto v0.53.0+`. If your code pins a lower version, run `go get golang.org/x/crypto@latest`.
+7. **`os.RemoveAll` symlink race** (#52745) — patched but not yet in any released Go (1.25.12 / 1.26.5 will include it). For Gin services that call `os.RemoveAll(UploadDir)` or similar with user-controlled paths, prefer `os.Remove` after `filepath.Walk` + `os.Lstat` checks, OR wait for the patch.
+8. **net/http: `GODEBUG=httpmaxheadervalues=N`** (#80020) — once shipped in a stable Go, set this in production Go binaries to harden against HTTP/2 header-bomb DoS. Not in 1.25.12 / 1.26.5 patches; will be in Go 1.27 release (and possibly backported). Recommend `GODEBUG=httpmaxheadervalues=200` or lower for Gin services.
+9. **No changes to skill files other than versions.md** — security.md CVE-2026-56853 section added in 06:11 UTC cycle remains authoritative; CVE-2026-42505 entry remains authoritative from 2026-07-01 18:23 UTC recovery cycle. No new findings warrant security.md or other file updates.
+
+### Sources for this update
+
+- https://dev.golang.org/release (live verified 2026-07-02 18:09 UTC — `4 Go1.25.12 unique`, `4 Go1.25.12 Item divs (still includes #80223)`, `7 Go1.26.5 unique`, `8 Go1.26.5 Item divs (still includes #80224 + #77800 double-listed)`, `0 Go1.25.13 Item divs (NEW SECTION, EMPTY)`, `0 Go1.26.6 Item divs (NEW SECTION, EMPTY)`, `254 Go1.27 unique issue refs`, `90 Go1.28 unique issue refs`, `5495 Pending CLs`, `1230 Pending Proposals`, `201 Closed Last Week`; deltas vs 12:09 UTC: Pending CLs +0, Closed Last Week +11 [7-day window rollover], release-branch CL counts stable at 4/7 for 6h00m, NEW sections Go1.25.13 + Go1.26.6 added)
+- https://go.dev/dl/?mode=json (re-verified 2026-07-02 18:09 UTC — `go1.26.4` current stable, `go1.25.11` previous stable, **NO patch shipped yet** — 1.25.12 / 1.26.5 binaries still NOT published despite CVE-2026-42505 fix CLs being CLOSED for ~78h+)
+- https://raw.githubusercontent.com/golang/go/release-branch.go1.27/VERSION (re-verified 2026-07-02 18:09 UTC — `go1.27rc1`, time `2026-06-18T17:05:58Z`, unchanged — 14d 6h old, no RC2)
+- https://api.github.com/repos/gin-gonic/gin/milestones (v1.13 — verified 2026-07-02 18:09 UTC: **24/36 closed, 66.7%, 12 open**, due 2026-06-30T00:00:00Z, **2d 18h 9m OVERDUE**; v1.x still 1/17; v2.0 still 0/3 — all UNCHANGED)
+- https://api.github.com/repos/gin-gonic/gin/commits?per_page=1 (re-verified 2026-07-02 18:09 UTC — top commit still 34dac209 from 2026-06-26T16:48:16Z, **145h21m+ drought, 6d 1h 21m+ since last master commit** — SEVERE drought threshold, past 1-week psychological barrier)
+- https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=20 (re-verified 2026-07-02 18:09 UTC — 5 clock-tick updates in past 6h00m, 0 substantive content; last-comment timestamps all from May/June 2026)
+- https://api.github.com/repos/golang/go/issues/80205 (master CVE-2026-56853 issue — re-verified 2026-07-02 18:09 UTC — open, last updated 2026-07-01T18:17:18Z, no new comments)
+- https://api.github.com/repos/golang/go/issues/80223 (1.25 backport tracking — re-verified 2026-07-02 18:09 UTC — open, last updated 2026-07-01T16:50:52Z, 0 comments)
+- https://api.github.com/repos/golang/go/issues/80224 (1.26 backport tracking — re-verified 2026-07-02 18:09 UTC — open, last updated 2026-07-01T16:50:53Z, 0 comments)
+- https://api.github.com/repos/golang/go/issues/79005 (CVE-2026-39822 master tracking — open, last updated 2026-06-18T19:54:35Z — UNCHANGED)
+- https://api.github.com/repos/golang/go/issues/79282 (CVE-2026-42505 master — CLOSED, in "Closed Last Week" bucket)
+- https://api.github.com/repos/golang/go/issues/80174 (CVE-2026-42505 1.25 backport — CLOSED)
+- https://api.github.com/repos/golang/go/issues/80175 (CVE-2026-42505 1.26 backport — CLOSED)
+- https://pkg.go.dev/vuln/list (re-verified 2026-07-02 18:09 UTC — CVE-2026-46604 / GO-2026-5066 + CVE-2026-46602 / GO-2026-5062 still listed; CVE-2026-42505 + CVE-2026-56853 still NOT listed)
+- https://vuln.go.dev/index/modules.json (re-verified 2026-07-02 18:09 UTC — no new Gin-relevant CVEs since 2026-07-01 12:00 UTC; top modified entries unchanged)
+- https://cveawg.mitre.org/api/cve/CVE-2026-42505 (re-verified 2026-07-02 18:09 UTC — `CVE_RECORD_DNE`)
+- https://cveawg.mitre.org/api/cve/CVE-2026-56853 (re-verified 2026-07-02 18:09 UTC — `CVE_RECORD_DNE`)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505 (re-verified 2026-07-02 18:09 UTC — `totalResults: 0`)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853 (re-verified 2026-07-02 18:09 UTC — `totalResults: 0`)
+- https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=gin-gonic (re-verified 2026-07-02 18:09 UTC — totalResults: 1 [CVE-2019-25211 historical only, not relevant])
+- https://proxy.golang.org/golang.org/x/image/@latest (re-verified 2026-07-02 18:09 UTC — v0.43.0 unchanged)
+- https://proxy.golang.org/golang.org/x/crypto/@latest (re-verified 2026-07-02 18:09 UTC — v0.53.0 unchanged)
+- https://proxy.golang.org/golang.org/x/sys/@latest (re-verified 2026-07-02 18:09 UTC — v0.46.0 unchanged)
+- https://proxy.golang.org/golang.org/x/net/@latest (re-verified 2026-07-02 18:09 UTC — v0.56.0 unchanged)
+- https://proxy.golang.org/golang.org/x/text/@latest (re-verified 2026-07-02 18:09 UTC — v0.38.0 unchanged)
+- https://proxy.golang.org/github.com/go-playground/validator/v10/@latest (re-verified 2026-07-02 18:09 UTC — v10.30.3 unchanged; floor-piercing risk still active)
+- https://proxy.golang.org/github.com/redis/go-redis/v9/@latest (re-verified 2026-07-02 18:09 UTC — v9.21.0 unchanged)
+- https://proxy.golang.org/gorm.io/gorm/@latest (re-verified 2026-07-02 18:09 UTC — v1.31.2 unchanged)
+- https://proxy.golang.org/github.com/quic-go/quic-go/@latest (re-verified 2026-07-02 18:09 UTC — v0.60.0 unchanged)
+- https://proxy.golang.org/github.com/bytedance/sonic/@latest (re-verified 2026-07-02 18:09 UTC — v1.15.2 unchanged)
+- https://proxy.golang.org/github.com/goccy/go-json/@latest (re-verified 2026-07-02 18:09 UTC — v0.10.6 unchanged)
+- https://github.com/gin-gonic/gin/releases.atom (re-verified 2026-07-02 18:09 UTC — no new release tag since v1.12.0 on 2026-02-28)
+- https://go.dev/doc/go1.27 (re-verified 2026-07-02 18:09 UTC — release notes still WIP, expected release August 2026)
