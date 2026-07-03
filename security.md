@@ -280,6 +280,44 @@ r.Use(timeout.New(
   }
   ```
 
+### PR #4726 — Gin `cleanPath` scheme-relative / backslash redirect (OPEN, not yet merged)
+- **Opened:** 2026-07-02 23:26 UTC by NiiMER | **Updated:** 2026-07-02 23:57 UTC | **Status:** OPEN, no milestone, no review comments yet (only Codecov report @ 50% coverage on the patch lines).
+- **File changed:** `path.go` (cleanPath function) — +7 lines, -0 lines.
+- **The fix (verbatim from PR diff):**
+  ```go
+  // Prevent scheme-relative ("//...") or backslash-based absolute ("/\\...") paths.
+  for len(p) > 1 && p[0] == '/' && p[1] == '/' {
+      p = p[1:]
+  }
+  if len(p) > 1 && p[0] == '/' && p[1] == '\\' {
+      p = "/" + p[2:]
+  }
+  ```
+- **Impact:** `cleanPath` is invoked by Gin's router on every incoming request. Before this patch, an incoming URL like `//evil.com/foo` or `/\\evil.com/foo` is treated as a same-origin path (the second `/` or `\\` is collapsed during path normalization). A handler that calls `c.Redirect(http.StatusFound, cleanedPath)` then issues a `Location` header pointing at the attacker-controlled host — classic open-redirect / SSRF vector when the redirect target is later fetched server-side (OAuth callbacks, post-logout redirects, link unfurlers, webhook testers, email "click here" links).
+- **Severity:** Medium–High (open-redirect class; severity escalates to High if your handler follows the redirect server-side or uses the path as a `url.URL.Host` source).
+- **Gin exposure paths:** (1) any handler that uses `c.Request.URL.Path` (post-cleanPath) as a redirect target without re-validating the host; (2) OAuth/OIDC `post_logout_redirect_uri` or `redirect_uri` validators that pass through path-only strings; (3) "share link" / "deep link" handlers that redirect to user-supplied paths; (4) reverse-proxy frontends that forward the cleaned path as an upstream redirect. **Static-file and JSON API endpoints are NOT affected** because they do not issue redirects.
+- **Mitigation for current Gin (v1.12.0 and earlier) — apply until PR #4726 lands:**
+  ```go
+  // In any handler that does c.Redirect with a path derived from user input:
+  func safeRedirectPath(raw string) (string, error) {
+      // 1. Reject scheme-relative and backslash-based paths outright.
+      if len(raw) >= 2 && raw[0] == '/' && (raw[1] == '/' || raw[1] == '\\') {
+          return "", fmt.Errorf("invalid redirect path: scheme-relative or backslash form")
+      }
+      // 2. Reject anything that's not an absolute path on our origin.
+      if !strings.HasPrefix(raw, "/") {
+          return "", fmt.Errorf("redirect path must be absolute")
+      }
+      // 3. Defense-in-depth: parse and re-check host.
+      u, err := url.Parse(raw)
+      if err != nil || u.Host != "" {
+          return "", fmt.Errorf("redirect path must not carry a host")
+      }
+      return raw, nil
+  }
+  ```
+- **Track:** [PR #4726](https://github.com/gin-gonic/gin/pull/4726) — once merged, the upstream `cleanPath` will reject these inputs at the framework level and this mitigation becomes redundant (but harmless).
+
 ## Production Server Defaults Cheat Sheet
 
 | Timeout              | Recommended | Purpose                                           |
