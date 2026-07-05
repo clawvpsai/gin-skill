@@ -281,7 +281,7 @@ r.Use(timeout.New(
   ```
 
 ### PR #4726 — Gin `cleanPath` scheme-relative / backslash redirect (OPEN, not yet merged)
-- **Opened:** 2026-07-02 23:26 UTC by NiiMER | **Updated:** 2026-07-02 23:57 UTC | **Status:** OPEN, no milestone, no review comments yet (only Codecov report @ 50% coverage on the patch lines).
+- **Opened:** 2026-07-02 23:26 UTC by NiiMER | **Updated:** 2026-07-05 08:45 UTC | **Status:** OPEN, no milestone, **CodeQL flagged the fix as INCOMPLETE** + new Copilot review + competing clean PR #4731 opened by same author. See status update below.
 - **File changed:** `path.go` (cleanPath function) — +7 lines, -0 lines.
 - **The fix (verbatim from PR diff):**
   ```go
@@ -317,6 +317,36 @@ r.Use(timeout.New(
   }
   ```
 - **Track:** [PR #4726](https://github.com/gin-gonic/gin/pull/4726) — once merged, the upstream `cleanPath` will reject these inputs at the framework level and this mitigation becomes redundant (but harmless).
+
+#### Status update 2026-07-05 18:11 UTC — significant new activity, but PR has gone off the rails
+
+PR #4726 was idle from 2026-07-02 23:57 UTC to 2026-07-05 02:26 UTC (~74h 28m+), then author @NiiMER force-pushed new commits and re-engaged bots. Net new activity:
+
+- **3 new commits** force-pushed:
+  - `d1c878a` 2026-07-05T02:04:38Z `fix: handle backslash-started paths in cleanPath`
+  - `2e1ca62` 2026-07-05T02:41:00Z `fix: [security] Bad redirect check` (refined implementation)
+  - `090f6e5` 2026-07-05T03:40:42Z `chore: add resolve-pr-comments prompt and golang-performance skill` ← **NOT security related**
+- **2 new bot reviews**:
+  - **`github-advanced-security[bot]` (CodeQL)** @ 2026-07-05T02:06:11Z on `path.go:30` — **CRITICAL**: CodeQL traced **5 distinct data flows** from `c.Redirect()` → `cleanPath()` and found the fix only checks for a leading `/` but does **NOT verify the second position isn't `/` or `\`**. This means the fix as written **does not fully close the scheme-relative redirect vector** in all code paths (e.g., `\\evil.com` → `/\\evil.com` after the existing "missing root" normalization logic, which the original Copilot review also flagged).
+  - **`copilot-pull-request-reviewer[bot]`** @ 2026-07-05T02:28:59Z — new review with 2 inline comments: (a) no test covers backslash-only inputs (e.g., `\` or `\\`) — only the existing `//` case is exercised; (b) PR description claims `cleanPath` returns `/` for `//` but actual behavior preserves the suffix (`//abc` → `/abc`) — description/implementation mismatch.
+- **PR diff ballooned from 2 files / +20 lines to 13 files / +2521 lines / -0 lines**. Non-security files added: `.agents/skills/golang-performance/` (SKILL.md + 6 reference docs + prometheus-alerts.yml + evals.json), `.github/prompts/resolve-pr-comments.prompt.md`, `skills-lock.json`. **This is unrelated noise** that looks like an AI agent skill setup committed by accident. **Significantly reduces merge probability** — maintainers will almost certainly reject the PR as too noisy and require a clean re-submission that strips the agent-skill files.
+
+#### 🆕 PR #4731 — competing MINIMAL fix from same author (PREFERRED alternative)
+
+- **Opened:** 2026-07-05 08:29 UTC by @NiiMER (same author as #4726) | **Updated:** 2026-07-05 08:32 UTC | **Status:** OPEN, no milestone, no labels, no description (title only), Mergeable: True, 0 comments.
+- **File changed:** `path.go` only — **+7 lines, -0 lines** (matches the original PR #4726 description exactly).
+- **Interpretation:** @NiiMER opened #4731 as a **cleaner, minimal-diff alternative** to the now-noisy PR #4726, hoping maintainers will prefer the surgical version. Maintainers will pick one (most likely #4731) and close the other as a duplicate.
+- **ACTION:** Watch #4731 (not #4726) for merge. **Same `safeRedirectPath` mitigation applies regardless** — the fix is still incomplete per CodeQL, and your existing v1.12.0 code is vulnerable NOW.
+- **Track:** [PR #4731](https://github.com/gin-gonic/gin/pull/4731)
+
+#### Why the `safeRedirectPath` mitigation stays REQUIRED regardless of which PR merges
+
+1. Both PRs (#4726 and #4731) apply the same `path.go` patch — which per CodeQL is **INCOMPLETE for some attack vectors**
+2. Even if Gin ships a complete fix in a future release, your existing v1.12.0 code is vulnerable **NOW**
+3. The `safeRedirectPath` pattern provides **defense-in-depth at the application layer**, independent of framework changes
+4. CVE-class open-redirect bugs tend to have **multiple vectors**; application-layer validation catches them all
+5. The CodeQL finding means even post-merge, you may want to **keep the application-layer check** as belt-and-suspenders until a Gin point release (v1.12.1 or v1.13.0) ships and your project upgrades to it
+
 
 ## Production Server Defaults Cheat Sheet
 
