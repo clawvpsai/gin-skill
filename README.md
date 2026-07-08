@@ -70,6 +70,8 @@ go list -m github.com/gin-gonic/gin
 | Version | Status | Key Features |
 |---|---|---|
 | **Go 1.26** | ✅ Latest (2026) | Improved toolchain, slices/maps packages |
+| Go 1.26.5 / 1.25.12 | ✅ Patch (2026-07-07) | CVE-2026-39822 + CVE-2026-42505 fixes — **pin `go.mod` toolchain** |
+| Go 1.27rc2 | ⚠️ RC2 (2026-07-07) | Tagged before CVE-2026-56853 fix — **avoid h2c production** |
 | Go 1.25 | Previous stable | Toolchain refinements |
 | Go 1.24 | Minimum for Gin v1.12 | Generic type aliases, math/rand/v2 |
 | **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseEscapedPath option
