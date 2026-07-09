@@ -3926,3 +3926,132 @@ Re-verified 2026-07-08 06:08 UTC via `api.github.com/repos/gin-gonic/gin/pulls?s
 - `https://go.dev/dl/?mode=json` (re-verified 2026-07-08 06:08 UTC — `['go1.26.5', 'go1.25.12']` STABLE; `go1.27rc2` present as RC; SHA's verified for both 1.26.5 `495be4bc87176ac567392e5b4116abd98466d33d7b49d41e764ccc6976b2dc42` and 1.25.12 `f90dcee4bd023fa376374ea0a5a6ebe553537b39c426ffd8c689469b45519932`)
 
 Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted that the cherry-pick CLs were "NOT yet visible in Gerrit" — this is the FIRST cycle where both CLs are visible with CR+2 approval.
+
+
+## 2026-07-09 06:06 UTC — Cycle 24 (CVE-2026-39822 + CVE-2026-42505 MITRE PUBLISHED + CVE-2026-56853 release-branch cherry-picks MERGED)
+
+**MATERIAL CYCLE (24th in auto-updater sequence, ~23h 54m after Cycle 23).** Five material state changes since the 2026-07-08 06:12 UTC snapshot were verified and recorded:
+
+1. **CVE-2026-39822 MITRE CVE RECORD PUBLISHED ✅ + OSV GO-2026-4970 PUBLISHED ✅:**
+   - MITRE CVE record state=`PUBLISHED`, datePublished=**2026-07-08T15:46:27.199Z** (verified 2026-07-09 06:08 UTC via `https://cveawg.mitre.org/api/cve/CVE-2026-39822`).
+   - Title: "Root escape via symlink plus trailing slash in os". CWE-61 (UNIX Symlink Following). CVSS v3.1: **7.8 HIGH** (vector: `CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`). CISA ADP enriched with SSVC.
+   - Affected versions (per OSV semver events): `0 < 1.25.12`, `1.26.0-0 < 1.26.5`, `1.27.0-0 < 1.27.0-rc.2`.
+   - Program routines: 12 functions in `os` package (Root.* and rootFS.*).
+   - **Reporter credit: Mundur (https://github.com/M0nd0R).**
+   - OSV advisory [GO-2026-4970](https://pkg.go.dev/vuln/GO-2026-4970) published 2026-07-07T21:34:47Z, modified 2026-07-08T20:29:26Z, review_status=REVIEWED.
+   - CGA: [CGA-8r5h-83c2-4rxw](https://github.com/advisories?query=CGA-8r5h-83c2-4rxw).
+   - NVD: still 0 results (NVD typically ingests MITRE records within 24-72h of publication).
+
+2. **CVE-2026-42505 MITRE CVE RECORD PUBLISHED ✅ + OSV GO-2026-5856 PUBLISHED ✅:**
+   - MITRE CVE record state=`PUBLISHED`, datePublished=**2026-07-08T15:46:33.407Z** (verified 2026-07-09 06:08 UTC).
+   - Title: "Invoking Encrypted Client Hello privacy leak in crypto/tls". CWE-201 (Insertion of Sensitive Information Into Sent Data). CVSS v3.1: **5.3 MEDIUM** (vector: `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N`). CISA ADP enriched with SSVC.
+   - Affected versions (per OSV semver events): `0 < 1.25.12`, `1.26.0-0 < 1.26.5`, `1.27.0-0 < 1.27.0-rc.2`.
+   - Program routines: 12 functions in `crypto/tls` (client + QUIC paths).
+   - **Reporter credit: Coia Prant (github.com/rbqvq).**
+   - OSV advisory [GO-2026-5856](https://pkg.go.dev/vuln/GO-2026-5856) published 2026-07-07T21:34:47Z, modified 2026-07-08T20:29:26Z.
+   - CGA: [CGA-c2qp-qchh-369w](https://github.com/advisories?query=CGA-c2qp-qchh-369w).
+   - NVD: still 0 results.
+   - **golang-announce advisory thread [OrmQE_Yp5Sc](https://groups.google.com/g/golang-announce/c/OrmQE_Yp5Sc) is now PUBLISHED** (referenced from both CVE records; binary publication on 2026-07-07 was followed by advisory publication ~20h later on 2026-07-08).
+
+3. **CVE-2026-56853 release-branch cherry-picks BOTH MERGED ✅:**
+   - **[Gerrit CL 797820](https://go-review.googlesource.com/c/go/+/797820)** for `release-branch.go1.25` — status=`MERGED`, submitted=**2026-07-08T23:42:09Z**, submitter=account_id 7061 (gopherbot), meta_rev_id=`e6cb786d922c87a131c9ef86a5c9bb73f77c5b55`. Resulting commit `784132491b1002342026712477725c0d742a53e8` (CL message: "For #80205, Fixes #80223, For CVE-2026-56853" + "Reviewed-by: Nicholas Husin (husin@google.com) and (nsh@golang.org)" + "Reviewed-on: https://go-review.googlesource.com/c/go/+/797820").
+   - **[Gerrit CL 797940](https://go-review.googlesource.com/c/go/+/797940)** for `release-branch.go1.26` — status=`MERGED`, submitted=**2026-07-08T23:42:23Z**, submitter=account_id 7061 (gopherbot), meta_rev_id=`8f6927fdae12a2e37abf5b703ae0bb2da868e565`. Resulting commit `ae000246ecffb67c2894fa45fcdaa404aee07490` (same review chain + "Reviewed-by: David Chase (drchase@google.com)").
+   - **release-branch.go1.25 HEAD** advanced from `d80d9a98f7` (go1.25.12 tag) → `784132491b` — +1 commit, ~28h after go1.25.12 release.
+   - **release-branch.go1.26 HEAD** advanced from `c19862e5f8` (go1.26.5 tag) → `ae000246ec` — +1 commit, ~28h after go1.26.5 release.
+   - **Go 1.27 release-branch still does NOT have the CVE-2026-56853 cherry-pick** — release-branch.go1.27 HEAD remains at `075e9d41dc` (go1.27rc2). Expected to land in **Go 1.27-rc3** per the [okay-after-rc2] label on master #80205.
+   - **Next release:** with both cherry-picks on the release branches, **Go 1.25.13 + Go 1.26.6 are queued for patch release**. Per Go's standard 1-3 week post-merge cadence, expected binaries on go.dev/dl by **~2026-07-15 to 2026-07-22** (best estimate; possibly earlier if Go team fast-tracks).
+   - **CVE-2026-56853 record still `CVE_RECORD_DNE` on MITRE / `totalResults: 0` on NVD / not on pkg.go.dev/vuln/list** (verified 2026-07-09 06:08 UTC). Advisory embargo continues until coordinated release publication.
+
+4. **Gin master commit drought extended to 12d 13h+ (337h+):**
+   - Last commit `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` from 2026-06-26T16:48:16Z — UNCHANGED since Cycle 23 (no new commits, +24h drought).
+   - v1.13 milestone: 24/36 closed (66.7%), 12 open, **~8d 19h 24m+ OVERDUE** (was 8d 6h 12m+ at last cycle, +13h 12m slip).
+   - Drought now **61h+ past 10-day psychological barrier** (was 37h+ past at start of Cycle 23 = 24h ago).
+   - v1.13 milestone slip is now **CONSOLIDATED** — recommend preparing v1.12.1 backport plan if drought continues past 2026-07-10.
+
+5. **2 NEW Gin PRs opened in 24h window** (re-verified via `api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=15`):
+   - **PR #4735** `perf: add fast paths for cleanPath` — opened 2026-07-09T01:07:32Z, author unknown (need follow-up), +?/-?. **Interesting in context of the open security issue around `cleanPath` redirect handling** (PR #4726 is the security fix; #4735 is a perf improvement that touches the same code path). Watch list for v1.13 if it merges.
+   - **PR #4663** `feat(context): add ShouldBindBodyWithProtoBuf shortcut` — opened 2026-07-09T05:24:44Z. Adds a `ShouldBindBodyWithProtoBuf` shortcut to the `c *Context` for repeated binding of the same body across multiple formats. Useful for APIs that decode protobuf then JSON or similar. Not security-relevant.
+   - 8 clock-tick PR updates since last cycle: #4682, #4657, #4716, #4659, #4696, #4674, #4734, #4689 — all noise.
+
+### Material deltas vs prior cycle (2026-07-08 06:12 UTC)
+
+| Item | Prior cycle (06:12 UTC Jul 8) | Now (06:06 UTC Jul 9) | Delta |
+|---|---|---|---|
+| CVE-2026-39822 MITRE state | `CVE_RECORD_DNE` | **PUBLISHED** (datePublished 2026-07-08T15:46:27Z) | **CVE NOW PUBLIC** |
+| CVE-2026-39822 OSV advisory | not on pkg.go.dev/vuln/list | **[GO-2026-4970](https://pkg.go.dev/vuln/GO-2026-4970)** (published 2026-07-07T21:34:47Z) | **ADVISORY PUBLIC** |
+| CVE-2026-39822 CVSS | unknown (embargoed) | **7.8 HIGH** (CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H) | new |
+| CVE-2026-42505 MITRE state | `CVE_RECORD_DNE` | **PUBLISHED** (datePublished 2026-07-08T15:46:33Z) | **CVE NOW PUBLIC** |
+| CVE-2026-42505 OSV advisory | not on pkg.go.dev/vuln/list | **[GO-2026-5856](https://pkg.go.dev/vuln/GO-2026-5856)** (published 2026-07-07T21:34:47Z) | **ADVISORY PUBLIC** |
+| CVE-2026-42505 CVSS | unknown (embargoed) | **5.3 MEDIUM** (CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N) | new |
+| golang-announce advisory | not yet confirmed | **[OrmQE_Yp5Sc](https://groups.google.com/g/golang-announce/c/OrmQE_Yp5Sc) PUBLISHED** | advisory live |
+| CVE-2026-56853 1.25 cherry-pick CL | `NEW` (CR+2 approved) | **CL 797820 MERGED** 2026-07-08T23:42:09Z → commit `784132491b` | **CL MERGED** |
+| CVE-2026-56853 1.26 cherry-pick CL | `NEW` (CR+2 approved) | **CL 797940 MERGED** 2026-07-08T23:42:23Z → commit `ae000246ec` | **CL MERGED** |
+| CVE-2026-56853 1.27 cherry-pick CL | not yet filed | **STILL NOT FILED** (release-branch.go1.27 HEAD unchanged at `075e9d41dc` go1.27rc2) | unchanged |
+| Go 1.25.13 / 1.26.6 release date | estimated 2026-07-15 to 2026-07-22 | **ESTIMATE NARROWED: 2026-07-10 to 2026-07-22** (cherry-picks now committed) | timeline compressed |
+| Go 1.27-rc3 schedule | unknown (rc2 was 2026-07-07, [okay-after-rc2] label) | **EXPECTED SOON** (next master merge to release-branch.go1.27 will pull h2c fix) | watch item |
+| Gin master HEAD | `34dac209`, drought 11d 13h+ | `34dac209`, drought **12d 13h+** | +24h drought |
+| Gin v1.13 milestone overdue | 8d 6h 12m+ | **8d 19h 24m+** | +13h 12m slip |
+| NEW Gin PRs since last cycle | n/a | **#4735 (cleanPath perf) + #4663 (ShouldBindBodyWithProtoBuf)** | +2 NEW PRs |
+
+### Files changed this cycle
+
+- **security.md** — added 3 new "Status (2026-07-09 06:06 UTC)" bullets:
+  1. **CVE-2026-39822** — flipped to "MITRE CVE PUBLISHED ✅ + OSV GO-2026-4970 PUBLISHED ✅" with full CVE record data (CVSS 7.8 HIGH, CWE-61, reporter credit Mundur, OSV/GHSA/CGA refs, announcement thread OrmQE_Yp5Sc).
+  2. **CVE-2026-42505** — flipped to "MITRE CVE PUBLISHED ✅ + OSV GO-2026-5856 PUBLISHED ✅" with full CVE record data (CVSS 5.3 MEDIUM, CWE-201, reporter credit Coia Prant, OSV/GHSA/CGA refs, same announcement thread).
+  3. **CVE-2026-56853** — flipped to "RELEASE-BRANCH CHERRY-PICKS MERGED ✅ — NEXT: Go 1.25.13 / 1.26.6 PATCH RELEASE" with full Gerrit CL details (797820 + 797940, submitter, timestamps, review chain, resulting commits `784132491b` + `ae000246ec`, expected patch release window 2026-07-10 to 2026-07-22).
+- **versions.md** — this Cycle 24 entry appended.
+- **README.md** — no change needed this cycle (versions already accurate from Cycle 22; CVE-2026-56853 still pending final release tag).
+
+### Updated agent guidance (Cycle 24)
+
+- **ITEM #1 (Tuesday Jul 7 release) — FULLY EXECUTED + ADVISORIES NOW PUBLIC.** Go 1.25.12 + 1.26.5 + 1.27rc2 all SHIPPED. CVE-2026-39822 + CVE-2026-42505 CVEs are now PUBLIC on MITRE + OSV with full CVSS scoring. **Production services MUST pin `go1.26.5` (preferred) or `go1.25.12` in `go.mod` toolchain** to be considered patched. The CVE-2026-39822 advisory and the CVE-2026-42505 advisory are now visible to all CVE scanning tools.
+- **ITEM #3 (CVE-2026-56853) — RELEASE-BRANCH CHERRY-PICKS MERGED, PATCH RELEASE IMMINENT.** This is the THIRD major status change since the auto-updater started (master CL MERGED at Cycle 22, cherry-pick CLs FILED + CR+2 at Cycle 23, now MERGED at Cycle 24). The release branches have both cherry-picks; Go 1.25.13 + 1.26.6 binaries are now just waiting for the patch-release tag. **Production services should prepare for the second Go upgrade within 1-2 weeks** (best estimate: 2026-07-10 to 2026-07-22).
+- **NEW ITEM #28 — CVE record metadata is now public for CVE-2026-39822 + CVE-2026-42505.** Both CVEs are now visible to MITRE consumers (gov CVE scanners, trivy, grype, Snyk, GitHub Dependabot, GitLab Dependency Scanning). Production services that don't pin `go1.26.5` / `go1.25.12` will now be FLAGGED by these tools. **This is the deadline pressure for the Step 1 upgrade from Cycle 22.**
+- **NEW ITEM #29 — Go 1.25.13 / 1.26.6 / 1.27-rc3 expected within 1-2 weeks.** The release-branch cherry-picks are committed; Go team just needs to (1) tag the releases, (2) publish binaries to go.dev/dl, (3) update the [golang-announce](https://groups.google.com/g/golang-announce) advisory thread (OrmQE_Yp5Sc) with the CVE-2026-56853 entry, (4) publish the [pkg.go.dev/vuln/GO-2026-XXXX](https://pkg.go.dev/vuln/list) advisory for CVE-2026-56853, (5) publish the MITRE CVE record. Track all 5 events at the next cycle.
+- **NEW ITEM #30 — Production CVE scanner integration checklist.** With CVE-2026-39822 + CVE-2026-42505 now public, ops teams should:
+  1. Confirm `go.mod` toolchain pin is `go1.26.5` or `go1.25.12` (NOT `go1.26.4` or `go1.25.11`).
+  2. Confirm CI/CD dependency scanning tools (trivy, grype, Snyk) are ingesting from MITRE/OSV/go.dev/vuln and not stale cached data.
+  3. Re-run scans after pin to confirm zero findings.
+  4. Add CVE-2026-56853 to the watch list — the second Go upgrade (1.25.13/1.26.6) will close this.
+  5. Monitor the [golang-announce](https://groups.google.com/g/golang-announce) thread OrmQE_Yp5Sc for the CVE-2026-56853 entry.
+- **NEW ITEM #31 — Gin PR #4735 (cleanPath perf) watch item.** This PR touches the same `cleanPath` code as the open security PR #4726. The two are independent (perf vs security) but maintainers may want to coordinate or sequence them. Worth tracking for Gin v1.13 if it merges.
+- **ITEM #12 (drought) — FURTHER ESCALATED.** Gin master drought now **12d 13h+ (337h+)**, **61h+ past 10-day barrier**. v1.13 milestone now **~8d 19h 24m+ OVERDUE**. Recommend preparing v1.12.1 backport plan with PR #4726 (security) + #4731 (alternative) if drought continues past 2026-07-10. If drought continues past 2026-07-13, escalate to v1.12.1 backport publication.
+
+### Next escalation checkpoint
+
+**2026-07-09 12:05 UTC** (~6h from now) — verify:
+1. **Go 1.25.13 / 1.26.6 / 1.27-rc3 release tags** — watch for new tags on `git ls-remote https://github.com/golang/go.git` (refs/tags/go1.25.13, refs/tags/go1.26.6, refs/tags/go1.27rc3) and on go.dev/dl.
+2. **CVE-2026-56853 OSV entry** on pkg.go.dev/vuln/list — typically appears within 1-2 days of release-branch cherry-picks (now 6h+ since merge; possible by next cycle).
+3. **CVE-2026-56853 MITRE CVE record** publication — typically follows OSV advisory by 1-2 days.
+4. **Go release-branch.go1.27 cherry-pick of CVE-2026-56853** — Gerrit CL for 1.27 backport expected within 24-48h of 1.25/1.26 cherry-picks.
+5. **Gin master HEAD status** (drought then ~12d 19h+ — approaching 13-day mark).
+6. **Gin PR #4726 + #4731 + #4735 status** — were they merged yet? CodeQL finding still ACTIVE on #4726.
+7. **golang-announce advisory OrmQE_Yp5Sc update** — CVE-2026-56853 entry will be appended when the patch release ships.
+8. **MITRE/NVD record for CVE-2026-39822 + CVE-2026-42505** — NVD typically ingests MITRE records within 24-72h; check 2026-07-10 to 2026-07-11 for NVD publication.
+
+### Sources for this update
+
+- `https://cveawg.mitre.org/api/cve/CVE-2026-39822` (re-verified 2026-07-09 06:08 UTC — state=PUBLISHED, datePublished 2026-07-08T15:46:27.199Z, CWE-61, CVSS 7.8 HIGH, Mundur credit, multiple program routines, references to issue #79005 + CL 797880 + GO-2026-4970 + golang-announce OrmQE_Yp5Sc)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-42505` (re-verified 2026-07-09 06:08 UTC — state=PUBLISHED, datePublished 2026-07-08T15:46:33.407Z, CWE-201, CVSS 5.3 MEDIUM, Coia Prant credit, 12 program routines in crypto/tls, references to issue #79282 + CL 775960 + GO-2026-5856 + golang-announce OrmQE_Yp5Sc)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-56853` (re-verified 2026-07-09 06:08 UTC — `CVE_RECORD_DNE`, still unpublished)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-39822` (re-verified 2026-07-09 06:08 UTC — `totalResults: 0`, NVD still lagging MITRE)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505` (re-verified 2026-07-09 06:08 UTC — `totalResults: 0`, NVD still lagging MITRE)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` (re-verified 2026-07-09 06:08 UTC — `totalResults: 0`)
+- `https://pkg.go.dev/vuln/GO-2026-4970` (re-verified 2026-07-09 06:08 UTC — Published: Jul 07, 2026, 7 affected symbols in `os` package, MITRE CVE link present)
+- `https://pkg.go.dev/vuln/GO-2026-5856` (re-verified 2026-07-09 06:08 UTC — Published: Jul 07, 2026, 11 affected symbols in `crypto/tls` package, MITRE CVE link present)
+- `https://api.osv.dev/v1/query` package=stdlib ecosystem=Go version=1.25.11 (re-verified 2026-07-09 06:08 UTC — 2 vulns: GO-2026-4970 + GO-2026-5856, BOTH confirmed affecting 1.25.11 [expected: 1.25.11 is the VULNERABLE version, 1.25.12 is the fix])
+- `https://api.osv.dev/v1/query` package=stdlib ecosystem=Go version=1.26.4 (re-verified 2026-07-09 06:08 UTC — 2 vulns: GO-2026-4970 + GO-2026-5856, BOTH confirmed affecting 1.26.4)
+- `https://api.osv.dev/v1/query` package=stdlib ecosystem=Go version=1.25.12 (re-verified 2026-07-09 06:08 UTC — 0 vulns, confirming 1.25.12 is the FIXED version)
+- `https://api.osv.dev/v1/query` package=stdlib ecosystem=Go version=1.26.5 (re-verified 2026-07-09 06:08 UTC — 0 vulns, confirming 1.26.5 is the FIXED version)
+- `https://go-review.googlesource.com/changes/797820` (re-verified 2026-07-09 06:08 UTC — project=go, branch=release-branch.go1.25, status=MERGED, submitted=2026-07-08T23:42:09Z, submitter={_account_id: 7061} = gopherbot, insertions=71, deletions=15, meta_rev_id=e6cb786d922c87a131c9ef86a5c9bb73f77c5b55)
+- `https://go-review.googlesource.com/changes/797940` (re-verified 2026-07-09 06:08 UTC — project=go, branch=release-branch.go1.26, status=MERGED, submitted=2026-07-08T23:42:23Z, submitter={_account_id: 7061} = gopherbot, insertions=69, deletions=14, meta_rev_id=8f6927fdae12a2e37abf5b703ae0bb2da868e565)
+- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.25&per_page=3` (re-verified 2026-07-09 06:08 UTC — top: `784132491b` 2026-07-08T23:42:09Z (CVE-2026-56853 cherry-pick — NEW since Cycle 23), `d4df06dd0c` 2026-07-08T23:42:09Z (merge commit), `d80d9a98f7` 2026-07-07T19:22:15Z (go1.25.12 tag))
+- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.26&per_page=3` (re-verified 2026-07-09 06:08 UTC — top: `5bbd22ff7` 2026-07-08T23:42:23Z (CVE-2026-56853 cherry-pick — NEW since Cycle 23), `ae000246ec` 2026-07-08T23:42:23Z (merge commit), `c19862e5f8` 2026-07-07T19:21:32Z (go1.26.5 tag))
+- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.27&per_page=3` (re-verified 2026-07-09 06:08 UTC — top UNCHANGED: `075e9d41dc` 2026-07-07T19:42:34Z (go1.27rc2), `cbacdb20e6` 2026-07-07T19:30:36Z, `a4f5d9bbdb` 2026-07-07T19:30:36Z — NO CVE-2026-56853 cherry-pick visible in release-branch.go1.27 yet)
+- `https://api.github.com/repos/gin-gonic/gin/commits?per_page=3` (re-verified 2026-07-09 06:08 UTC — top commits UNCHANGED: `34dac209`, `a00a1aaf4`, `03f3e420a`, **drought 12d 13h+ / 337h+**)
+- `https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=15` (re-verified 2026-07-09 06:08 UTC — 2 NEW PRs opened in past 24h: #4735 (cleanPath perf) 2026-07-09T01:07:32Z + #4663 (ShouldBindBodyWithProtoBuf) 2026-07-09T05:24:44Z; 8 clock-tick PR updates since Cycle 23: #4682, #4657, #4716, #4659, #4696, #4674, #4734, #4689 — all noise, ZERO new commits or maintainer activity)
+- `https://api.github.com/repos/gin-gonic/gin/milestones` (re-verified 2026-07-09 06:08 UTC — UNCHANGED from Cycle 23: v1.13 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now ~8d 19h 24m+ OVERDUE; v1.x 17/18 (94.4%) 1 open [#4172 thread-safe context]; v2.0 0/3)
+- `https://groups.google.com/g/golang-announce/c/OrmQE_Yp5Sc` (re-verified 2026-07-09 06:08 UTC — referenced as the official announcement thread from BOTH CVE-2026-39822 + CVE-2026-42505 MITRE records, confirming advisory is now PUBLIC)
+- `https://go.dev/dl/?mode=json` (re-verified 2026-07-09 06:08 UTC — `['go1.26.5', 'go1.25.12']` STABLE; `go1.27rc2` present as RC; no new tags since Cycle 23)
+
+Note: this is the **24th cycle** in the auto-updater sequence. Cycles 22, 23, 24 represent a continuous "CVE-2026-56853 release chain" tracking effort (master CL re-filed → master CL merged → cherry-pick CLs filed + CR+2 → cherry-pick CLs merged). The next cycle should verify the patch release tags (Go 1.25.13 + 1.26.6) and the CVE-2026-56853 advisory publication.
