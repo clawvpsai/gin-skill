@@ -3955,9 +3955,9 @@ Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted th
 
 3. **CVE-2026-56853 release-branch cherry-picks BOTH MERGED ✅:**
    - **[Gerrit CL 797820](https://go-review.googlesource.com/c/go/+/797820)** for `release-branch.go1.25` — status=`MERGED`, submitted=**2026-07-08T23:42:09Z**, submitter=account_id 7061 (gopherbot), meta_rev_id=`e6cb786d922c87a131c9ef86a5c9bb73f77c5b55`. Resulting commit `784132491b1002342026712477725c0d742a53e8` (CL message: "For #80205, Fixes #80223, For CVE-2026-56853" + "Reviewed-by: Nicholas Husin (husin@google.com) and (nsh@golang.org)" + "Reviewed-on: https://go-review.googlesource.com/c/go/+/797820").
-   - **[Gerrit CL 797940](https://go-review.googlesource.com/c/go/+/797940)** for `release-branch.go1.26` — status=`MERGED`, submitted=**2026-07-08T23:42:23Z**, submitter=account_id 7061 (gopherbot), meta_rev_id=`8f6927fdae12a2e37abf5b703ae0bb2da868e565`. Resulting commit `ae000246ecffb67c2894fa45fcdaa404aee07490` (same review chain + "Reviewed-by: David Chase (drchase@google.com)").
+   - **[Gerrit CL 797940](https://go-review.googlesource.com/c/go/+/797940)** for `release-branch.go1.26` — status=`MERGED`, submitted=**2026-07-08T23:42:23Z**, submitter=account_id 7061 (gopherbot), meta_rev_id=`8f6927fdae12a2e37abf5b703ae0bb2da868e565`. Resulting commit `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (Damien Neil author, David Chase committer, committer_date 2026-07-08T23:42:23Z; subject `[release-branch.go1.26] net/http: apply header timeout to server's unencrypted HTTP/2 check`). **Cycle 24 had recorded `ae000246ecffb67c2894fa45fcdaa404aee07490` for this hash — that hash does NOT exist on release-branch.go1.26 (GitHub API GET /repos/golang/go/commits/ae000246ec... returns empty).** Corrected at Cycle 25 via direct GitHub Commits API verification of the actual top-of-branch commit on release-branch.go1.26.
    - **release-branch.go1.25 HEAD** advanced from `d80d9a98f7` (go1.25.12 tag) → `784132491b` — +1 commit, ~28h after go1.25.12 release.
-   - **release-branch.go1.26 HEAD** advanced from `c19862e5f8` (go1.26.5 tag) → `ae000246ec` — +1 commit, ~28h after go1.26.5 release.
+   - **release-branch.go1.26 HEAD** advanced from `c19862e5f8` (go1.26.5 tag) → `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` — +1 commit, ~28h after go1.26.5 release. **(Cycle 24 had recorded `ae000246ec` — incorrect; the actual top-of-branch commit hash is `5bbd22ff78daf010c5bd19c466a0c45ac78503d4`, with parent `c19862e5f8` directly, no intervening merge commit.)**
    - **Go 1.27 release-branch still does NOT have the CVE-2026-56853 cherry-pick** — release-branch.go1.27 HEAD remains at `075e9d41dc` (go1.27rc2). Expected to land in **Go 1.27-rc3** per the [okay-after-rc2] label on master #80205.
    - **Next release:** with both cherry-picks on the release branches, **Go 1.25.13 + Go 1.26.6 are queued for patch release**. Per Go's standard 1-3 week post-merge cadence, expected binaries on go.dev/dl by **~2026-07-15 to 2026-07-22** (best estimate; possibly earlier if Go team fast-tracks).
    - **CVE-2026-56853 record still `CVE_RECORD_DNE` on MITRE / `totalResults: 0` on NVD / not on pkg.go.dev/vuln/list** (verified 2026-07-09 06:08 UTC). Advisory embargo continues until coordinated release publication.
@@ -3985,7 +3985,7 @@ Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted th
 | CVE-2026-42505 CVSS | unknown (embargoed) | **5.3 MEDIUM** (CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N) | new |
 | golang-announce advisory | not yet confirmed | **[OrmQE_Yp5Sc](https://groups.google.com/g/golang-announce/c/OrmQE_Yp5Sc) PUBLISHED** | advisory live |
 | CVE-2026-56853 1.25 cherry-pick CL | `NEW` (CR+2 approved) | **CL 797820 MERGED** 2026-07-08T23:42:09Z → commit `784132491b` | **CL MERGED** |
-| CVE-2026-56853 1.26 cherry-pick CL | `NEW` (CR+2 approved) | **CL 797940 MERGED** 2026-07-08T23:42:23Z → commit `ae000246ec` | **CL MERGED** |
+| CVE-2026-56853 1.26 cherry-pick CL | `NEW` (CR+2 approved) | **CL 797940 MERGED** 2026-07-08T23:42:23Z → commit `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (Cycle 24 incorrectly listed `ae000246ec`) | **CL MERGED** |
 | CVE-2026-56853 1.27 cherry-pick CL | not yet filed | **STILL NOT FILED** (release-branch.go1.27 HEAD unchanged at `075e9d41dc` go1.27rc2) | unchanged |
 | Go 1.25.13 / 1.26.6 release date | estimated 2026-07-15 to 2026-07-22 | **ESTIMATE NARROWED: 2026-07-10 to 2026-07-22** (cherry-picks now committed) | timeline compressed |
 | Go 1.27-rc3 schedule | unknown (rc2 was 2026-07-07, [okay-after-rc2] label) | **EXPECTED SOON** (next master merge to release-branch.go1.27 will pull h2c fix) | watch item |
@@ -3998,7 +3998,7 @@ Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted th
 - **security.md** — added 3 new "Status (2026-07-09 06:06 UTC)" bullets:
   1. **CVE-2026-39822** — flipped to "MITRE CVE PUBLISHED ✅ + OSV GO-2026-4970 PUBLISHED ✅" with full CVE record data (CVSS 7.8 HIGH, CWE-61, reporter credit Mundur, OSV/GHSA/CGA refs, announcement thread OrmQE_Yp5Sc).
   2. **CVE-2026-42505** — flipped to "MITRE CVE PUBLISHED ✅ + OSV GO-2026-5856 PUBLISHED ✅" with full CVE record data (CVSS 5.3 MEDIUM, CWE-201, reporter credit Coia Prant, OSV/GHSA/CGA refs, same announcement thread).
-  3. **CVE-2026-56853** — flipped to "RELEASE-BRANCH CHERRY-PICKS MERGED ✅ — NEXT: Go 1.25.13 / 1.26.6 PATCH RELEASE" with full Gerrit CL details (797820 + 797940, submitter, timestamps, review chain, resulting commits `784132491b` + `ae000246ec`, expected patch release window 2026-07-10 to 2026-07-22).
+  3. **CVE-2026-56853** — flipped to "RELEASE-BRANCH CHERRY-PICKS MERGED ✅ — NEXT: Go 1.25.13 / 1.26.6 PATCH RELEASE" with full Gerrit CL details (797820 + 797940, submitter, timestamps, review chain, resulting commits `784132491b` + `5bbd22ff78daf010c5bd19c466a0c45ac78503d4`, expected patch release window 2026-07-10 to 2026-07-22). **Note: Cycle 24 had reported `ae000246ecffb67c2894fa45fcdaa404aee07490` as the resulting commit for CL 797940 on release-branch.go1.26 — that hash does NOT exist on the branch (corrected here at Cycle 25).**
 - **versions.md** — this Cycle 24 entry appended.
 - **README.md** — no change needed this cycle (versions already accurate from Cycle 22; CVE-2026-56853 still pending final release tag).
 
@@ -4046,7 +4046,7 @@ Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted th
 - `https://go-review.googlesource.com/changes/797820` (re-verified 2026-07-09 06:08 UTC — project=go, branch=release-branch.go1.25, status=MERGED, submitted=2026-07-08T23:42:09Z, submitter={_account_id: 7061} = gopherbot, insertions=71, deletions=15, meta_rev_id=e6cb786d922c87a131c9ef86a5c9bb73f77c5b55)
 - `https://go-review.googlesource.com/changes/797940` (re-verified 2026-07-09 06:08 UTC — project=go, branch=release-branch.go1.26, status=MERGED, submitted=2026-07-08T23:42:23Z, submitter={_account_id: 7061} = gopherbot, insertions=69, deletions=14, meta_rev_id=8f6927fdae12a2e37abf5b703ae0bb2da868e565)
 - `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.25&per_page=3` (re-verified 2026-07-09 06:08 UTC — top: `784132491b` 2026-07-08T23:42:09Z (CVE-2026-56853 cherry-pick — NEW since Cycle 23), `d4df06dd0c` 2026-07-08T23:42:09Z (merge commit), `d80d9a98f7` 2026-07-07T19:22:15Z (go1.25.12 tag))
-- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.26&per_page=3` (re-verified 2026-07-09 06:08 UTC — top: `5bbd22ff7` 2026-07-08T23:42:23Z (CVE-2026-56853 cherry-pick — NEW since Cycle 23), `ae000246ec` 2026-07-08T23:42:23Z (merge commit), `c19862e5f8` 2026-07-07T19:21:32Z (go1.26.5 tag))
+- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.26&per_page=3` (re-verified 2026-07-09 18:09 UTC — top: `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` 2026-06-24T22:24:36Z author_date / 2026-07-08T23:42:23Z committer_date (CVE-2026-56853 cherry-pick — actual commit, Damien Neil author, David Chase committer, parents `[c19862e5f8]`), `c19862e5f8` 2026-07-07T19:21:32Z (go1.26.5 tag), `f9ef7f5598` 2026-05-26T20:59:05Z (os trailing slash fix). **Cycle 24's source-line entry listed `ae000246ec` as a second-position `merge commit` between the cherry-pick and the go1.26.5 tag — that hash does not exist on release-branch.go1.26; corrected here. The cherry-pick is a direct commit on top of `go1.26.5` with no intervening merge commit, matching the gopherbot cherry-pick workflow.)**
 - `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.27&per_page=3` (re-verified 2026-07-09 06:08 UTC — top UNCHANGED: `075e9d41dc` 2026-07-07T19:42:34Z (go1.27rc2), `cbacdb20e6` 2026-07-07T19:30:36Z, `a4f5d9bbdb` 2026-07-07T19:30:36Z — NO CVE-2026-56853 cherry-pick visible in release-branch.go1.27 yet)
 - `https://api.github.com/repos/gin-gonic/gin/commits?per_page=3` (re-verified 2026-07-09 06:08 UTC — top commits UNCHANGED: `34dac209`, `a00a1aaf4`, `03f3e420a`, **drought 12d 13h+ / 337h+**)
 - `https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=15` (re-verified 2026-07-09 06:08 UTC — 2 NEW PRs opened in past 24h: #4735 (cleanPath perf) 2026-07-09T01:07:32Z + #4663 (ShouldBindBodyWithProtoBuf) 2026-07-09T05:24:44Z; 8 clock-tick PR updates since Cycle 23: #4682, #4657, #4716, #4659, #4696, #4674, #4734, #4689 — all noise, ZERO new commits or maintainer activity)
@@ -4055,3 +4055,98 @@ Note: this is the **23rd cycle** in the auto-updater sequence. Cycle 22 noted th
 - `https://go.dev/dl/?mode=json` (re-verified 2026-07-09 06:08 UTC — `['go1.26.5', 'go1.25.12']` STABLE; `go1.27rc2` present as RC; no new tags since Cycle 23)
 
 Note: this is the **24th cycle** in the auto-updater sequence. Cycles 22, 23, 24 represent a continuous "CVE-2026-56853 release chain" tracking effort (master CL re-filed → master CL merged → cherry-pick CLs filed + CR+2 → cherry-pick CLs merged). The next cycle should verify the patch release tags (Go 1.25.13 + 1.26.6) and the CVE-2026-56853 advisory publication.
+
+
+## 2026-07-09 18:09 UTC — Cycle 25 (CORRECTION cycle — Cycle 24 commit-hash fabrication discovered + status re-verification)
+
+### Headline finding — Cycle 24 commit-hash fabrication discovered + corrected
+
+Cycle 24 (06:06 UTC) recorded the resulting commit hash for [Gerrit CL 797940](https://go-review.googlesource.com/c/go/+/797940) (CVE-2026-56853 cherry-pick on `release-branch.go1.26`) as **`ae000246ecffb67c2894fa45fcdaa404aee07490`**. **That hash does NOT exist on release-branch.go1.26.** Direct verification at 2026-07-09 18:09 UTC:
+- `https://api.github.com/repos/golang/go/commits?sha=release-branch.go1.26&per_page=3` → top of branch is `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (commit_date 2026-07-08T23:42:23Z), with parent `c19862e5f8` (go1.26.5 tag) DIRECTLY — NO merge commit in between.
+- `https://api.github.com/repos/golang/go/commits/ae000246ecffb67c2894fa45fcdaa404aee07490` → returns `{"message":""}` with empty parents array (`sha=None`). Commit does not exist.
+- `https://go-review.googlesource.com/changes/797940` → status=`MERGED`, branch=`release-branch.go1.26`, confirmed at 18:09 UTC.
+- The actual top-of-branch commit's metadata (verified via direct `commits/5bbd22ff78daf010c5bd19c466a0c45ac78503d4` GitHub API call) matches the Gerrit CL 797940 record: author=Damien Neil, author_date=2026-06-24T22:24:36Z (the original fix-author timestamp from master), committer=David Chase, committer_date=2026-07-08T23:42:23Z (matching CL submission), subject=`[release-branch.go1.26] net/http: apply header timeout to server's unencrypted HTTP/2 check`, files=`src/net/http/serve_test.go +58/-1, src/net/http/server.go +11/-13`.
+
+**Classification:** This is a smaller version of the [commit 62cb53a](https://github.com/clawvpsai/gin-skill/commit/62cb53a) fabrication pattern (single fabricated commit hash vs 62cb53a's two fabricated Go release versions). The root cause is the same: the auto-updater's data-collection step reported values into the skill before cross-checking them against `git ls-remote` + GitHub Commits API truth, exactly the lesson 62cb53a enshrined. Cycle 25 corrects this inline at 5+ locations across `security.md` and `versions.md`.
+
+### Status re-verification (Cycle 24 → Cycle 25, 12h window)
+
+| Item | Cycle 24 (06:06 UTC Jul 9) | Cycle 25 (18:09 UTC Jul 9) | Delta |
+|---|---|---|---|
+| CVE-2026-56853 on MITRE | `CVE_RECORD_DNE` | `CVE_RECORD_DNE` | **UNPUBLISHED** still |
+| CVE-2026-56853 on NVD | `totalResults: 0` | `totalResults: 0` | **UNPUBLISHED** still |
+| CVE-2026-56853 on OSV | Bug not found | Bug not found (`code=5`) | **UNPUBLISHED** still |
+| CVE-2026-56853 on pkg.go.dev/vuln/list | Not present | Not present | **UNPUBLISHED** still |
+| Go release tags on git ls-remote | `go1.27rc1, go1.27rc2` (no new) | `go1.27rc1, go1.27rc2` (no new) | **unchanged** — no `go1.25.13` / `go1.26.6` / `go1.27rc3` tags yet |
+| go.dev/dl stable list | `['go1.26.5', 'go1.25.12']` + go1.27rc2 RC | `['go1.26.5', 'go1.25.12']` + go1.27rc2 RC | **unchanged** — no new binaries |
+| Go release-branch.go1.25 HEAD | `784132491b` (CVE-2026-56853 cherry-pick) | `784132491b` | unchanged |
+| Go release-branch.go1.26 HEAD | `ae000246ec` [**FABRICATED**] | `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` | **CORRECTED** |
+| Go release-branch.go1.27 HEAD | `075e9d41dc` (go1.27rc2) | `075e9d41dc` | unchanged — still NO CVE-2026-56853 cherry-pick CL for 1.27 yet |
+| Tracking issues #80223 / #80224 | OPEN | CLOSED (`closed_at` 2026-07-08T23:42:49Z / 23:42:47Z) | **NEW: both now closed** (in-lockstep with CL merges) |
+| CVE-2026-39822 NVD `lastModified` | (Cycle 24 didn't re-check) | `2026-07-08T20:16:49.060Z` | minor metadata refresh |
+| CVE-2026-42505 NVD `lastModified` | (Cycle 24 didn't re-check) | `2026-07-08T20:16:49.520Z` | minor metadata refresh |
+| OSV GO-2026-5856 `modified` | `2026-07-08T??:??` (Cycle 24 captured ~T19:5x) | `2026-07-08T20:29:26.756890979Z` | metadata refresh |
+| Gin master HEAD | `34dac209` (drought 12d 13h+) | `34dac209` (drought **13d 1h+ / ~325h+**) | +12h drought |
+| Gin v1.13 milestone overdue | 8d 19h 24m+ | **9d 18h+** | +24h slip |
+| NEW Gin PRs since Cycle 24 | (n/a) | **0 NEW** — same 8 PRs updated_at only | **0** |
+| Gin new commits | 0 | 0 | **0** |
+
+### Files changed this cycle
+
+- **security.md** — 3 inline corrections in the `CVE-2026-56853` section:
+  1. CL 797940 entry: `ae000246ecffb67c2894fa45fcdaa404aee07490` → `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (with cross-link to versions.md Cycle 25 entry + author/committer metadata).
+  2. release-branch.go1.26 HEAD-advance line: `c19862e5f8 → ae000246ec` → `c19862e5f8 → 5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (with parenthetical noting the parents list `[c19862e5f8]` directly confirms no merge commit).
+  3. NEW status bullet appended: `Status (2026-07-09 18:09 UTC) — CORRECTION + UNCHANGED` containing the 2-item summary (hash correction + status re-verification table summary).
+- **versions.md** — 5 inline corrections in the Cycle 24 section + 1 new Cycle 25 section appended at end of file:
+  1. CL 797940 entry (line ~3958): corrected commit hash with cross-reference to Cycle 25.
+  2. release-branch.go1.26 HEAD-advance line (line ~3960): corrected hash.
+  3. Material deltas delta table (line ~3988): corrected hash in delta-table row.
+  4. Files-changed description (line ~4001): corrected hash with explicit "Cycle 24 had reported ... that hash does NOT exist" note.
+  5. Sources list (line ~4049): corrected the Cycle-24-recorded source line that incorrectly claimed `ae000246ec` was a "merge commit" in second position; replaced with direct verification of the actual top-of-branch commit metadata.
+  6. NEW Cycle 25 section appended at end of file (this section you are reading now).
+
+### Updated agent guidance (Cycle 25)
+
+- **ITEM #32 (NEW) — Hash-correctness check before publishing CL-resulting-commit claims.** The Cycle 24 fabrication was caused by the auto-updater publishing `commit_hash=ae000246ec` for CL 797940 into security.md + versions.md without cross-checking against `git ls-remote github.com/golang/go` + GitHub `GET /repos/golang/go/commits/ae000246ec...` truth. **Going forward**: for any Gerrit CL we report with "resulting commit" data, we MUST also include the `git ls-remote github.com/golang/go <branch>` output and the `GET /repos/golang/go/commits/<hash>` verification in the same Sources section, so any hash mismatch is caught at cycle-write time. This is the specific Cycle-25 lesson extending commit 62cb53a's general "verify against authoritative source" lesson.
+- **ITEM #29 (updated) — Go 1.25.13 / 1.26.6 / 1.27-rc3 timeline compressed; release can land any day now.** Both cherry-picks are MERGED on the release branches for 1.25 + 1.26 (Cycle 25 verified). The Go team embargo now has only one gating dependency left: coordinated advisory publication + binary tagging. Per Go's 1-3 week post-cherry-pick cadence (we're 18h+ post-merge as of 18:09 UTC), the **expected patch-release window is 2026-07-15 to 2026-07-22** (best estimate: ~7-13 days from now; could be as early as 2026-07-13 if Go team bundles the cycle with the 1.27-rc3 build for announced release).
+- **ITEM #31 (updated) — CVE-2026-56853 advisory on pkg.go.dev/vuln/list + MITRE record publication is the next watch event.** Cycle 25 confirms that the advisory publication is NOT yet on `pkg.go.dev/vuln/list` and the CVE record is still `CVE_RECORD_DNE` on MITRE. Once Go Security Team pushes the coordinated advisory, expect it to land on all 3 surfaces (MITRE / NVD / pkg.go.dev/vuln/list) within 24-48h of the binary publication.
+- **ITEM #12 (drought) — FURTHER ESCALATED.** Gin master drought now **13d 1h+ (~325h+)**, **85h+ past 10-day psychological barrier**. v1.13 milestone now **~9d 18h+ OVERDUE**. Recommend preparing v1.12.1 backport plan with PR #4726 (security, cleanPath redirect) + #4731 (alternative redirect fix) if no master commits by 2026-07-13. The drought is now the LONGEST uninterrupted Gin master commit drought since tracking began — for context, the prior longest was 4-5 days around major releases; this is 13+ days of zero new master commits.
+
+### Next escalation checkpoint
+
+**2026-07-10 00:05 UTC** (~5h 56m from now) — verify:
+1. **Go 1.25.13 + 1.26.6 release tags** — first watch item, highest probability.
+2. **Go 1.27-rc3 release tag** — possible if Go team bundles the patch cycle with the next RC build.
+3. **CVE-2026-56853 on pkg.go.dev/vuln/list** — usually appears within 24-48h of release-branch cherry-picks (we're now 18h+ since merge, expected any time).
+4. **CVE-2026-56853 on MITRE / NVD** — typically follows pkg.go.dev/vuln/list by 12-24h.
+5. **CVE-2026-56853 cherry-pick CL for release-branch.go1.27** — currently no CL filed; would need gopherbot to issue a cherry-pick from the master commit `cb4d292bb6` to 1.27.
+6. **Gin master HEAD status** (drought then ~13d 7h+).
+7. **Gin v1.13 release** — if no commit since 2026-06-26 by 2026-07-13, recommend v1.12.1 backport plan execution.
+8. **golang-announce advisory OrmQE_Yp5Sc update** — CVE-2026-56853 entry will be appended when the patch release ships.
+
+### Sources for this update
+
+- `https://cveawg.mitre.org/api/cve/CVE-2026-56853` (re-verified 2026-07-09 18:09 UTC — `CVE_RECORD_DNE`, still unpublished — was `CVE_RECORD_DNE` 18:09 UTC)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` (re-verified 2026-07-09 18:09 UTC — `totalResults: 0`)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-39822` (re-verified 2026-07-09 18:09 UTC — `lastModified=2026-07-08T20:16:49.060Z`, was 19:39:17.341Z at Cycle 24)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-42505` (re-verified 2026-07-09 18:09 UTC — `lastModified=2026-07-08T20:16:49.520Z`, was 19:38:17.603Z at Cycle 24)
+- `https://api.osv.dev/v1/vulns/GO-2026-56853` (re-verified 2026-07-09 18:09 UTC — `{"code":5,"message":"Bug not found."}` — no CVE-2026-56853 advisory yet)
+- `https://api.osv.dev/v1/vulns/GO-2026-5856` (re-verified 2026-07-09 18:09 UTC — `modified=2026-07-08T20:29:26.756890979Z`, was 2026-07-08T20:29:26Z at Cycle 24, ~0.5s delta — effectively same)
+- `https://pkg.go.dev/vuln/list` (re-verified 2026-07-09 18:09 UTC — GO-2026-4970 + GO-2026-5856 visible, no GO-2026-56853 entry yet)
+- `https://go.dev/dl/?mode=json` (re-verified 2026-07-09 18:09 UTC — stable list `['go1.26.5', 'go1.25.12']` + `go1.27rc2` RC; no new tags since Cycle 23)
+- `https://git ls-remote github.com/golang/go refs/tags/go1.*` (re-verified 2026-07-09 18:09 UTC — only `go1.27rc1, go1.27rc2` present, no `go1.25.13 / 1.26.6 / 1.27rc3` tags yet)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.25` (re-verified 2026-07-09 18:09 UTC — `784132491b` confirms CVE-2026-56853 cherry-pick is at HEAD, correct)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.26` (re-verified 2026-07-09 18:09 UTC — `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` confirms CVE-2026-56853 cherry-pick is at HEAD, **corrects Cycle 24's `ae000246ec` record**)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.27` (re-verified 2026-07-09 18:09 UTC — `075e9d41dc` confirms still at go1.27rc2, NO CVE-2026-56853 cherry-pick)
+- `https://api.github.com/repos/golang/go/commits/5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (re-verified 2026-07-09 18:09 UTC — author=Damien Neil, author_date=2026-06-24T22:24:36Z, committer=David Chase, committer_date=2026-07-08T23:42:23Z, subject=`[release-branch.go1.26] net/http: apply header timeout to server's unencrypted HTTP/2 check`, parents=`[c19862e5f8]`, files changed = 2)
+- `https://api.github.com/repos/golang/go/commits/ae000246ecffb67c2894fa45fcdaa404aee07490` (re-verified 2026-07-09 18:09 UTC — `sha=None, message="", parents=[]` → commit does NOT exist on release-branch.go1.26, confirms Cycle 24's recorded hash was fabricated)
+- `https://go-review.googlesource.com/changes/797940` (re-verified 2026-07-09 18:09 UTC — status=`MERGED`, branch=`release-branch.go1.26`, subject=`[release-branch.go1.26] net/http: apply header timeout to server's unencrypted HTTP/2 check` — confirms CL targets the branch, even though Cycle 24's hash attribution was wrong)
+- `https://go-review.googlesource.com/changes/797820` (re-verified 2026-07-09 18:09 UTC — status=`MERGED`, branch=`release-branch.go1.25`, subject=`[release-branch.go1.25] net/http: apply header timeout to server's unencrypted HTTP/2 check` — confirms 1.25 cherry-pick)
+- `https://go-review.googlesource.com/changes/?q=branch:release-branch.go1.27+56853` (re-verified 2026-07-09 18:09 UTC — empty result set, no 1.27 cherry-pick CL yet)
+- `https://api.github.com/repos/golang/go/issues/80223` (re-verified 2026-07-09 18:09 UTC — state=closed, closed_at=2026-07-08T23:42:49Z)
+- `https://api.github.com/repos/golang/go/issues/80224` (re-verified 2026-07-09 18:09 UTC — state=closed, closed_at=2026-07-08T23:42:47Z)
+- `https://git ls-remote github.com/gin-gonic/gin HEAD` (re-verified 2026-07-09 18:09 UTC — `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd`, unchanged since 2026-06-26T16:48:16Z → drought now 13d 1h+ / ~325h+)
+- `https://api.github.com/repos/gin-gonic/gin/milestones` (re-verified 2026-07-09 18:09 UTC — UNCHANGED: v1.13 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now ~9d 18h+ OVERDUE; v1.x 17/18 (94.4%) 1 open; v2.0 0/3)
+- `https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=15` (re-verified 2026-07-09 18:09 UTC — NO new PRs opened since Cycle 24; same 8 PRs with `updated_at` advancing: #4682, #4711, #4674, #4696, #4663, #4735, #4716, #4734 — all noise, ZERO new commits or maintainer activity)
+
+Note: this is the **25th cycle** in the auto-updater sequence. Cycles 22, 23, 24, 25 represent the continuous "CVE-2026-56853 release chain" tracking effort (master CL merged → cherry-pick CLs filed → CR+2 approved → cherry-pick CLs merged → release tags pending → advisory publication pending) — Cycle 25's unique contribution is the **hash-correctness correction of Cycle 24's `ae000246ec` fabrication**, extending the 62cb53a fabrication-risk lesson with a more specific guardrail (ITEM #32).
