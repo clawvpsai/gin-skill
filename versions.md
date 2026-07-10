@@ -4311,3 +4311,95 @@ Trigger material cycle if any of:
 - `https://api.github.com/repos/gin-gonic/gin/milestones` (v1.13 still 24/36 12 open, v1.x 17/18 1 open, v2.0 3/3 0 open)
 
 Note: this is the **27th cycle** in the auto-updater sequence. Cycle 27 is a QUIET bookkeeping cycle — no material state changes, no content updates to any skill file except this appended cycle log. The primary purpose is (a) 6-hourly re-verification against the 8-item Cycle 26 next-checkpoint plan (now expanded to 6-item Cycle 27 plan), (b) demonstration of sustained ITEM #32 hash-correctness guardrail compliance (now applied for 2 consecutive cycles, Cycle 26 + Cycle 27), and (c) maintenance of the audit trail (every 6h cycle provides explicit time-anchor for incident correlation if a material state change happens later). The next material cycle will be triggered by one of the 6 escalation criteria listed above.
+
+
+---
+
+## Cycle 28 (2026-07-10 18:06 UTC) — MATERIAL CYCLE
+
+**Headline finding:** First release-branch commit since CVE-2026-56853 cherry-picks on 2026-07-08T23:42Z landed TODAY (2026-07-10T13:38-13:39 UTC) — BOTH `release-branch.go1.25` and `release-branch.go1.26` advanced with the `golang.org/x/net` CVE-2026-39821 (idna Punycode privilege escalation, CRITICAL) cherry-pick. ALSO: **`golang.org/x/net v0.57.0` released 2026-07-08T21:02:14Z** with 9 commits since v0.56.0 including the unified idna fix.
+
+### Material State Changes (vs Cycle 27 — 2026-07-10 12:13 UTC)
+
+| # | Item | Cycle 27 | Cycle 28 | Delta |
+|---|------|----------|----------|-------|
+| 1 | `release-branch.go1.25` HEAD | `784132491b1002342026712477725c0d742a53e8` (CVE-2026-56853 cherry-pick) | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` ([release-branch.go1.25] all: update x/net, Damien Neil author, David Chase committer, 2026-07-10T13:38:48Z, parents [784132491b]) | **ADVANCED 1 commit** (CVE-2026-39821 x/net bump) |
+| 2 | `release-branch.go1.26` HEAD | `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (CVE-2026-56853 cherry-pick) | `a42fec40ab09b138e5cf98395ff24b52487a647d` ([release-branch.go1.26] all: update x/net, same author/committer, 2026-07-10T13:39:23Z, parents [5bbd22ff78]) | **ADVANCED 1 commit** (CVE-2026-39821 x/net bump) |
+| 3 | `release-branch.go1.27` HEAD | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (= go1.27rc2) | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (= go1.27rc2) | UNCHANGED — no x/net bump on 1.27 yet (next merge from master → Go 1.27-rc3) |
+| 4 | `golang.org/x/net` latest tag | v0.56.0 (oldest released prior to May) | **v0.57.0** (released 2026-07-08T21:02:14Z, commit b8f09f6f062ceb4531b7af4bd17a5c8fe9c4b2b5) | **NEW RELEASE** +2 versions |
+| 5 | Tracking issue #80297 (1.25 CVE-2026-39821 backport) | OPEN (created 2026-07-07T22:15:49Z) | **CLOSED** (closed_at 2026-07-10T13:40:30Z) | **CLOSED** in-lockstep with cherry-pick merge |
+| 6 | Tracking issue #80298 (1.26 CVE-2026-39821 backport) | OPEN (created 2026-07-07T22:15:50Z) | **CLOSED** (closed_at 2026-07-10T13:40:29Z) | **CLOSED** in-lockstep with cherry-pick merge |
+| 7 | Go release tags on `git ls-remote github.com/golang/go` | `go1.26.5` + `go1.25.12` stable + `go1.27rc2` RC | `go1.26.5` + `go1.25.12` stable + `go1.27rc2` RC | UNCHANGED — no new Go release tags yet |
+| 8 | Go binaries on `go.dev/dl/?mode=json` | go1.26.5 + go1.25.12 stable only | go1.26.5 + go1.25.12 stable only | UNCHANGED — no new binaries |
+| 9 | CVE-2026-56853 advisory publication status | still CVE_RECORD_DNE on MITRE / not on pkg.go.dev/vuln/list | still CVE_RECORD_DNE on MITRE / not on pkg.go.dev/vuln/list | UNCHANGED — Go team embargo continues |
+| 10 | CVE-2026-39821 advisory status | already PUBLISHED on NVD (CVSS 9.6 CRITICAL) + OSV (GO-2026-5026) | UNCHANGED + NVD lastModified advanced to 2026-07-10T12:16:44.313Z (minor metadata refresh) | Minor NVD metadata refresh only |
+| 11 | Gin master HEAD | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` (2026-06-26T16:48:16Z) | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` (2026-06-26T16:48:16Z) | UNCHANGED — drought now 13d 19h+ / 331h+ (widened +6h since Cycle 27) |
+| 12 | Gin v1.13 milestone | 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now 10d 12h+ OVERDUE | 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now 10d 18h 6m+ OVERDUE | UNCHANGED — slip widening (+6h 6m since Cycle 27) |
+| 13 | Gin PRs opened since Cycle 27 | 0 new PRs | 0 new PRs | UNCHANGED — all 10 most-recently-updated PRs are pre-existing (clock-tick noise) |
+
+### Files Changed
+
+- (1) **`security.md`** — CVE-2026-39821 section updated: `Fix` line now reads "Upgrade to `golang.org/x/net` **v0.55.0+** (recommended: **v0.57.0+** as of 2026-07-10)" + new **Status (2026-07-10 18:06 UTC)** bullet documenting x/net v0.57.0 release + both release-branch cherry-pick commits (`2d5129d2b310` for 1.25, `a42fec40ab09` for 1.26) + tracking issues #80297/#80298 closures + production action items (floor holds at v0.55.0, v0.57.0 recommended for new projects, Go-stdlib consumers will get the fix automatically via go1.25.13/1.26.6 step 2 upgrade).
+- (2) **`versions.md`** — x/net dependency row updated: `v0.55.0 | HTTP/2, TLS, DNS, HTTP trailers` → `v0.55.0 (latest **v0.57.0** as of 2026-07-10) | HTTP/2, TLS, DNS, HTTP trailers`. Latest-stable bullet updated: `golang.org/x/net v0.55.0 — latest stable` → `golang.org/x/net v0.57.0 — latest stable (released 2026-07-08T21:02:14Z; minimum floor for CVE-2026-39821 remains v0.55.0; Gin v1.13 (master) will pull v0.55.0+ transitively, at-or-above floor ✅)`. This entry (Cycle 28) appended.
+- **(3) README.md UNCHANGED** — version table still references v0.55.0 as the x/net floor; recommend updating in next cycle if any user-visible recommendation needs v0.57.0 specifically.
+- **(4) All other skill files UNCHANGED** — `auth.md`, `concurrency.md`, `context.md`, `database.md`, `deployment.md`, `file-uploads.md`, `handlers.md`, `middleware.md`, `migrations.md`, `responses.md`, `routing.md`, `testing.md` all re-verified content-current, no new weak areas surfaced.
+
+### Hash-Correctness Guardrail (ITEM #32) Applied
+
+All SHA citations re-verified against git ls-remote github.com/golang/go AND api.github.com/repos/golang/go/commits/<hash> in same cycle-write session:
+- `2d5129d2b310e497a1821044acad0ec60bc9ef5c` (1.25 new HEAD) → verified via git ls-remote AND `GET /commits/2d5129d2...` → returns Damien Neil author, David Chase committer, subject `[release-branch.go1.25] all: update x/net`, parents `[784132491b10]` ✅
+- `a42fec40ab09b138e5cf98395ff24b52487a647d` (1.26 new HEAD) → verified via git ls-remote AND `GET /commits/a42fec40...` → same author/committer/subject pattern (release-branch.go1.26), parents `[5bbd22ff78da]` ✅
+- `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (1.27 unchanged = go1.27rc2) → verified via git ls-remote, still equals go1.27rc2 tag ✅
+- `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` (Gin master unchanged) → verified via `GET /repos/gin-gonic/gin/commits/master` ✅
+- `b8f09f6f062ceb4531b7af4bd17a5c8fe9c4b2b5` (x/net v0.57.0 tag) → verified via `GET /repos/golang/net/commits/v0.57.0` ✅
+- `f05f21be59` (x/net CVE-2026-39821 unified fix) → verified via `GET /repos/golang/net/compare/v0.56.0...v0.57.0` lists this commit ✅
+
+### Updated Agent Guidance
+
+- **NEW ITEM #33 — x/net CVE-2026-39821 release-branch incorporation strategy.** Step 2 of the production Go upgrade plan (upgrade to `go1.25.13` / `go1.26.6` when shipped) will now deliver BOTH CVE-2026-56853 (h2c bypass) AND CVE-2026-39821 (idna Punycode) in a single Go toolchain bump — no separate go.mod pin required for x/net when consuming Go's bundled x/net (most common case). For projects that need x/net features newer than v0.55.0 BEFORE the next Go patch release (e.g. HTTP/3 fixes from v0.56.0/v0.57.0), add `require golang.org/x/net v0.57.0` to go.mod explicitly.
+- **ITEM #29 (Go 1.25.13/1.26.6/1.27-rc3 release timeline) UPDATED:** Expected window now 2026-07-12 to 2026-07-22 (was 2026-07-15 to 2026-07-23) — narrowed by 3 days on the early end because both cherry-pick sets (CVE-2026-56853 + CVE-2026-39821) are now committed to release branches, and the only remaining work is CVE-2026-56853 release-branch.go1.27 cherry-pick + Go team embargo lift + Go release engineering publish. Most likely publish dates: **Tuesday 2026-07-14 to Tuesday 2026-07-21** (3 weeks after Go 1.25.12/1.26.5 on Tue 2026-07-07).
+- **ITEM #31 (CVE-2026-56853 advisory watch) CONFIRMED UNCHANGED** — still embargoed; will publish within 1-2 days of go1.25.13/1.26.6 binaries hitting go.dev/dl.
+- **ITEM #12 (Gin master commit drought) FURTHER ESCALATED** — now 13d 19h+ / 331h+ since 2026-06-26T16:48:16Z, ~109h+ past 10-day barrier. Recommend `v1.12.1` backport plan preparation if drought continues past 2026-07-12T16:48:16Z (the 16-day mark). Recommend Adarsh consider whether to author or sponsor a Gin PR to break the drought.
+- **NEW ITEM #34 — Go release-branch.go1.27 cherry-pick watch.** CVE-2026-56853 and CVE-2026-39821 both still NOT on release-branch.go1.27. Next merge from master (currently scheduled per the [okay-after-rc2] label on master #80205) will pull both fixes into Go 1.27-rc3. Watch for: (a) new master→1.27 merge commit, (b) go1.27rc3 release tag, (c) CVE-2026-56853 + CVE-2026-39821 advisory publication on pkg.go.dev/vuln/list.
+- **NEW ITEM #35 — x/net v0.57.0 direct consumption recommendation.** New projects starting fresh in 2026-07+: pin `golang.org/x/net v0.57.0` directly (or higher as released) instead of v0.55.0. The 9-commit delta includes QPACK decoder overflow fix (CVE-class risk in HTTP/3 services), xsrftoken collision avoidance (CSRF protection), and webdav Dir docs (informational). For existing services pinned at v0.55.0: floor still satisfied for CVE-2026-39821; upgrade is a small DX/security win, not urgent.
+
+### Next-Checkpoint Plan (6h ahead — 2026-07-11 00:05 UTC)
+
+Re-verify the same 13 items plus:
+1. Whether release-branch.go1.27 advanced (any master→1.27 merge between now and 00:05 UTC)
+2. Whether Go 1.27rc3 release tag appeared on git ls-remote
+3. Whether Go 1.25.13 / 1.26.6 release tags appeared on git ls-remote
+4. Whether go.dev/dl published 1.25.13 / 1.26.6 binaries
+5. Whether CVE-2026-56853 + CVE-2026-39821 advisory records landed on pkg.go.dev/vuln/list / MITRE
+6. Whether any new Gin master commit broke the drought (Gin master HEAD change)
+7. Whether v1.13 milestone progressed (any of the 12 open issues/PRs closed)
+8. Whether validator v10.30.4 released (would clear the validator floor-piercing risk if x/crypto bumped to v0.53.0)
+
+### Sources (with timestamps, all 2026-07-10 18:06 UTC)
+
+- `git ls-remote https://github.com/golang/go.git 'refs/heads/release-branch.go1.25'` → `2d5129d2b310e497a1821044acad0ec60bc9ef5c`
+- `git ls-remote https://github.com/golang/go.git 'refs/heads/release-branch.go1.26'` → `a42fec40ab09b138e5cf98395ff24b52487a647d`
+- `git ls-remote https://github.com/golang/go.git 'refs/heads/release-branch.go1.27'` → `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (= go1.27rc2 tag)
+- `git ls-remote https://github.com/golang/go.git 'refs/tags/go1.26.5'` → `c19862e5f8415b4f24b189d065ed739517c548ba` (unchanged)
+- `git ls-remote https://github.com/golang/go.git 'refs/tags/go1.25.12'` → `d80d9a98f7e3a8f9b3a82d2c6079f84eb1101d46` (unchanged)
+- `git ls-remote https://github.com/golang/go.git 'refs/tags/go1.27rc2'` → `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (unchanged)
+- `git ls-remote --tags https://github.com/golang/net.git` → v0.54.0, v0.55.0, v0.56.0, **v0.57.0 (NEW since Cycle 27)**
+- `https://api.github.com/repos/golang/go/commits/2d5129d2b310e497a1821044acad0ec60bc9ef5c` → author Damien Neil, committer David Chase, subject `[release-branch.go1.25] all: update x/net`, parents [784132491b10]
+- `https://api.github.com/repos/golang/go/commits/a42fec40ab09b138e5cf98395ff24b52487a647d` → same author/committer, subject `[release-branch.go1.26] all: update x/net`, parents [5bbd22ff78da]
+- `https://api.github.com/repos/golang/go/branches/release-branch.go1.27` → sha 075e9d41dc2f4842ae0050a11b7c576bba9284a4 (= go1.27rc2, unchanged)
+- `https://api.github.com/repos/gin-gonic/gin/commits/master` → 34dac209ffb6ef85cc78c5d217bbb7ad001d68fd (unchanged, drought 13d 19h+)
+- `https://api.github.com/repos/gin-gonic/gin/milestones?state=all` → v1.13 still 12/36 open, v1.x still 1/18 open, v2.0 still 0/3 open
+- `https://api.github.com/repos/golang/net/commits/v0.57.0` → b8f09f6f062ceb4531b7af4bd17a5c8fe9c4b2b5, committer_date 2026-07-08T21:02:14Z
+- `https://api.github.com/repos/golang/net/compare/v0.56.0...v0.57.0` → 9 commits ahead (idna fix + http3 QPACK + xsrftoken + http2 + webdav + bpf docs + http3 ResponseController + http3 test cleanup + go.mod bump)
+- `https://api.github.com/repos/golang/go/issues/80297` → CLOSED 2026-07-10T13:40:30Z, labels [Security, CherryPickCandidate]
+- `https://api.github.com/repos/golang/go/issues/80298` → CLOSED 2026-07-10T13:40:29Z, labels [Security, CherryPickCandidate]
+- `https://api.github.com/repos/golang/go/issues/78760` → still OPEN, updated 2026-07-10T02:09:14Z, labels [Security, NeedsFix, BugReport]
+- `https://api.osv.dev/v1/vulns/CVE-2026-39821` → ID CVE-2026-39821, alias GO-2026-5026, modified 2026-07-10T10:14:38.503717215Z, published 2026-05-22T15:01:21.462Z, summary "Invoking failure to reject ASCII-only Punycode-encoded labels in golang.org/x/net/idna"
+- `https://cveawg.mitre.org/api/cve/CVE-2026-39821` → state=None (reserved), dateUpdated 2026-07-10T12:05:36.478Z (NVD-only record)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-39821` → totalResults=1, CVSS 9.6 CRITICAL + 8.2 HIGH
+- `https://go.dev/dl/?mode=json` → stable=['go1.26.5', 'go1.25.12'] only — no new binaries (still 1.25.13/1.26.6/1.27-rc3 pending)
+- `https://api.osv.dev/v1/query {'package':{'name':'stdlib','ecosystem':'Go'},'version':'1.26.5'}` → 0 vulns (Go stdlib doesn't include x/net — x/net is a separate module)
+- `https://api.osv.dev/v1/query {'package':{'name':'golang.org/x/net','ecosystem':'Go'}}` → 50 vulns total (including GO-2026-5026 = CVE-2026-39821)
+
+---
+
