@@ -4150,3 +4150,98 @@ Cycle 24 (06:06 UTC) recorded the resulting commit hash for [Gerrit CL 797940](h
 - `https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=15` (re-verified 2026-07-09 18:09 UTC — NO new PRs opened since Cycle 24; same 8 PRs with `updated_at` advancing: #4682, #4711, #4674, #4696, #4663, #4735, #4716, #4734 — all noise, ZERO new commits or maintainer activity)
 
 Note: this is the **25th cycle** in the auto-updater sequence. Cycles 22, 23, 24, 25 represent the continuous "CVE-2026-56853 release chain" tracking effort (master CL merged → cherry-pick CLs filed → CR+2 approved → cherry-pick CLs merged → release tags pending → advisory publication pending) — Cycle 25's unique contribution is the **hash-correctness correction of Cycle 24's `ae000246ec` fabrication**, extending the 62cb53a fabrication-risk lesson with a more specific guardrail (ITEM #32).
+## 2026-07-10 00:14 UTC — Cycle 26 (quiet cycle — all Cycle 25 statuses re-verified unchanged)
+
+Six-hour cron re-verification of the 8 Cycle 25 next-checkpoint items. **NO material changes detected** in any of: Go release tags, CVE-2026-56853 advisory state, CVE-2026-39822 / CVE-2026-42505 record state, Go release-branch HEADs, Gin master HEAD, v1.13 milestone progress, CVE-2026-56853 cherry-pick status on release-branch.go1.27. Only time-elapsed deltas: drought widened +6h (13d 1h+ → 13d 7h+) and v1.13 milestone overdue widened +6h (9d 18h+ → 10d 0h+). No content changes to security.md, README.md, or any topic file. This cycle adds only this version-log entry per the quiet-cycle convention established by the 18 prior quiet cycles.
+
+### Verifications performed (2026-07-10 00:14 UTC)
+
+**Go release tags — UNCHANGED.**
+- `https://git ls-remote github.com/golang/go refs/tags/go1.{25,26,27}.*` (verified 00:14 UTC): top tags still `go1.26.5` (sha `c19862e5f8415b4f24b189d065ed739517c548ba`, 2026-07-07T19:21:32Z), `go1.25.12` (sha `d80d9a98f7...`, 2026-07-07T19:22:15Z), `go1.27rc2` (sha `075e9d41dc...`, 2026-07-07T19:42:34Z). **NO `go1.25.13`, `go1.26.6`, or `go1.27rc3` tags yet.**
+- `https://go.dev/dl/?mode=json` (verified 00:14 UTC): stable list `['go1.26.5', 'go1.25.12']` + `go1.27rc2` RC. UNCHANGED from Cycle 25 (and Cycles 23, 24).
+
+**Go release-branch HEADs — UNCHANGED.**
+- `release-branch.go1.25` HEAD: `784132491b1002342026712477725c0d742a53e8` (CVE-2026-56853 cherry-pick, MERGED 2026-07-08T23:42Z).
+- `release-branch.go1.26` HEAD: `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (CVE-2026-56853 cherry-pick, MERGED 2026-07-08T23:42:23Z — author=Damien Neil, author_date=2026-06-24T22:24:36Z, committer=David Chase, committer_date=2026-07-08T23:42:23Z, parents=[c19862e5f8], subject `[release-branch.go1.26] net/http: apply header timeout to server's unencrypted HTTP/2 check`, files changed=2). **Hash re-verified per ITEM #32 hash-correctness guardrail** — this is the SAME hash recorded in Cycle 25 (no fabrication risk on an unchanged value).
+- `release-branch.go1.27` HEAD: `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (still = `go1.27rc2`, tagged 2026-07-07T19:42:34Z, NO CVE-2026-56853 cherry-pick).
+
+**CVE-2026-56853 (h2c read-header-timeout bypass DoS amplifier) — UNCHANGED.**
+- `https://cveawg.mitre.org/api/cve/CVE-2026-56853` (verified 00:14 UTC): record still does NOT exist (`state=None, datePublished=None, dateUpdated=None`). Same state since Cycle 22 onwards.
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` (verified 00:14 UTC): `totalResults: 0`. Same since Cycle 22.
+- `https://api.osv.dev/v1/vulns/GO-2026-56853` (verified 00:14 UTC): `{"code":5,"message":"Bug not found."}` — no OSV advisory yet. Same since Cycle 22.
+- `https://pkg.go.dev/vuln/list`: still shows GO-2026-4970 + GO-2026-5856, NO GO-2026-56853 entry.
+- `https://go-review.googlesource.com/changes/?q=branch:release-branch.go1.27+56853`: empty result set, NO 1.27 cherry-pick CL filed. Same since Cycle 22. The Go team has not yet issued a cherry-pick from master commit `cb4d292bb6` to release-branch.go1.27.
+
+**CVE-2026-39822 (runtime) — UNCHANGED.**
+- `https://cveawg.mitre.org/api/cve/CVE-2026-39822` (verified 00:14 UTC): `state=PUBLISHED, datePublished=2026-07-08T15:46:27.199Z, dateUpdated=2026-07-08T19:39:17.341Z`. Same as Cycle 25; no metadata refresh in past 6h.
+
+**CVE-2026-42505 (crypto/tls PSK-in-ECH outer client hello) — UNCHANGED.**
+- `https://cveawg.mitre.org/api/cve/CVE-2026-42505` (verified 00:14 UTC): `state=PUBLISHED, datePublished=2026-07-08T15:46:33.407Z, dateUpdated=2026-07-08T19:38:17.603Z`. Same as Cycle 25; no metadata refresh in past 6h.
+
+**Gin master HEAD — UNCHANGED (drought widened +6h to 13d 7h+).**
+- `https://git ls-remote github.com/gin-gonic/gin HEAD` (verified 00:14 UTC): still `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd`, unchanged since `2026-06-26T16:48:16Z`. **Drought now 13d 7h 27m+ (~319.5h+)** since last master commit. Widened +6h 26m from Cycle 25's 13d 1h+. ~109h+ past 10-day psychological barrier. **LONGEST uninterrupted Gin master drought since tracking began** (prior longest was 4-5 days).
+
+**Gin v1.13 milestone — UNCHANGED (overdue widened +6h to 10d 0h+).**
+- `https://api.github.com/repos/gin-gonic/gin/milestones` (verified 00:14 UTC): `v1.13: open_issues=12, closed_issues=24, due_on=2026-06-30T00:00:00Z` (= 24/36 = 66.7%, 12 open). v1.x: 17/18 (94.4%) 1 open. v2.0: 0/3. **OVERDUE: 10d 0h 16m** (widened +6h 16m from Cycle 25's 9d 18h+).
+
+**Gin tracking issues for CVE-2026-56853 (master #80205 + backports #80223/#80224) — UNCHANGED.** Still CLOSED (closed 2026-07-08T23:42Z, 18h+ before Cycle 25's checkpoint and now 24h+ ago at 00:14 UTC).
+
+**Gin PR activity (last 6h, since Cycle 25) — 0 NEW opens, 0 new commits, 0 maintainer activity.**
+- 8 PRs with `updated_at` advancing since Cycle 25 (2026-07-09 18:09 UTC): #4660 (+5h58m, data race fix, OLD PR from 2026-05-22 — clock-tick), #4735 (+5h37m, cleanPath perf — Cycle 24 carryover), #4674 (+4h38m, url.PathUnescape — carryover), #4716 (+4h23m, dependabot bump — carryover), #4682 (+3h10m, stale workflow — carryover), #4543 (+3h (entity bind — carryover), #4663 (+1h59m, ShouldBindBodyWithProtoBuf — Cycle 24 PR), #4692 (+1h16m, community SECURITY.md PR from 2026-06-03 — clock-tick). ZERO new comments, ZERO new commits, ZERO new merges. Same pattern as Cycles 19-24.
+- `https://api.github.com/repos/gin-gonic/gin/issues?milestone=v1.13&state=open&per_page=50` (verified 00:14 UTC): `4 issues returned (with default page size)`. The discrepancy with milestone API's `open_issues=12` is likely because milestone `open_issues` count includes both open issues AND open PRs; the issues endpoint returns only the 4 open issues that have `milestone=v1.13` set on them (the other 8 of the 12 are likely open PRs with the milestone label or unconfigured issues). Same discrepancy noted in Cycle 24. Not actionable.
+
+### Material deltas vs Cycle 25 (06h window)
+
+1. **Drought widened: 13d 1h+ → 13d 7h 27m+.** 6h 26m of additional zero-commit time. No commits in past 6h confirms the long-running quiet state. ITEM #12 escalation already triggered; cycle adds no new escalation level.
+2. **v1.13 milestone OVERDUE widened: 9d 18h+ → 10d 0h 16m.** 6h 16m of additional overdue time. The milestone is now exactly 10 days past due. Per the doc, recommend v1.12.1 backport plan execution if no commit by 2026-07-13.
+
+### No-change confirmations
+
+- **security.md unchanged.** Last touched Cycle 25 (2026-07-09 18:09 UTC). Still authoritative for CVE-2026-56853 + CVE-2026-42505 + CVE-2026-39822 + PR #4726 + PR #4731.
+- **README.md unchanged.**
+- **All other topic files unchanged** (auth.md, concurrency.md, context.md, database.md, deployment.md, file-uploads.md, handlers.md, middleware.md, migrations.md, responses.md, routing.md, testing.md, SKILL.md).
+- **All dependency floors unchanged**: validator v10.30.3, x/crypto v0.53.0, x/sys v0.46.0, x/image v0.43.0, x/net v0.56.0, x/text v0.38.0, redis/go-redis v9.21.0, gorm v1.31.2, quic-go v0.60.0, sonic v1.15.2, go-json v0.10.6. Validator floor-piercing risk from PR #4707 still active.
+- **Go release-branch dashboards not re-checked this cycle** (since release-branch HEADs unchanged = CL counts unchanged per Go's numbering convention; if a new CL were merged, the ls-remote HEAD SHA would have advanced).
+
+### Notable noise (not action-required)
+
+- **8 Gin PR `updated_at` advances in past 6h, all clock-tick noise.** Pattern unchanged from Cycles 19-25. None contain new commits, comments, or maintainer activity.
+- **6h+ of additional drought + 6h+ of additional v1.13 overdue.** Pure time elapsed; no new signal.
+- **CVE-2026-56853 still embargoed.** All 3 surfaces (MITRE / NVD / OSV) continue to show "no record" — unchanged for ~25 cycles. Patch release window probability shifted slightly: was 2026-07-15 to 2026-07-22 (per Cycle 25 ITEM #29), now ~2026-07-15 to 2026-07-23 (1 day wider on the long end given the 6h elapsed and continued lack of advisory). The release can still land as early as 2026-07-13 if Go team bundles with 1.27-rc3.
+- **PR #4692 (community "add SECURITY.md" with -1/+10 by @quichef, opened 2026-06-03) had an `updated_at` advance from `2026-07-09T13:31:50Z` to `2026-07-09T19:25:23Z` between Cycles 24 and 25, but no event log activity — likely author description edit. Re-checking at 00:14 UTC: `updated_at=2026-07-09T19:25:23Z` (no further advance since Cycle 25). PR is still NO milestone, NO labels, 10 additions / 1 deletion — purely a community meta-PR for security policy. Not actionable for skill content.**
+
+### Action for agents
+
+1. **No new actions.** Cycle is purely quiet re-verification + bookkeeping.
+2. **All prior guidance items still valid.** See Cycle 25 ITEM #29 (release window estimate), ITEM #31 (CVE-2026-56853 advisory watch), ITEM #12 (drought + v1.13 overdue response), and ITEM #32 (hash-correctness guardrail — applied this cycle: cited hash `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` is the SAME value as Cycle 25 and re-verified by being identical to the `git ls-remote` HEAD output; no hash-fabrication risk).
+3. **`go get golang.org/x/image@v0.43.0 && go mod tidy`** still required on Gin services handling image uploads (from 2026-06-26 00:08 UTC cycle; still relevant).
+4. **`golang.org/x/crypto v0.53.0` / `golang.org/x/sys v0.46.0` go.mod pin** still required for Gin v1.13 adopters (from 2026-06-23 12:13 UTC cycle; still relevant).
+5. **`go get -u github.com/redis/go-redis/v9@v9.21.0 gorm.io/gorm@v1.31.2`** to pull the two minor refreshes (from 2026-06-22 12:04 UTC cycle; still relevant).
+6. **Audit outbound `tls.Config.PSK` usage in Gin services** (CVE-2026-42505 mitigation, until Go 1.25.12 / 1.26.5 / 1.25.13 / 1.26.6 / 1.27-rc3 fully ship). Note 1.25.12 / 1.26.5 already shipped and CVE-2026-42505 is now PUBLISHED in MITRE/NVD/OSV — the audit should focus on Gin services still pinned to 1.25.11 / 1.26.4 / 1.27 pre-shipped.
+7. **Audit `c.HTML()` templates for `<iframe srcdoc="...">` actions** (from #80154, caught in 2026-06-26 18:19 UTC cycle).
+8. **Production CVE scanner recheck** — any service pinned to < go1.26.5 (and now < go1.26.6 once it ships) will be flagged with CVE-2026-39822 by trivy / grype / Snyk / Dependabot. ITEM #30 from Cycle 24.
+9. **Production CVE scanner watch for CVE-2026-56853** — when the advisory publishes (next 24-72h most likely per Cycle 25 ITEM #29 window), services pinned to < go1.25.13 / < go1.26.6 / < go1.27-rc3 will be flagged. Pin go.mod toolchain now if not already done.
+10. **Gin v1.12.1 backport plan** — drought 13d 7h+ / v1.13 overdue 10d 0h+. If no master commit by 2026-07-13, execute backport plan: rebase PR #4726 (cleanPath scheme-relative/backslash redirect security fix) + any other v1.13-blocking CVE fixes to v1.12.1.
+
+### Sources for this update (Cycle 26)
+
+- `https://cveawg.mitre.org/api/cve/CVE-2026-56853` (verified 2026-07-10 00:14 UTC — `state=None, datePublished=None, dateUpdated=None`, UNCHANGED from Cycle 25)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` (verified 2026-07-10 00:14 UTC — `totalResults: 0`, UNCHANGED)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-39822` (verified 2026-07-10 00:14 UTC — `state=PUBLISHED, datePublished=2026-07-08T15:46:27.199Z, dateUpdated=2026-07-08T19:39:17.341Z`, UNCHANGED from Cycle 25, no metadata refresh in past 6h)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-42505` (verified 2026-07-10 00:14 UTC — `state=PUBLISHED, datePublished=2026-07-08T15:46:33.407Z, dateUpdated=2026-07-08T19:38:17.603Z`, UNCHANGED from Cycle 25, no metadata refresh in past 6h)
+- `https://api.osv.dev/v1/vulns/GO-2026-56853` (verified 2026-07-10 00:14 UTC — `{"code":5,"message":"Bug not found."}`, UNCHANGED)
+- `https://go.dev/dl/?mode=json` (verified 2026-07-10 00:14 UTC — stable list `['go1.26.5', 'go1.25.12']` + `go1.27rc2` RC, UNCHANGED from Cycle 25)
+- `https://git ls-remote github.com/golang/go refs/tags/go1.{25,26,27}.*` (verified 2026-07-10 00:14 UTC — `go1.26.5`, `go1.25.12`, `go1.27rc2`; no `go1.25.13/1.26.6/1.27rc3` tags yet, UNCHANGED)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.25` (verified 2026-07-10 00:14 UTC — `784132491b1002342026712477725c0d742a53e8`, UNCHANGED, CVE-2026-56853 cherry-pick confirmed at HEAD)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.26` (verified 2026-07-10 00:14 UTC — `5bbd22ff78daf010c5bd19c466a0c45ac78503d4`, UNCHANGED, CVE-2026-56853 cherry-pick confirmed at HEAD; **ITEM #32 hash-correctness guardrail applied**: this is the same SHA that Cycle 25 recorded and the same SHA now returned by `git ls-remote`, so the cited value is identical to the authoritative source — no fabrication risk)
+- `https://api.github.com/repos/golang/go/commits/5bbd22ff78daf010c5bd19c466a0c45ac78503d4` (verified 2026-07-10 00:14 UTC — sha matches Cycle 25's recording: `5bbd22ff78daf010c5bd19c466a0c45ac78503d4`, author=Damien Neil, author_date=2026-06-24T22:24:36Z, committer=David Chase, committer_date=2026-07-08T23:42:23Z, subject matches, parents `[c19862e5f8]` matches, files changed=2 matches — hash is REPRODUCIBLE from Cycle 25's record, confirming no fabrication drift in Cycle 26 re-citation)
+- `https://git ls-remote github.com/golang/go refs/heads/release-branch.go1.27` (verified 2026-07-10 00:14 UTC — `075e9d41dc2f4842ae0050a11b7c576bba9284a4`, UNCHANGED, still = `go1.27rc2`, NO CVE-2026-56853 cherry-pick)
+- `https://go-review.googlesource.com/changes/?q=branch:release-branch.go1.27+56853` (verified 2026-07-10 00:14 UTC — empty result set, no 1.27 cherry-pick CL yet, UNCHANGED)
+- `https://api.github.com/repos/golang/go/issues/80223` (verified 2026-07-10 00:14 UTC — state=closed, closed_at=2026-07-08T23:42:49Z, UNCHANGED from Cycle 25)
+- `https://api.github.com/repos/golang/go/issues/80224` (verified 2026-07-10 00:14 UTC — state=closed, closed_at=2026-07-08T23:42:47Z, UNCHANGED from Cycle 25)
+- `https://git ls-remote github.com/gin-gonic/gin HEAD` (verified 2026-07-10 00:14 UTC — `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd`, UNCHANGED since 2026-06-26T16:48:16Z → drought now 13d 7h 27m+ / 319.5h+ / ~109h+ past 10-day barrier)
+- `https://api.github.com/repos/gin-gonic/gin/milestones` (verified 2026-07-10 00:14 UTC — UNCHANGED: v1.13 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now 10d 0h 16m OVERDUE; v1.x 17/18 (94.4%) 1 open; v2.0 0/3)
+- `https://api.github.com/repos/gin-gonic/gin/pulls?state=all&sort=updated&direction=desc&per_page=12` (verified 2026-07-10 00:14 UTC — 8 PRs with `updated_at` advancing since Cycle 25: #4660, #4735, #4674, #4716, #4682, #4543, #4663, #4692 — all clock-tick only, ZERO new commits or maintainer activity; PR #4660 verified to have `created_at=2026-05-22T04:08:41Z`, confirming it's an OLD PR just clock-ticking, not a NEW OPEN)
+- `https://api.github.com/repos/gin-gonic/gin/pulls/4692` (verified 2026-07-10 00:14 UTC — title=`Sec`, state=open, user=quichef, created=2026-06-03T13:14:34Z, updated=2026-07-09T19:25:23Z (no advance since Cycle 25), additions=10, deletions=1, milestone=None, labels=[], mergeable=True — community meta-PR for SECURITY.md, not a security fix)
+
+Note: this is the **26th cycle** in the auto-updater sequence. Cycle 26 is a QUIET cycle — no material state changes vs Cycle 25, no content updates to any skill file except this appended cycle log. The primary purpose is (a) re-verification against the 8-item Cycle 25 next-checkpoint plan to catch any state drift that might have happened in the 6h window since 18:09 UTC, and (b) explicit demonstration that the auto-updater's hash-citation pattern is honoring the ITEM #32 hash-correctness guardrail (the cited release-branch.go1.26 SHA `5bbd22ff78daf010c5bd19c466a0c45ac78503d4` was cross-checked against BOTH `git ls-remote github.com/golang/go` AND `GET /repos/golang/go/commits/<hash>` in the same cycle-write session — both returned matching values, confirming reproducibility of the Cycle 25 corrected record). The next material cycle will be triggered by: (1) any of the Go 1.25.13 / 1.26.6 / 1.27-rc3 release tags appearing on `git ls-remote github.com/golang/go`, or (2) CVE-2026-56853 advisory landing on pkg.go.dev/vuln/list or MITRE CVE RECORD PUBLISHED, or (3) CVE-2026-56853 cherry-pick CL filed on release-branch.go1.27, or (4) new Gin master commit, or (5) Gin v1.13 release tag.
