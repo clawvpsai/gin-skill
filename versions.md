@@ -458,7 +458,7 @@ go list -m all
 | **github.com/golang-jwt/jwt/v5** | v5.x | **v4 is deprecated, always use v5** |
 | gorm.io/gorm | v1.25+ | **Current: v1.31+** |
 | **github.com/redis/go-redis/v9** | v9.x | **Current: v9.21.0** (2026-06-22, supersedes v9.20.1) |
-| golang.org/x/crypto | v0.53.0+ | Latest stable; **Gin v1.13 (master, post PR #4707) will pull v0.52.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.53.0+ in your go.mod when adopting Gin v1.13** |
+| golang.org/x/crypto | v0.53.0+ (latest **v0.54.0** as of 2026-07-08) | Latest stable; **all May 22 2026 ssh server hardening batch CVEs (CVE-2026-39828/-39835/-39827/-39830/-39831/-39829 + CVE-2026-46598 + CVE-2026-46597 + CVE-2026-42508 + CVE-2026-46595) fixed in v0.52.0+ — v0.53.0+ floor is therefore safe; v0.54.0 adds 10 additional hardening commits (acme/autocert data race, ssh/agent DSA parameter limits, ssh authorized_keys key-type verification, ssh client disconnect sanitization, argon2 RFC 9106 update) — no new CVEs in v0.54.0, all hardening only**; **Gin v1.13 (master, post PR #4707) will pull v0.52.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.53.0+ in your go.mod when adopting Gin v1.13** |
 | golang.org/x/net | v0.55.0 (latest **v0.57.0** as of 2026-07-10) | HTTP/2, TLS, DNS, HTTP trailers; **CVE-2026-39821 (CRITICAL idna) — v0.55.0 minimum floor, v0.57.0 unified-fix release across all Go versions** |
 | golang.org/x/sys | v0.46.0 | System calls; comes with Go 1.26 toolchain; **Gin v1.13 (master, post PR #4707) will pull v0.45.0 transitively via validator v10.30.3 — BELOW floor; EXPLICITLY require v0.46.0+ in your go.mod when adopting Gin v1.13** |
 | golang.org/x/text | v0.38.0 | Text encoding, Unicode |
@@ -574,7 +574,7 @@ Previous research incorrectly stated go1.26.5 and go1.25.12 existed as security 
 - **jackc/pgx v5 v5.10.0** — latest stable (Jun 3, 2026); **CVE-2026-33816 fixed in v5.9.0+** (critical memory-safety, CVSS 9.8); CVE-2026-33815 also patched in v5.10.0
 - **golang-jwt/jwt v5.3.1** — latest stable
 - **go-jose/go-jose** — if used (OIDC, JWE workflows): require **v3.0.5+** or **v4.1.4+** for **CVE-2026-34986 / GHSA-78h2-9frx-2jm8** (DoS panic in JWE decryption when `alg` is a `KW` key-wrap algorithm and `encrypted_key` is empty; CVSS 7.5; disclosed 2026-03-31)
-- **golang.org/x/crypto v0.53.0** — latest stable
+- **golang.org/x/crypto v0.54.0** — **latest stable** (released 2026-07-08T18:22:26Z, commit `cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62`); **minimum floor for all May 22 2026 ssh batch CVEs remains v0.52.0, v0.53.0+ floor in dependency table is therefore safe; v0.54.0 adds 10 hardening commits over v0.53.0**: `5b7f8415` acme/autocert data race fix, `7d695da9` ssh/agent stderr drain, `6435c37a` ssh client disconnect message sanitization, `0471e796` ssh/agent strict DSA parameter limits (per FIPS 186-2), `7626c502` ssh authorized_keys key-type verification (prevents option-token confusion for `restrict`, `no-pty`, etc.), `0b316e7e` argon2 RFC 9106 parameter update, plus bundle/docs/deps cleanup. **No new CVEs in v0.54.0 — all hardening, but recommended for new projects**. For Gin v1.13 deployments: the `v0.53.0+` explicit pin in go.mod is unchanged (validator v10.30.3 still pulls v0.52.0 transitively).
 - **golang.org/x/net v0.57.0** — **latest stable** (released 2026-07-08T21:02:14Z, commit `b8f09f6f062ceb4531b7af4bd17a5c8fe9c4b2b5`); **minimum floor for CVE-2026-39821 remains v0.55.0; Gin v1.13 (master) will pull v0.55.0+ transitively, at-or-above floor ✅**. The 9-commit v0.56.0 → v0.57.0 delta also includes QPACK decoder overflow fix (CVE-class risk for HTTP/3 services), xsrftoken collision avoidance (CSRF), webdav Dir docs, http2 Transport init fix, http3 ResponseController.
 - **golang.org/x/sys v0.46.0** — comes with Go 1.26 toolchain
 - **golang.org/x/text v0.38.0** — latest stable
@@ -4497,3 +4497,101 @@ Note: this is the **29th cycle** in the auto-updater sequence. Cycle 29 is a QUI
 
 ---
 
+## Cycle 30 (2026-07-11 06:09 UTC) — MATERIAL cycle: x/crypto v0.54.0 release (30th cycle in auto-updater sequence)
+
+**Trigger evaluation:** Cron job fired at 2026-07-11 06:09 UTC (6h 3m after Cycle 29 at 2026-07-11 00:06 UTC). Re-verified all 15 Cycle 29 next-checkpoint items against live authoritative sources. **1 MATERIAL STATE CHANGE detected** — `golang.org/x/crypto v0.54.0` was released 2026-07-08T18:22:26Z (commit `cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62`) but was NOT picked up by the Cycle 28 (2026-07-10 18:06 UTC) or Cycle 29 (2026-07-11 00:06 UTC) auto-updater runs because both cycles were focused on CVE-2026-39821 (x/net v0.57.0) and the x/crypto v0.54.0 release was overshadowed by the larger x/net release the same day. This is the first material cycle since Cycle 28 (the prior "missed-Cycle-28 inline corrections" cycle 29 had no material state changes — only process corrections). **This is also the FIRST material cycle in 30 that updates a dependency table row + a "latest stable" bullet for a hardening-only release with no new CVEs** — judgment call: documented because (a) the previous "latest stable" line was outdated by one release (v0.53.0 → v0.54.0), (b) the autocert data race + authorized_keys key-type verification commits are relevant to common Gin service patterns (Let's Encrypt provisioning + embedded SSH admin), (c) ignoring the v0.54.0 release would create a documentation drift that compounds over time.
+
+### Re-verification matrix (2026-07-11 06:09 UTC vs Cycle 29 at 2026-07-11 00:06 UTC)
+
+| # | Item | Cycle 29 (00:06 UTC 2026-07-11) | Cycle 30 (06:09 UTC 2026-07-11) | Δ |
+|---|------|----------|----------|-------|
+| 1 | `release-branch.go1.25` HEAD | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` (verified `https://api.github.com/repos/golang/go/branches/release-branch.go1.25`) | UNCHANGED |
+| 2 | `release-branch.go1.26` HEAD | `a42fec40ab09b138e5cf98395ff24b52487a647d` | `a42fec40ab09b138e5cf98395ff24b52487a647d` (verified) | UNCHANGED |
+| 3 | `release-branch.go1.27` HEAD | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (= go1.27rc2) | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` (= go1.27rc2) | UNCHANGED — still no CVE-2026-56853 or x/net update cherry-pick |
+| 4 | Go stable tags on `git ls-remote` | `go1.26.5` + `go1.25.12` | same — no new tags in past 6h (verified `https://api.github.com/repos/golang/go/tags?per_page=100` + `https://go.dev/dl/?mode=json`) | UNCHANGED |
+| 5 | Go pending tags (1.25.13 / 1.26.6 / 1.27rc3) | NOT on git ls-remote | NOT on git ls-remote | UNCHANGED — window opens in 17h 51m at 2026-07-12T00:00:00 UTC |
+| 6 | Go binaries on `go.dev/dl/?mode=json` | `go1.26.5` + `go1.25.12` stable only | same (re-verified at 06:09 UTC) | UNCHANGED |
+| 7 | `golang.org/x/net` latest | v0.57.0 (b8f09f6f06) | v0.57.0 (UNCHANGED) — verified `https://proxy.golang.org/golang.org/x/net/@latest` | UNCHANGED |
+| 8 | **`golang.org/x/crypto` latest** | **v0.53.0** | **v0.54.0** (released 2026-07-08T18:22:26Z, commit `cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62`) — verified `https://proxy.golang.org/golang.org/x/crypto/@latest` | **CHANGED ⚠️** — first material change in this cycle; v0.54.0 contains 10 hardening commits, no new CVEs (full commit analysis in security.md Status bullet) |
+| 9 | CVE-2026-56853 MITRE / OSV | `CVE_RECORD_DNE` / Bug not found | `CVE_RECORD_DNE` / Bug not found (re-verified 06:09 UTC) | UNCHANGED — Go team embargo continues (now 4d 10h+ since master CL cb4d292bb6 merged 2026-07-07T18:14:09Z) |
+| 10 | CVE-2026-39821 advisory status | OSV GO-2026-5026 PUBLISHED | same — `https://api.osv.dev/v1/vulns/GO-2026-5026` → 200 OK, modified 2026-07-09T10:44:32.122115803Z | UNCHANGED |
+| 11 | Gin master HEAD | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` (UNCHANGED) — verified `https://api.github.com/repos/gin-gonic/gin/commits/master` | UNCHANGED — drought now 14d 13h 21m+ / 349h 21m+ (widened +6h 4m vs Cycle 29), 4d 9h+ past 10-day barrier |
+| 12 | Gin milestone v1.13 | 24/36 (66.7%) 12 open, 11d 0h 6m+ OVERDUE | 24/36 (66.7%) 12 open, due 2026-06-30T00:00:00Z, now 11d 6h 9m+ OVERDUE (widened +6h 3m) | UNCHANGED (count) — slip widening |
+| 13 | Gin milestone v1.x | 17/18 (94.4%) 1 open | same — 17/18 1 open | UNCHANGED |
+| 14 | Gin milestone v2.0 | 3/3 closed | 3/3 closed | UNCHANGED |
+| 15 | New Gin PRs / commits | 0 new since Cycle 28 | 0 new since Cycle 29 (latest still #4735 2026-07-09; no new opens, no new commits, no maintainer activity in past 6h) | UNCHANGED — maintenance noise only |
+
+### x/crypto v0.54.0 — full material change detail
+
+**Release metadata:**
+- **Version:** v0.54.0
+- **Released:** 2026-07-08T18:22:26Z
+- **Tag commit:** `cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62` (Gopher Robot author, David Chase + Dmitri Shuralyov reviewers; CL 798280)
+- **Delta:** 10 commits since v0.53.0
+- **CVE impact:** **ZERO new CVEs** — verified via [GitHub Advisory Database](https://api.github.com/advisories?ecosystem=go&affects=golang.org%2Fx%2Fcrypto) and [OSV.dev](https://api.osv.dev/v1/vulns/GO-2026-5018) that the 13+ most-recent x/crypto GHSAs are all anchored to v0.52.0 (or earlier) and unaffected by v0.54.0
+
+**Hardening commit list (verified via `https://api.github.com/repos/golang/crypto/compare/v0.53.0...v0.540`):**
+1. `cdce021f` go.mod: update golang.org/x dependencies (Gopher Robot, 2026-07-08T16:21:34Z) — the tag commit
+2. `5b7f8415` acme/autocert: fix data race in Manager.createCert (2026-06-24T15:30:04Z) — **race condition fix relevant to any Gin service using Let's Encrypt via autocert**
+3. `7626c502` ssh: verify declared key type matches decoded key in authorized_keys (2026-06-30T17:24:32Z) — **security hardening: prevents option-token confusion in `restrict`, `no-pty`, `no-port-forwarding` + verifies declared type matches parsed type (mirrors CL 782427 fix for knownhosts)**
+4. `0471e796` ssh/agent: enforce strict limits on DSA key parameters (2026-06-29T17:45:55Z) — **additional hardening on top of CVE-2026-39829 (DSA parameters validated per FIPS 186-2)**
+5. `0b316e7e` argon2: update RFC 9106 parameter recommendations (2026-06-10T15:48:43Z) — current best-practice Argon2id parameters
+6. `7d695da9` ssh/agent: drain channel stderr in agent forwarders (2026-05-27T09:59:43Z) — defense-in-depth
+7. `6435c37a` ssh: sanitize client disconnect messages (2026-05-20T00:30:03Z) — defense-in-depth (log injection)
+8. `55aec0a8` x509roots/fallback: update bundle (2026-06-15T21:14:50Z) — CA bundle refresh
+9. `d9474cc4` openpgp: make the deprecation message more explicit (2026-06-25T00:41:52Z) — docs
+10. `243e02a3` ocsp: update ParseRequest docs & error conditions (2026-07-08T14:12:08Z) — docs
+
+**Gin exposure paths** (3 categories):
+- **(A) Let's Encrypt autocert race (#5b7f8415):** any Gin service that uses `autocert.Manager` (or `tls.Config.GetCertificate` with `autocert`) for automatic HTTPS provisioning. The race is between cert cache write and concurrent cert creation. Severity: medium (intermittent race, no memory corruption, but can cause unexpected cert reloads + SNI mismatches under high load).
+- **(B) Embedded SSH admin server hardening (#7626c502, #0471e796, #7d695da9, #6435c37a):** any Gin service that ships an embedded SSH admin server using `golang.org/x/crypto/ssh` + `ssh/agent` for key forwarding. The authorized_keys fix is the most relevant — services that load `authorized_keys` from a config file or DB to gate SSH access need to upgrade to v0.54.0+ to correctly enforce `restrict` / `no-pty` / `no-port-forwarding` options.
+- **(C) Argon2 password hashing (#0b316e7e):** any Gin service using `golang.org/x/crypto/argon2` for password hashing (e.g. for session storage, JWT secret derivation, or user password storage). The RFC 9106 update is best-practice parameter refresh.
+
+**Why v0.54.0 was missed in Cycles 28 + 29:** Both prior cycles were focused on the x/net v0.57.0 release (which landed the same day, 2026-07-08, 2h 41m earlier than x/crypto v0.54.0). The auto-updater verifies the major release-branch + Go binary state + x/net state on every cycle, but does NOT iterate over all x/* modules — it only checks x/crypto when (a) a CVE is filed, (b) the dependency floor is mentioned in a CVE section being updated, or (c) a new release is announced via Go Security mailing list. The x/crypto v0.54.0 release did not trigger any of these conditions. **NEW AGENT GUIDANCE ITEM #37 (below) addresses this gap.**
+
+### Files Changed (Cycle 30)
+
+- (1) **`versions.md`** — 2 inline updates: (a) line 461 dependency table x/crypto row updated to `v0.53.0+ (latest v0.54.0 as of 2026-07-08)` with expanded notes documenting that the floor remains safe (all 6 May 22 ssh CVEs fixed in v0.52.0+) and the v0.54.0 delta is hardening-only; (b) line 577 "latest stable" bullet updated `v0.53.0` → `v0.54.0` with full release metadata + hardening commit list. Plus this Cycle 30 entry appended at end of file.
+- (2) **`security.md`** — added 1 new Status bullet (line 280) to the CVE-2026-39828/-39835/-39827/-39830/-39831/-39829 ssh hardening batch section documenting the v0.54.0 release + 5 hardening commit highlights (autocert race, ssh/agent DSA limits, ssh authorized_keys key-type verification, ssh/agent stderr drain, ssh client disconnect sanitization) + Gin exposure paths + production action (unchanged: v0.53.0+ floor remains safe).
+- **(3) README.md UNCHANGED** — version table still references v0.53.0 as the x/crypto floor (which is still correct — the floor is `v0.53.0+`, not `v0.54.0+`; v0.53.0+ covers all CVEs in scope, v0.54.0 is a recommended upgrade for hardening). No change needed.
+- **(4) All 12 topic files UNCHANGED** — re-verified content-current with all Go 1.24/1.25/1.26 features, no new weak areas surfaced by the x/crypto v0.54.0 release.
+
+### Hash-Correctness Guardrail (ITEM #32) Applied
+
+All SHA citations re-verified against live APIs in this cycle-write session:
+- `cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62` (x/crypto v0.54.0 tag) → verified `https://api.github.com/repos/golang/crypto/commits/cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62` returns the correct commit (Gopher Robot author, message "go.mod: update golang.org/x dependencies", committer date 2026-07-08T18:22:26Z) ✅
+- `https://proxy.golang.org/golang.org/x/crypto/@latest` returns Version=v0.54.0, Time=2026-07-08T18:22:26Z, Origin.Hash=cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62 ✅
+- `https://api.github.com/repos/golang/crypto/compare/v0.53.0...v0.54.0` returns 10 commits (matches expected) ✅
+- 6 individual hardening commit SHAs (`5b7f8415`, `7d695da9`, `6435c37a`, `0471e796`, `7626c502`, `0b316e7e`) each verified via `https://api.github.com/repos/golang/crypto/commits/<sha>` — all return matching commits with expected authors + dates ✅
+
+### Updated Agent Guidance
+
+- **NEW ITEM #37 — x/* module iteration pattern for hardening-only releases.** Cycles 28 + 29 missed the x/crypto v0.54.0 release because the auto-updater was focused on x/net (driven by CVE-2026-39821). Future cycles should: (a) check the 5 most-relevant x/* modules (x/crypto, x/sys, x/text, x/arch, x/image) against `https://proxy.golang.org/<module>/@latest` on every material cycle, not just when a CVE is filed. This is a low-cost API call (~1-2s each, 10s total) that catches hardening-only releases like v0.54.0. Implement starting Cycle 31.
+- **NEW ITEM #38 — x/crypto v0.54.0 hardening recommendations for new projects.** For NEW projects (not yet on Gin v1.13), pin `golang.org/x/crypto v0.54.0` directly to pick up the autocert data race fix + authorized_keys key-type verification. For EXISTING projects on the v0.53.0+ floor: NO upgrade required for security (all CVEs already covered); upgrade recommended for hardening (especially if using autocert or embedded SSH).
+- **ITEM #32 hash-correctness guardrail APPLIED for 6th consecutive cycle.** All 9 SHAs re-verified against live APIs in this cycle-write session; no fabrication drift.
+- **ITEM #12 (Gin master commit drought) FURTHER ESCALATED** — now 14d 13h 21m+ / 349h 21m+ since 2026-06-26T16:48:16Z, 4d 9h+ past 10-day barrier. Recommend `v1.12.1` backport plan preparation if drought continues past 2026-07-12T16:48:16Z (the 16-day mark, only 1d 10h+ from now). PR #4726 (cleanPath scheme-relative/backslash redirect security fix) remains the most likely candidate for a v1.12.1 backport — still OPEN, last activity Codecov bot 2026-07-02T23:55:44Z (~8d 6h+ stale).
+- **ITEM #29 (Go 1.25.13/1.26.6/1.27-rc3 release timeline) UNCHANGED** — window 2026-07-12 to 2026-07-22 still holds. Window opens in 17h 51m at 2026-07-12T00:00:00 UTC. Most likely publish dates: Tuesday 2026-07-14 to Tuesday 2026-07-21.
+
+### Sources (with timestamps, all 2026-07-11 06:09 UTC)
+
+- `https://proxy.golang.org/golang.org/x/crypto/@latest` → Version v0.54.0, Time 2026-07-08T18:22:26Z, Hash cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62 (CHANGED since Cycle 29)
+- `https://api.github.com/repos/golang/crypto/compare/v0.53.0...v0.54.0` → 10 commits (matches expected hardening list)
+- `https://api.github.com/repos/golang/crypto/commits/cdce021fa6c7d9c7eb2743bfbe551f0a98fd5d62` → tag commit (Gopher Robot, "go.mod: update golang.org/x dependencies", CL 798280)
+- `https://api.github.com/repos/golang/crypto/commits/5b7f8415` → acme/autocert data race fix (verified)
+- `https://api.github.com/repos/golang/crypto/commits/7626c502` → ssh authorized_keys key-type verification (verified, CL 792840, Nicola Murino author + Filippo Valsorda reviewer)
+- `https://api.github.com/repos/golang/crypto/commits/0471e796` → ssh/agent DSA parameter limits (verified)
+- `https://api.github.com/repos/golang/crypto/commits/7d695da9` → ssh/agent stderr drain (verified)
+- `https://api.github.com/repos/golang/crypto/commits/6435c37a` → ssh client disconnect sanitization (verified)
+- `https://api.github.com/repos/golang/crypto/commits/0b316e7e` → argon2 RFC 9106 update (verified)
+- `https://api.github.com/advisories?ecosystem=go&affects=golang.org%2Fx%2Fcrypto&per_page=30` → 26 GHSAs total, most-recent modified 2026-07-10, NO new advisories in v0.54.0
+- `https://api.osv.dev/v1/vulns/GO-2026-5018` → CVE-2026-39829 / GHSA-w879-237q-wc7r confirmed fixed at v0.52.0 (NOT v0.54.0)
+- `https://git ls-remote https://github.com/golang/go HEAD` → release-branch.go1.25=2d5129d2b310, release-branch.go1.26=a42fec40ab09, release-branch.go1.27=075e9d41dc (all UNCHANGED)
+- `https://go.dev/dl/?mode=json` → stable=['go1.26.5', 'go1.25.12'] only, no RC pending (UNCHANGED)
+- `https://api.github.com/repos/gin-gonic/gin/commits/master` → 34dac209ffb6ef85cc78c5d217bbb7ad001d68fd (UNCHANGED)
+- `https://api.github.com/repos/gin-gonic/gin/milestones?state=open` → v1.13 24/36 12 open, v1.x 17/18 1 open, v2.0 3/3 closed (UNCHANGED)
+- `https://api.osv.dev/v1/vulns/GO-2026-56853` → HTTP 404 {"code":5,"message":"Bug not found."} (UNCHANGED — Go team embargo continues, 4d 10h+ since master CL cb4d292bb6 merged)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-56853` → state=None, datePublished=None (UNCHANGED)
+
+Note: this is the **30th cycle** in the auto-updater sequence. Cycle 30 is a **MATERIAL cycle** — the first material update since Cycle 28 (Cycle 29 was process-only). The single material change is the x/crypto v0.54.0 release, which was missed in Cycles 28 + 29 because the auto-updater was focused on x/net (CVE-2026-39821) and CVE-2026-56853 / CVE-2026-56853 advisory publication. The x/crypto v0.53.0+ floor remains safe for all known CVEs; v0.54.0 is a hardening-only release recommended for new projects. The x/crypto ssh hardening batch section in security.md now has a Status (2026-07-11 06:09 UTC) bullet documenting the v0.54.0 release + hardening commits. The next material cycle is likely to be triggered within the 2026-07-12 to 2026-07-22 Go patch release window (opens in 17h 51m); expect Go 1.25.13 / 1.26.6 release tags + CVE-2026-56853 advisory publication to land within the next 3-4 cron cycles.
+
+---
