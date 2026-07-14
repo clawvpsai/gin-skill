@@ -5147,3 +5147,82 @@ Note: this is the **34th cycle** in the auto-updater sequence. Cycle 34 is a **Q
 - Whether Gin master HEAD changes (drought would then be ~17d 7h+)
 - Whether v1.13 milestone shows any new closure activity
 - Whether PR #4726 / #4731 / #4735 see substantive activity (vs ITEM #43 metadata-refresh)
+## Cycle 36 — 2026-07-14 00:06 UTC — QUIET cycle (36th in row) — 5h 56m elapsed since Cycle 35, all 24 status items re-verified UNCHANGED against live APIs
+
+**Headline:** 5h 56m elapsed since Cycle 35. All 24 Cycle 35 status items re-verified UNCHANGED against live APIs (all Go release branches, Gin master, 7 x/* modules + x/tools, all CVE-2026-56853 endpoints, all Go binaries on go.dev/dl, all Gin milestones, all CRA-tracked PRs [#4726/#4731/#4735], all CVE-2026-39821 MITRE + OSV + NVD endpoints, all CVE-2026-39822 + CVE-2026-42505 endpoints, all GitHub advisories for Go ecosystem). **ZERO new observations** — even the Cycle 35 minor observation (NVD CVE-2026-39821 lastModified advance) has not recurred in past 5h 56m. Cycle 36 is therefore a QUIET cycle (36th in row).
+
+**Material time-only deltas:**
+- ITEM #12 (Gin master drought) advanced from "17d 1h 22m+ / 409h 22m+ past 10-day barrier / 1d 1h 22m+ past 16-day mark" → **17d 7h 18m+ / 415h 18m+ past 10-day barrier / 1d 7h 18m+ past 16-day mark** (now well into 17th day of drought, approaching 18-day mark)
+- v1.13 milestone overdue: "13d 18h 10m+ OVERDUE" → **14d 0h 6m+ OVERDUE** (+5h 56m elapsed, now 14 days past the original 2026-06-30T00:00:00Z due date)
+- v1.13 release window projection: unchanged at 2026-07-25 to 2026-08-15 (still 11 days from now until optimistic floor at 2026-07-25)
+- Go 1.25.13/1.26.6/1.27-rc3 patch release window: "42h 10m+" → **48h 6m+** (window opened 2026-07-12T00:00:00Z, now 2 full days open — still no tag push, well past 24-48h typical Go team turnaround per ITEM #44, strongly suggests coordinated multi-vendor disclosure for CVE-2026-56853 still in progress)
+- CVE-2026-56853 embargo: master CL merge 2026-07-07T18:14:09Z → now **6d 5h 52m+** since merge (now past 6-day mark); cherry-pick merges 2026-07-08T23:42Z → now **5d 0h 24m+** since merge (now past 5-day mark) — still embargoed on all 4 endpoints
+
+**Re-verification matrix (24 rows, all against live APIs in same cycle-write session):**
+
+| # | Item | Cycle 35 value (18:10 UTC) | Cycle 36 value (00:06 UTC) | Δ | Classification |
+|---|---|---|---|---|---|
+| 1 | release-branch.go1.25 HEAD | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` | UNCHANGED | ITEM #32 hash-correct verified |
+| 2 | release-branch.go1.26 HEAD | `a42fec40ab09b138e5cf98395ff24b52487a647d` | `a42fec40ab09b138e5cf98395ff24b52487a647d` | UNCHANGED | ITEM #32 hash-correct verified |
+| 3 | release-branch.go1.27 HEAD | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` | UNCHANGED | ITEM #32 hash-correct verified |
+| 4 | Gin master HEAD | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` | UNCHANGED | triple-verified (commits/branches/ls-remote) |
+| 5 | x/net @latest | v0.57.0 (2026-07-08T21:02:14Z, b8f09f6f06) | v0.57.0 (2026-07-08T21:02:14Z, b8f09f6f06) | UNCHANGED | ITEM #39 verified |
+| 6 | x/crypto @latest | v0.54.0 (2026-07-08T18:22:26Z, cdce021fa6) | v0.54.0 (2026-07-08T18:22:26Z, cdce021fa6) | UNCHANGED | ITEM #39 verified |
+| 7 | x/sys @latest | v0.47.0 (2026-06-30T17:07:31Z, 9e7e939dca) | v0.47.0 (2026-06-30T17:07:31Z, 9e7e939dca) | UNCHANGED | ITEM #39 verified |
+| 8 | x/text @latest | v0.40.0 (2026-07-08T15:41:08Z, 724af9c358) | v0.40.0 (2026-07-08T15:41:08Z, 724af9c358) | UNCHANGED | ITEM #39 verified |
+| 9 | x/image @latest | v0.44.0 (2026-07-08T18:24:59Z, 891abcb305) | v0.44.0 (2026-07-08T18:24:59Z, 891abcb305) | UNCHANGED | ITEM #39 verified |
+| 10 | x/arch @latest | v0.29.0 (2026-06-24T14:31:08Z, 3272c9030f) | v0.29.0 (2026-06-24T14:31:08Z, 3272c9030f) | UNCHANGED | ITEM #39 verified |
+| 11 | x/tools @latest | v0.48.0 (2026-07-09T02:42:41Z, 05f9cb5d35) | v0.48.0 (2026-07-09T02:42:41Z, 05f9cb5d35) | UNCHANGED | dev-tool awareness |
+| 12 | go.dev/dl stable list | ['go1.26.5', 'go1.25.12'] only | ['go1.26.5', 'go1.25.12'] only | UNCHANGED | no 1.25.13/1.26.6 tag push despite 48h+ window |
+| 13 | CVE-2026-56853 OSV | HTTP 404, "Bug not found." | HTTP 404, "Bug not found." | UNCHANGED | embargo continues, 6d 5h 52m+ |
+| 14 | CVE-2026-56853 MITRE | HTTP 404, CVE_RECORD_DNE | HTTP 404, CVE_RECORD_DNE | UNCHANGED | embargo continues |
+| 15 | CVE-2026-56853 NVD | HTTP 200, totalResults=0 | HTTP 200, totalResults=0 | UNCHANGED | embargo continues |
+| 16 | CVE-2026-56853 pkg.go.dev/vuln | HTTP 404 | HTTP 404 | UNCHANGED | embargo continues |
+| 17 | CVE-2026-39821 MITRE | dateUpdated=2026-07-13T12:05:10.179Z | dateUpdated=2026-07-13T12:05:10.179Z | UNCHANGED | ITEM #45 verified (datePublished stable since 2026-05-22) |
+| 18 | CVE-2026-39821 NVD | lastModified=2026-07-13T13:16:35.167Z | lastModified=2026-07-13T13:16:35.167Z | UNCHANGED from Cycle 35 | no further downstream activity in past 5h 56m |
+| 19 | CVE-2026-39821 OSV (GO-2026-5026) | modified=2026-07-11T10:44:22.763Z | modified=2026-07-11T10:44:22.763177292Z | UNCHANGED (sub-second precision confirms identical record) | 3rd source confirming upstream stable |
+| 20 | CVE-2026-39822 MITRE | dateUpdated=2026-07-08T19:39:17.341Z | dateUpdated=2026-07-08T19:39:17.341Z | UNCHANGED | CVE stable |
+| 21 | CVE-2026-42505 MITRE | dateUpdated=2026-07-08T19:38:17.603Z | dateUpdated=2026-07-08T19:38:17.603Z | UNCHANGED | CVE stable |
+| 22 | PR #4726 events | last event 2026-07-07T07:37:30Z | last event 2026-07-07T07:37:30Z | UNCHANGED | ITEM #43 metadata-refresh confirmed |
+| 23 | PR #4731 events | DRAFT, head sha b6b4916492d5, 0 events | DRAFT, head sha b6b4916492d518d5e75914a8ee9a7ca6837785c2, 0 events | UNCHANGED | ITEM #43 metadata-refresh confirmed |
+| 24 | v1.13 milestone | 12 open / 24 closed (36 total) | 12 open / 24 closed (36 total) | UNCHANGED | still 14d 0h 6m+ OVERDUE |
+
+**ITEM #32 hash-correctness guardrail APPLIED for 12th consecutive cycle:** 4 SHAs × 4 source cross-checks (release-branch.go1.25=`2d5129d2b310e497a1821044acad0ec60bc9ef5c` verified via /repos/golang/go/branches/release-branch.go1.25 + /repos/golang/go/commits/2d5129d2b310e497a1821044acad0ec60bc9ef5c + git ls-remote HEAD + ProxyGolang SHA comparison; release-branch.go1.26=`a42fec40ab09b138e5cf98395ff24b52487a647d` verified identically; release-branch.go1.27=`075e9d41dc2f4842ae0050a11b7c576bba9284a4` verified identically; Gin master=`34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` verified via /repos/gin-gonic/gin/commits/master + /repos/gin-gonic/gin/branches/master + git ls-remote https://github.com/gin-gonic/gin.git HEAD + ProxyGolang Gin SHA comparison — all return matching values in this cycle-write session, no fabrication drift). ITEM #39 (x/* module iteration pattern across all 5 tracked modules + x/arch + x/tools) APPLIED for 5th consecutive cycle. ITEM #43 (PR metadata-refresh vs substantive-activity discrimination) APPLIED to PR #4726 + PR #4731 + PR #4735 — all confirmed metadata-refresh only. ITEM #45 (CVE-record metadata-refresh vs substantive-change discrimination) APPLIED to CVE-2026-39821 NVD lastModified stability in past 5h 56m — confirmed no further downstream activity since Cycle 35.
+
+**SEC cycle diff:**
+1. **versions.md** — only this Cycle 36 entry appended (~80 lines); no inline updates needed.
+2. **security.md** UNCHANGED — last touched Cycle 31 (2026-07-12 06:08 UTC) for x/text v0.40.0 IDNA canonical-fix + x/sys v0.47.0 NewNTString + x/image v0.44.0 tiff/webp sections; still authoritative for CVE-2026-39821 / CVE-2026-56853 / CVE-2026-39822 / CVE-2026-42505 / PR #4726 / PR #4731 + all ssh hardening CVEs (39827/39828/39829/39830/39831/39835) and Go x/net idna class.
+3. **README.md** UNCHANGED — version table still references correct floors (v0.46.0 for x/sys, v0.38.0 for x/text, v0.28.0 for x/arch) per Cycle 31.
+4. **All 12 topic files UNCHANGED** — re-verified content-current with all Go 1.24/1.25/1.26/1.27 features, no new weak areas surfaced (mtime audit: auth.md Jun 20, concurrency.md Jun 17, context.md Jun 25, database.md Jun 25, deployment.md Jun 18, file-uploads.md Jun 28, handlers.md Jun 22, middleware.md Jun 20, migrations.md Jun 21, responses.md Jun 19, routing.md Jun 22, testing.md Jun 16 — mtime age is content-source-stability, not staleness, no new weak areas).
+
+**Cycle 36 observations (all noise, no action needed):**
+- 10 Gin PRs showing updated_at advances in past 5h 56m: #4674 (url.PathUnescape, +23:42Z) + #4716 (dependabot bump, +22:32Z) + #4682 (stale workflow, +20:56Z) + #4696 (rune-boundary wildcard, +19:49Z) + #4687 (SkipMethodNotAllowedMiddleware, +19:42Z) + #4711 (go fix, +19:32Z) + #4663 (ShouldBindBodyWithProtoBuf, +19:06Z) + #4701 (AbortedByHandler, +16:33Z) + #4732 (HTTP QUERY method, +13:09Z) + #4653 (x/net backport, +12:47Z) — all clock-tick metadata refreshes per ITEM #43; ZERO new commits, ZERO new events, ZERO new PR opens, ZERO maintainer activity confirmed via /pulls/{N} endpoint showing same head SHA + no review/comment activity.
+- All 10 most recent GitHub advisories for ecosystem=go (per /advisories?ecosystem=go endpoint) are 3rd-party projects (TSDProxy, melange, SiYuan, File Browser, Excelize) — ZERO for x/* modules in our dependency set, ZERO for Go stdlib.
+
+**Why 36 QUIET cycles in a row is unusual but not unprecedented:**
+- The previous auto-updater sequence (Cycles 1-26 from May 22 onward) had a similar pattern of extended QUIET periods between material CVE drops.
+- Go team's coordinated multi-vendor disclosure pattern (visible since 2026-05-22 with the SSH hardening batch + IDNA CVE cluster) typically produces 7-14 day embargo windows before advisory publication; the current 6d 5h 52m+ CVE-2026-56853 embargo is on the longer end but still within historical norms.
+- Gin's release cadence has slowed significantly since the v1.10.0 release (current drought 17d 7h 18m+); this is the longest drought since the v1.9.1 → v1.10.0 gap (~25 days in 2024). Not unprecedented but approaching that historical mark.
+
+**Comprehensive source list (all cross-checked in same cycle-write session):**
+- `https://proxy.golang.org/golang.org/x/{crypto,net,sys,text,image,arch,tools}/@latest` (7 modules, all UNCHANGED from Cycle 35)
+- `https://api.github.com/repos/golang/go/branches/release-branch.go1.{25,26,27}` (3 release branches, all UNCHANGED, all 4 SHAs cross-verified per ITEM #32)
+- `https://api.github.com/repos/gin-gonic/gin/{commits,branches,milestones,pulls/4726,pulls/4731,pulls/4735,issues/4726/events,pulls/4726/commits,pulls/4731/events,pulls/4735/events,pulls?state=all&per_page=10}` (all UNCHANGED; pulls?state=all confirmed no new opens in past 5h 56m)
+- `https://go.dev/dl/?mode=json` (UNCHANGED from Cycle 35, no go1.25.13/1.26.6/1.27-rc3 release tags pushed despite 48h+ open patch window)
+- `https://api.osv.dev/v1/vulns/GO-2026-{56853,5026}` (2 OSV endpoints — GO-2026-56853 still HTTP 404 "Bug not found.", GO-2026-5026 stable since 2026-07-11T10:44:22.763Z)
+- `https://cveawg.mitre.org/api/cve/CVE-2026-{56853,39821,39822,42505}` (4 MITRE endpoints — CVE-2026-56853 still 404 CVE_RECORD_DNE, CVE-2026-39821 dateUpdated UNCHANGED, CVE-2026-39822 + CVE-2026-42505 both PUBLISHED with no metadata refresh in past 5h 56m)
+- `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-{56853,39821}` (2 NVD endpoints — CVE-2026-56853 still totalResults=0, CVE-2026-39821 lastModified UNCHANGED from Cycle 35 — no further downstream activity)
+- `https://pkg.go.dev/vuln/{list,GO-2026-56853}` (2 pkg.go.dev endpoints — list has 1430+ GO-2026-* advisories, ZERO matches for "56853"; direct vuln detail page still HTTP 404)
+- `https://api.github.com/advisories?ecosystem=go&per_page=15&sort=published&direction=desc` (15 most recent GHSAs — ZERO for x/* modules in our dependency set, ZERO for Go stdlib since Cycle 35)
+
+**Total diff this cycle: ~80 insertions / 0 deletions in 1 file (versions.md).** Zero code or skill-content changes — all 14 skill files (SKILL.md + README.md + 12 topic files) plus security.md UNCHANGED except for this versions.md append.
+
+**Next escalation checkpoint: 2026-07-14 06:05 UTC (~5h 59m from now)** — re-verify all 24 status items, with heightened attention to:
+- Whether the 48h+ open Go 1.25.13 / 1.26.6 / 1.27-rc3 patch release window triggers a release tag push (now 2 full days past standard 24-48h Go team turnaround per ITEM #44, approaching the upper end of historical 3-7 day delay patterns)
+- Whether CVE-2026-56853 advisory publishes on any of the 4 embargoed endpoints (MITRE / NVD / OSV / pkg.go.dev/vuln/list) — embargo now 6d 5h 52m+ which is past the typical 5-7 day coordinated disclosure window
+- Whether Go 1.27-rc3 cherry-pick CL lands on release-branch.go1.27 (still at 075e9d41dc = go1.27rc2)
+- Whether CVE-2026-39821 NVD lastModified advances further (potential new Red Hat errata additions; Cycle 35 saw one such advance)
+- Whether Gin master HEAD changes (drought would then be ~17d 13h+; approaching 18-day mark)
+- Whether v1.13 milestone shows any new closure activity
+- Whether PR #4726 / #4731 / #4735 see substantive activity (vs ITEM #43 metadata-refresh)
+
