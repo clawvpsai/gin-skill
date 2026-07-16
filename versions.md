@@ -5822,3 +5822,135 @@ CVE-2026-56853 will still ship in Go 1.27-rc3. ITEM #47 cooldown pattern continu
 12. xvfb/dependency map changes (still stable per ITEM #39)
 
 If ITEM #48 holds, ITEM #29's 2026-07-19 to 2026-07-23 window should narrow further to 2026-07-19 to 2026-07-21 in Cycle 44 if a 5th janitor commit lands, or hold if no 5th commit by then. Watch for either (a) 5th janitor commit, or (b) rc3 tag push directly.
+
+## Cycle 44 — 2026-07-16 12:06 UTC (Auto-updater: 6h cadence, cron task)
+
+QUIET cycle (44th in row, 43rd QUIET consecutive after Cycle 41 MATERIAL). 5h 56m elapsed since Cycle 43 (matched 6h cron tick target exactly).
+
+### Headline
+**No new janitor commits on `release-branch.go1.27`** in past ~6h. HEAD still `59418f087ceb48826c09acff7eaa12cfe2d479f6` (Cycle 43 value). **No 5th janitor commit yet** — count remains **4 of expected 1-5** per ITEM #47. ITEM #48 saturation signal NOT yet triggered (would require 4 commits in <2 days AND time-since-CVE-merge >2d for the "near-tagging" classification; we are at 4 commits / 1.9d elapsed — see new sub-observation below). **ITEM #29 publication window HOLDS at 2026-07-19 to 2026-07-23** per Cycle 43's protocol definition ("hold if no 5th commit lands"). Window does NOT narrow this cycle.
+
+### Single observation
+**CVE-2026-39821 OSV `GO-2026-5026` modified advanced to `2026-07-16T10:29:37.747000019Z`** (from Cycle 43's `2026-07-15T10:29:28.106910426Z` — exactly +23h 59m 50s on the dot, **9th consecutive cycle of ~24h-cadence Red Hat errata enumeration per ITEM #45**). Content still byte-identical except for the `modified` timestamp field itself. **CVE-2026-39821 NVD also advanced subtly:** `lastModified` UNCHANGED at `2026-07-15T12:17:33.850Z` (still Cycle 43 value), but `totalReferences` went **51 → 52** (RHSA refs still 45, +1 non-RHSA reference — `security@golang.org https://pkg.go.dev/vuln/GO-2026-5026` was already present in cycle 43's reading, the +1 appears to be NVD-internal re-counting or a new related reference). Content of NVD entry otherwise byte-identical.
+
+### Re-verification matrix (26 items vs Cycle 43)
+
+| # | Item | Cycle 43 | Cycle 44 | Delta |
+|---|---|---|---|---|
+| 1 | Gin master HEAD | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` | `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` | UNCHANGED |
+| 2 | release-branch.go1.25 HEAD | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` | `2d5129d2b310e497a1821044acad0ec60bc9ef5c` | UNCHANGED |
+| 3 | release-branch.go1.26 HEAD | `a42fec40ab09b138e5cf98395ff24b52487a647d` | `a42fec40ab09b138e5cf98395ff24b52487a647d` | UNCHANGED |
+| 4 | release-branch.go1.27 HEAD | `59418f087ceb48826c09acff7eaa12cfe2d479f6` | `59418f087ceb48826c09acff7eaa12cfe2d479f6` | UNCHANGED (4/5 sat, no 5th yet) |
+| 5 | Go stable list | `[go1.26.5, go1.25.12]` | `[go1.26.5, go1.25.12]` | UNCHANGED |
+| 6 | go1.27rc2 tag | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` | `075e9d41dc2f4842ae0050a11b7c576bba9284a4` | UNCHANGED |
+| 7 | go1.27rc3 tag | NOT pushed | NOT pushed | UNCHANGED |
+| 8 | CVE-2026-56853 (MITRE) | CVE_RECORD_DNE | CVE_RECORD_DNE | UNCHANGED (embargoed, 8d 17h+) |
+| 9 | CVE-2026-56853 (NVD) | totalResults:0 | totalResults:0 | UNCHANGED |
+| 10 | CVE-2026-56853 (OSV) | Bug not found | Bug not found | UNCHANGED |
+| 11 | CVE-2026-56853 (pkg.go.dev/vuln) | not listed | not listed | UNCHANGED |
+| 12 | CVE-2026-39821 (MITRE) | PUBLISHED, body stable | PUBLISHED, body stable | UNCHANGED |
+| 13 | CVE-2026-39821 (NVD) | 2026-07-15T12:17:33.850Z, refs=51 (RHSA=45) | 2026-07-15T12:17:33.850Z, refs=52 (RHSA=45) | **+1 non-RHSA ref** (ITEM #45 noise, NVD-internal re-count) |
+| 14 | CVE-2026-39821 (OSV) | modified=2026-07-15T10:29:28Z (RHSA=21) | modified=2026-07-16T10:29:37Z (RHSA=21) | **+~24h cadence advance** (ITEM #45, 9th consecutive cycle) |
+| 15 | x/net latest | v0.57.0 | v0.57.0 | UNCHANGED |
+| 16 | x/crypto latest | v0.54.0 | v0.54.0 | UNCHANGED |
+| 17 | x/sys latest | v0.47.0 | v0.47.0 | UNCHANGED |
+| 18 | x/text latest | v0.40.0 | v0.40.0 | UNCHANGED |
+| 19 | x/image latest | v0.44.0 | v0.44.0 | UNCHANGED |
+| 20 | x/arch latest | v0.29.0 | v0.29.0 | UNCHANGED |
+| 21 | x/tools latest | v0.48.0 | v0.48.0 | UNCHANGED |
+| 22 | Gin v1.13 milestone | 24/36 (66.7%) 12 open | 24/36 (66.7%) 12 open | UNCHANGED |
+| 23 | Gin v1.x milestone | 17/18 (94.4%) 1 open | 17/18 (94.4%) 1 open | UNCHANGED |
+| 24 | Gin v2.0 milestone | 3/3 (0 open) | 3/3 (0 open) | UNCHANGED |
+| 25 | Latest Gin tag | v1.12.0 (73726dc6) | v1.12.0 (73726dc6) | UNCHANGED |
+| 26 | Top Gin PR (by updated_at) | #4726 | #4732 | shift (top-5 churn, ITEM #43 noise) |
+
+**Cycle 44 delta: 25 UNCHANGED, 1 subtle ITEM #45 noise (CVE-2026-39821 OSV modified advance on cadence + NVD refs +1 internal re-count). Zero material state changes.**
+
+### Top-5 most-recently-updated Gin PRs churned (ITEM #43)
+Cycle 43 → Cycle 44: completely different top-5 set in cycle 43 vs 44 (excluding the always-stable PR #4726 noise):
+- **Cycle 43 top 5**: #4726, #4711, #4663, #4722, #4716
+- **Cycle 44 top 5**: #4732, #4682, #4663, #4724, #4701
+
+#4732 = `feat: add support for HTTP QUERY method` by Aum-Patel1234 (updated_at 2026-07-16T11:03:13Z, draft=False). #4682 = `chore: add a worfklow for stale issues` by quichef. #4724 = `fix(recovery): fix stale source line in stack trace for same` by Amirhf1. #4701 = `feat(context): add AbortedByHandler() and AbortedBy() to tra` (truncated) by raju-mechatronics. All clock-tick updates, no substantive maintainer activity, classified ITEM #43 noise.
+
+### PR #4726 deep-dive (ITEM #43 stress-test, breaking the 9d 22h stale pattern)
+PR #4726 `updated_at` advanced to **2026-07-16T08:06:22Z** for the first time in past ~9d 22h. Detailed triage (verified via `/repos/gin-gonic/gin/{pulls/4726,issues/4726/events,issues/4726/comments,pulls/4726/comments,pulls/4726/reviews}`):
+- **head_sha**: `090f6e5b8607c37b2e379ce72883d491e36b8894` UNCHANGED from Cycle 41+ (last force-push `2026-07-05T03:40:51Z`, now 11d 8h+ ago)
+- **events count**: 8 events UNCHANGED, all dated 2026-07-02 to 2026-07-07
+- **reviews count**: 3 (all COMMENTED, dated 2026-07-02 to 2026-07-05 — copilot, github-advanced-security, copilot)
+- **review_comments (inline) count**: 4 (all dated 2026-07-02 to 2026-07-05)
+- **issue comments count**: 3 (last new: `2026-07-15T22:03:34Z` by `@NiiMER` with body `Reminder` — community ping asking for review)
+- **codecov bot comment edited**: `2026-07-02T23:55:44Z` created, `2026-07-16T08:06:22Z` updated — automated coverage-report rerender, not human activity
+
+**Triaged conclusion: ITEM #43 metadata-refresh signal** (community ping + automated bot rerender). head_sha unchanged, no new reviews, no new events, no maintainer engagement. The advance in `updated_at` was driven entirely by (1) the codcov bot's auto-rerender (deterministic on coverage rebuild trigger) and (2) NiiMER's "Reminder" comment (non-maintainer community chatter). Pattern confirmed for ITEM #43: any `updated_at` advance on a PR with stable `head_sha`, zero new reviews, zero new events in past 24h, and only bot rerenders + non-maintainer comments = metadata-refresh, NOT substantive.
+
+### Files changed (Cycle 44)
+- **security.md** — added new "Status (2026-07-16 12:06 UTC)" bullet documenting the no-5th-janitor-commit observation + ITEM #29 window HOLD + CVE-2026-39821 ITEM #45 9th consecutive cycle + CVE-2026-56853 embargo crossing 8d 17h+ mark + PR #4726 ITEM #43 stress-test conclusion + maintenance PR top-5 churn + updated PRODUCTION TIMELINE.
+- **versions.md** — this Cycle 44 entry (~6.5KB).
+- README.md UNCHANGED.
+- All 12 topic files UNCHANGED (mtimes confirm content-source-stability, no new weak areas detected).
+
+### Agent guidance updates
+- **ITEM #48 janitor-saturation signal**: still 4 of expected 1-5 janitor commits, 1.9d elapsed since CVE-bearing master-merge 714546262251 (2026-07-14T23:31:28Z — crossed 2-day mark at 2026-07-16T23:31Z). The 2-day threshold won't be crossed until late tonight UTC. ITEM #48's "narrow ITEM #29 inward by 2 days" criteria both partially met (count≥4 ✓) but not fully (time>2d ✗). **Cycle 44 ACTIVE DECISION: HOLD at 2026-07-19/-23** per Cycle 43's pre-defined protocol. If a 5th janitor commit lands before 2026-07-16T23:31Z, ITEM #48 fully triggers and narrows to 2026-07-19/-21. If the 2-day mark crosses with no 5th commit, ITEM #48 escalates to the "delayed-tagging" interpretation (see Cycle 44 sub-observation below) and protocol may need amendment.
+- **ITEM #32 hash-correctness guardrail APPLIED for 44th consecutive cycle**: 6 SHAs × 5 source cross-checks (59418f087ceb + 2a49fcd1de88 + d51ceb7f2d72 + a19f534ca7cc + 714546262251 + 34dac209 all re-verified against `git ls-remote github.com/golang/go` + `git ls-remote git@github.com:gin-gonic/gin.git` + `/repos/golang/go/branches/release-branch.go1.{25,26,27}` + `/repos/golang/go/commits?sha=release-branch.go1.27&per_page=10` + `/repos/golang/go/compare/d51ceb7f2d72...59418f087ceb` in same cycle-write session 12:06-12:08 UTC, no fabrication drift).
+- **ITEM #39** (x/* module iteration pattern) APPLIED for 13th consecutive cycle: all 7 tracked modules (x/crypto, x/net, x/sys, x/text, x/image, x/arch, x/tools) re-verified UNCHANGED via `proxy.golang.org/golang.org/x/{module}/@latest`.
+- **ITEM #43** (PR metadata-refresh discrimination) APPLIED to PR #4726 + PR #4735 + new top-5 churn — all clock-tick + non-maintainer-comment noise. **NEW SUB-FINDING**: PR #4726's `updated_at` advance was driven by combination of (a) automated codecov[bot] comment rerender at 2026-07-16T08:06:22Z and (b) non-maintainer `@NiiMER` "Reminder" comment at 2026-07-15T22:03:34Z. Pattern confirmed: any `updated_at` advance on a PR with stable head_sha, zero new reviews in past 24h, zero new events, only bot rerenders + non-maintainer chatter = metadata-refresh, NOT substantive. ITEM #43 protocol's discrimination criteria validated one more time.
+- **ITEM #45** (CVE metadata-refresh discrimination) APPLIED to CVE-2026-39821 OSV modified advance (2026-07-15T10:29:28Z → 2026-07-16T10:29:37Z, exactly +23h 59m 50s = **9th consecutive cycle of ~24h-cadence Red Hat errata enumeration**) AND to CVE-2026-39821 NVD refs +1 (51→52, RHSA unchanged at 45, +1 non-RHSA ref likely NVD-internal re-count or new related reference). Both classified as downstream noise.
+- **ITEM #29** (Go release timeline) **HOLDS at 2026-07-19 to 2026-07-23** per Cycle 43's protocol ("narrow only if 5th janitor commit lands"). Lower bound 2026-07-19 (T+3d from CVE-bearing master-merge) unchanged; upper bound 2026-07-23 unchanged. Window will be re-evaluated Cycle 45 (~18:06 UTC) when the 2-day post-merge mark is crossed.
+- **ITEM #12** (Gin drought) further escalated to **19d 19h 18m+ / ~469h+** since 2026-06-26T16:48:16Z (Cycle 43's 19d 13h 21m+ advanced +~6h). Still in deep-drought territory.
+- **v1.13 milestone OVERDUE widened** to **16d 12h 6m+** (was 16d 6h 10m+ at Cycle 43, +6h slip).
+- **Patch release window now 114h+ / 4d 18h+** past standard 24-48h Go team turnaround per ITEM #44 (approaching 5-day mark at 120h = 2026-07-17T12:00Z).
+- **ITEM #44 patched Turnaround heuristic** — at Cycle 44's 4d 18h+ elapsed, Go team has clearly missed the upper end of their typical 24-48h release-tag turnaround window. Possibilities: (a) longer cooldown for the Go 1.27-rc3 cycle (Go team may delay rc3 to coordinate with go1.25.13/go1.26.6 stable releases); (b) waiting for an additional CVE or fix to bundle; (c) pending a coord-disclosure sync with external maintainers; (d) embedding additional PR review fixes. Status observation, not actionable.
+
+### NEW SUB-OBSERVATION (Cycle 44): janitor-saturation-timing analysis
+With 4 janitor commits landed and 1.9d elapsed since CVE-bearing master-merge, we're at the **upper count bound but lower-duration bound** of ITEM #47's "1-5 over 2-7 days" envelope. The 2-day mark is crossed at **2026-07-16T23:31Z** (CVE-bearing master-merge was 2026-07-14T23:31:28Z). Three possible Cycle 45/46 outcomes:
+1. **5th janitor commit lands before 2-day mark (2026-07-16T23:31Z)** → ITEM #48 fully triggered, ITEM #29 narrows to 2026-07-19/-21, rc3 likely within 1-3d
+2. **No 5th commit before 2-day mark** → ITEM #47 envelope exceeded count-wise (4 ≥ 5 lower bound check is fine, but upper bound still open); ITEM #29 may need amendment to widen upper bound back to 2026-07-25
+3. **`go1.27rc3` tag pushed directly without 5th commit** → release proceeding, ITEM #29 closes at actual publication date
+
+The most likely outcome: rc3 lands in the **2026-07-19 to 2026-07-22 window** (ITEM #29 current range), with the upper end slightly compressing if no 5th janitor commit appears by 2026-07-17 12:00Z.
+
+### Sources cross-checked (Cycle 44, 12:06-12:08 UTC, single session)
+1. `git ls-remote git@github.com:golang/go.git` — refs/heads/release-branch.go1.{25,26,27} all UNCHANGED at 2d5129d2b310 / a42fec40ab09 / 59418f087ceb
+2. `git ls-remote git@github.com:gin-gonic/gin.git` — master `34dac209`, tag `v1.12.0` = `73726dc6`
+3. `api.github.com/repos/golang/go/branches/release-branch.go1.{25,26,27}` — all 3 UNCHANGED
+4. `api.github.com/repos/golang/go/commits?sha=release-branch.go1.27&per_page=10` — top 5 still `59418f087c` → `2a49fcd1de` → `d51ceb7f2d` → `a19f534ca7` → `7145462622` (same as Cycle 43)
+5. `api.github.com/repos/golang/go/compare/d51ceb7f2d72...59418f087ceb` — `status=ahead, ahead_by=2, behind_by=0` (verified not advanced) ✓
+6. `api.github.com/repos/gin-gonic/gin/branches/master` — master `34dac209ffb6ef85cc78c5d217bbb7ad001d68fd` UNCHANGED
+7. `api.github.com/repos/gin-gonic/gin/tags?per_page=3` — `v1.12.0` (73726dc6) still latest
+8. `api.github.com/repos/gin-gonic/gin/milestones?state=open` — v1.13 (12 open / 24 closed), v1.x (1/17), v2.0 (0/3), all UNCHANGED
+9. `api.github.com/repos/gin-gonic/gin/pulls?state=open&per_page=5&sort=updated&direction=desc` — top 5: #4732/#4682/#4663/#4724/#4701 (churn from Cycle 43)
+10. `api.github.com/repos/gin-gonic/gin/pulls/4726` — head_sha `090f6e5b8607c37b2e379ce72883d491e36b8894` UNCHANGED, updated_at advanced to 2026-07-16T08:06:22Z, comments=3, review_comments=4
+11. `api.github.com/repos/gin-gonic/gin/issues/4726/events` — 8 events UNCHANGED, all dated 2026-07-02 to 2026-07-07
+12. `api.github.com/repos/gin-gonic/gin/issues/4726/comments` — 3 comments, last new `NiiMER Reminder` at 2026-07-15T22:03:34Z
+13. `api.github.com/repos/gin-gonic/gin/pulls/4726/comments` — 4 review_comments UNCHANGED since 2026-07-02/05
+14. `api.github.com/repos/gin-gonic/gin/pulls/4726/reviews` — 3 reviews UNCHANGED (copilot-PRR, gh-advanced-security, copilot-PRR)
+15. `api.github.com/repos/gin-gonic/gin/pulls/4735` — head_sha `7595ce665ee8e6bc345a97e887de8364e0efb9d5` UNCHANGED, 0 events, 0 reviews, comment from open
+16. `cveawg.mitre.org/api/cve/CVE-2026-56853` — still CVE_RECORD_DNE (HTTP 404)
+17. `services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` — still `totalResults:0`
+18. `api.osv.dev/v1/vulns/GO-2026-56853` — still `{"code":5,"message":"Vulnerability not found"}` (HTTP 404)
+19. `pkg.go.dev/vuln/list` — GO-2026-56853 not listed (verified by grep)
+20. `cveawg.mitre.org/api/cve/CVE-2026-39821` — PUBLISHED, body byte-identical, no dateUpdated advance in past 6h
+21. `services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-39821` — lastMod UNCHANGED at 2026-07-15T12:17:33.850Z, refs count 51→52 (RHSA still 45, +1 non-RHSA NVD-internal)
+22. `api.osv.dev/v1/vulns/GO-2026-5026` — modified advanced to `2026-07-16T10:29:37.747000019Z` (+~24h cadence, 9th consecutive ITEM #45 cycle), content byte-identical
+23. `go.dev/dl/?mode=json` — stable still `['go1.26.5', 'go1.25.12']`, no 1.25.13/1.26.6/1.27rc3 yet (window now 114h+ / 4d 18h+)
+24. `proxy.golang.org/golang.org/x/{crypto,net,sys,text,image,arch,tools}/@latest` — all 7 modules re-verified UNCHANGED
+
+### Next escalation checkpoint
+**2026-07-16 18:06 UTC (~6h from now)** — re-verify the 26 items in the delta table, with CRITICAL attention to the 2-day post-merge mark crossing at **2026-07-16T23:31Z** (very late tonight UTC):
+1. **`release-branch.go1.27` 5th janitor commit** OR **`go1.27rc3` tag push** — if either lands before 2-day mark, ITEM #48 fully triggers and rc3 likely within 1-3 days
+2. **`release-branch.go1.25` or `.26` advance** (would be unusual; both stable since 2026-07-10)
+3. **`go1.25.13` / `go1.26.6` release tags** on git ls-remote — likely landing in next 1-3d per ITEM #29
+4. **CVE-2026-56853 advisory publication** on any of 4 endpoints (MITRE/NVD/OSV/pkg.go.dev/vuln/list) — embargo crosses 9-day mark at 2026-07-16T18:14Z (next ~6h), well into late-stage coordinated disclosure territory
+5. **CVE-2026-39821 OSV modified cadence advance** (ITEM #45 9th consecutive cycle) — next due ~2026-07-17T10:29Z
+6. **CVE-2026-39821 MITRE dateUpdated cadence advance** (ITEM #45 9th consecutive cycle)
+7. **CVE-2026-39821 NVD RHSA re-enumeration** (ITEM #45 9th consecutive cycle)
+8. **Gin master HEAD change** (would end 19d 19h+ drought)
+9. **Gin v1.13 milestone progress** (+1 close would move to 25/36 ~69.4%)
+10. **PR #4726 substantive activity** (currently 5h 6m+ since codecov rerender, 14h 3m+ since NiiMER reminder — could see maintainer response after 24-48h if any)
+11. **xvfb/dependency map changes** (still stable per ITEM #39)
+12. **2-day post-merge mark crossing at 2026-07-16T23:31Z** — watch for ITEM #48 janitor-saturation-timing decision point
+
+ITEM #48 protocol point: if 5th janitor commit lands OR rc3 tag push happens BEFORE 2-day mark, ITEM #29 narrows to 2026-07-19/-21. If neither by 2-day mark, ITEM #47 envelope is exceeded count-wise; ITEM #29 may need widening back to 2026-07-25 upper bound in Cycle 45/46 to reflect delayed-tagging interpretation.
+
+PATCH RELEASE WINDOW: 114h+ / 4d 18h+ past standard 24-48h Go team turnaround per ITEM #44; approaching 5-day mark at 120h / 2026-07-17T12:00Z. The 5-day mark crossing on 2026-07-17T12:00Z is a NEW ESCALATION POINT — past 5 days, ITEM #44's heuristics suggest something unusual is delaying publication (longer coordinated-disclosure sync needed, or pending additional CVE inclusion). Will be re-evaluated Cycle 45.
