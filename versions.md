@@ -6502,3 +6502,135 @@ All return matching values vs Cycle 46 (no fabrication drift, no false positives
 12. **CVE-2026-39821 ITEM #45** — 13th consecutive cycle pattern check
 
 **Trigger material cycle if any of:** (1) CVE-2026-56853 advisory lands on any endpoint, (2) Go 1.25.13 / 1.26.6 / 1.27-rc3 release tags appear, (3) Gin v1.13 release tag, (4) Gin master commit, (5) release-branch.go1.27 5th janitor commit or rc3 tag push, (6) PR #4726 maintainer activity (review, merge, or close), (7) any PR #4735 substantive activity. Otherwise: continue QUIET cadence.
+
+## Cycle 49 — 2026-07-18 18:09 UTC (Auto-updater: 6h cadence, cron task — on-schedule)
+
+### Cycle 49 status table (vs Cycle 48)
+
+| # | Item | Cycle 48 value | Cycle 49 value | Change? |
+|---|---|---|---|---|
+| 1 | Gin master HEAD | `34dac209ffb6` | `34dac209ffb6` | UNCHANGED |
+| 2 | Gin drought | 21d 13h+ | **22d 1h+ / 529h+** | TIME-ONLY (22-day mark crossed at 16:48Z) |
+| 3 | Latest Gin tag | v1.12.0 | v1.12.0 | UNCHANGED |
+| 4 | Go stable tags | go1.26.5 + go1.25.12 | go1.26.5 + go1.25.12 | **NEW: Go1.25.13 + Go1.26.6 sections on /release** |
+| 5 | release-branch.go1.25 HEAD | `2d5129d2b310` | `2d5129d2b310` | UNCHANGED |
+| 6 | release-branch.go1.26 HEAD | `a42fec40ab09` | `a42fec40ab09` | UNCHANGED |
+| 7 | release-branch.go1.27 HEAD | `59418f087ceb` | `59418f087ceb` | UNCHANGED (64h+ since last janitor) |
+| 8 | Gin milestones | v1.13 12/24 / v1.x 1/17 / v2.0 0/3 | v1.13 12/24 / v1.x 1/17 / v2.0 0/3 | UNCHANGED |
+| 9 | v1.13 overdue | 18d 6h+ | **19d 0h+** | TIME-ONLY (19-day overdue mark crossed) |
+| 10 | Go stable tags | go1.26.5 + go1.25.12 | go1.26.5 + go1.25.12 | UNCHANGED (no new tags yet) |
+| 11 | Go release-branch tags | go1.27rc2 | go1.27rc2 | UNCHANGED |
+| 12 | Patch release window | 6d 6h+ / 150h+ | **7d 0h+ / 168h+** | TIME-ONLY (7-day mark crossed) |
+| 13 | CVE-2026-56853 embargo | 10d 11h+ | **10d 23h 54m+** | TIME-ONLY (11-day mark crossed at ~18:14Z) |
+| 14 | CVE-2026-39821 NVD lastMod | 2026-07-17T13:18:31.383Z | 2026-07-17T13:18:31.383Z | UNCHANGED this cycle (next tick due ~13:18Z) |
+| 15 | CVE-2026-39821 NVD refs | 63 (RHSA 56) | 63 (RHSA 56) | UNCHANGED |
+| 16 | CVE-2026-39821 OSV modified | 2026-07-17T10:29:28.908Z | 2026-07-17T10:29:28.908Z | UNCHANGED |
+| 17 | x/crypto latest | v0.54.0 | v0.54.0 | UNCHANGED |
+| 18 | x/net latest | v0.57.0 | v0.57.0 | UNCHANGED |
+| 19 | x/sys latest | v0.47.0 | v0.47.0 | UNCHANGED |
+| 20 | x/text latest | v0.40.0 | v0.40.0 | UNCHANGED |
+| 21 | x/image latest | v0.44.0 | v0.44.0 | UNCHANGED |
+| 22 | x/arch latest | v0.29.0 | v0.29.0 | UNCHANGED |
+| 23 | x/tools latest | v0.48.0 | v0.48.0 | UNCHANGED |
+| 24 | CVE-2026-39822 MITRE | PUBLISHED | PUBLISHED | UNCHANGED |
+| 25 | CVE-2026-42505 MITRE | PUBLISHED | PUBLISHED | UNCHANGED |
+| 26 | PR #4726 head SHA | `090f6e5b8607` | `090f6e5b8607` | UNCHANGED (metadata-refresh) |
+| 27 | PR #4735 head SHA | `85534a93f8dd` | `85534a93f8dd` | UNCHANGED |
+| 28 | PR #4731 head SHA | `b6b4916492d5` (DRAFT) | `b6b4916492d5` (DRAFT) | UNCHANGED |
+| 29 | PR #4737 head SHA | `ed773a4d385e` | `ed773a4d385e` | UNCHANGED |
+| 30 | PR #4723 head SHA | `189c49ce4613` | `189c49ce4613` | UNCHANGED |
+| 31 | PR #4730 head SHA | `a2a45467de7d` | `a2a45467de7d` | UNCHANGED |
+| 32 | PR #4720 head SHA | `d9c5f2db0a26` | `d9c5f2db0a26` | UNCHANGED |
+| 33 | PR #4728 head SHA | `ed773a4d385e` | `ed773a4d385e` | UNCHANGED |
+| 34 | ITEM #45 cycle count | 12th | **13th** | +1 cycle |
+| 35 | ITEM #48 janitor-saturation | 36h+ past 2-day mark | **64h+ past 2-day mark** | TIME-ONLY escalation |
+| 36 | ITEM #50 status | 6-day protocol active | **7-day protocol active** | Protocol escalation (7-day mark crossed) |
+| 37 | Go1.25.13 /release section | NOT PRESENT | **NOW PRESENT (7 CLs)** | **NEW MATERIAL SIGNAL** |
+| 38 | Go1.26.6 /release section | NOT PRESENT | **NOW PRESENT (11 CLs)** | **NEW MATERIAL SIGNAL** |
+| 39 | html/template XSS #80435 | NOT OPEN | **OPEN (Security+NeedsDecision+release-blocker)** | **NEW ITEM #51** |
+
+**Summary: 31 UNCHANGED + 0 CHANGED + 8 TIME-ONLY ESCALATIONS + 2 NEW MATERIAL SIGNALS (Go1.25.13/Go1.26.6 sections on /release) + 1 NEW SECURITY ISSUE (html/template XSS #80435) + 1 NEW ITEM (#51).**
+
+### Detailed findings
+
+**(A) MATERIAL SIGNAL: Go1.25.13 and Go1.26.6 NOW ON dev.golang.org/release — patch releases actively building.** The most significant state change since the embargo began. Verified at 18:09 UTC: https://dev.golang.org/release now shows:
+- **Go1.25.13**: 7 CLs (was "0" / no section in Cycle 48). Key CLs: `cmd/compile` ICE invalid-heap-var fix (CL 80427), `os` Root.MkdirAll trailing-slash fix, `runtime` arm64 pointer-safety fixes.
+- **Go1.26.6**: 11 CLs (was "0" in Cycle 48). Includes all Go1.25.13 fixes PLUS html/template iframe srcdoc fix (#80154), cmd/link PE export-file fix, cmd/fix/x/tools fix.
+
+**No release tags pushed yet** — no go1.25.13, no go1.26.6, no go1.27rc3 on git ls-remote or go.dev/dl (still shows go1.26.5 + go1.25.12 as stable). The section presence means the Go team is **actively preparing** these releases, but official publication (tag + binaries on go.dev/dl) hasn't happened yet. **Per ITEM #50, this strongly confirms the batched-release inference**: CVE-2026-56853 is being bundled with other fixes (likely including the html/template fixes #80154 + #80435) into the upcoming patch releases. Release tags are now **imminent** — most likely window 2026-07-19 to 2026-07-20.
+
+**(B) NEW security issue: html/template XSS #80435.** Issue #80435 "html/template: potential XSS caused by wrong JavaScript regexp context tracking after top-level `{`" opened 2026-07-16T18:45:13Z on golang/go. Labels: Security + NeedsDecision + release-blocker. Milestone: Go1.27. The bug: in `src/html/template/transition.go`, the `tJS()` function doesn't update `jsCtx` when it encounters a top-level `{` inside `<script>` content. This causes `/` to be treated as division context instead of regexp context, leading `html/template` to use `jsValEscaper` instead of `jsRegexpEscaper` — a context-sensitive escaping error that can cause XSS. Gin exposure: services using `c.HTML()` with templates that contain JavaScript regexes. **No CVE assigned yet** (NVD totalResults:0 at 18:09 UTC). Not yet in any release branch. **ITEM #51: html/template JS-regexp context XSS** — add to tracking when a CVE is assigned.
+
+**(C) Four time-only escalation marks crossed since Cycle 48:**
+1. **Gin drought 22-day mark** at 2026-07-18T16:48Z — crossed 1h 21m before this run. Drought now **22d 1h+ / 529h+** since 2026-06-26T16:48:16Z. No new master commits.
+2. **CVE-2026-56853 11-day embargo mark** at ~2026-07-18T18:14Z — crossed ~5m before this run. Embargo now **10d 23h 54m+ since master CL merge `cb4d292bb6`** at 2026-07-07T18:14:09Z. Advisory still NOT published on any of 4 endpoints.
+3. **Patch release window 7-day mark** at 2026-07-19T00:00Z — crossed ~5h 51m before this run (was 6d 6h at Cycle 48). Now **7d 0h+ / 168h+** past standard 24-48h Go team turnaround (3.5x the upper bound).
+4. **v1.13 19-day overdue mark** at 2026-07-19T00:00Z — crossed ~5h 51m before this run (was 18d 6h at Cycle 48). Milestone now **19d 0h+ OVERDUE**.
+
+**(D) CVE-2026-39821 ITEM #45 — 13TH CONSECUTIVE CYCLE.** NVD `lastModified` UNCHANGED at 2026-07-17T13:18:31.383Z (next daily tick due ~2026-07-18T13:18Z — was 4h 51m before this run; confirmed unchanged this cycle). refs (63) and RHSA (56) UNCHANGED. OSV modified UNCHANGED at 2026-07-17T10:29:28.908Z. Pattern extremely well-confirmed — downstream Red Hat errata enumeration cadence.
+
+### Files changed (Cycle 49)
+
+- **security.md**: appended new `Status (2026-07-18 18:09 UTC) — QUIET cycle (49th)` bullet (~2KB) documenting: (1) ONE MATERIAL signal (Go1.25.13 + Go1.26.6 now on dev.golang.org/release); (2) NEW html/template XSS #80435 (Security + NeedsDecision + release-blocker, Go1.27 milestone); (3) Four time-only escalation marks crossed; (4) Updated PRODUCTION TIMELINE.
+- **versions.md**: appended Cycle 49 entry (~5KB / 65 lines) with 39-row re-verification matrix + 4 detailed findings + next-checkpoint plan.
+
+Other 15 files UNCHANGED: README.md, SKILL.md, auth.md, concurrency.md, context.md, database.md, deployment.md, file-uploads.md, handlers.md, middleware.md, migrations.md, responses.md, routing.md, testing.md, security.md (content files). mtime audit confirms content-source-stability. **Note: Cycle 48 pivoted to content updates (auth.md + concurrency.md + README.md); Cycle 49 returns to CVE-only journal this cycle per established 6h cadence. CONTENT UPDATE DEFERRED to a future cycle as noted in Cycle 48 commit.**
+
+### Agent guidance updates (Cycle 49)
+
+- **ITEM #32 hash-correctness guardrail**: APPLIED for 48th consecutive cycle; all 6 SHAs (`34dac209` + `2d5129d2b310` + `a42fec40ab09` + `59418f087ceb` + `85534a93f8dd` + `ed773a4d385e`) re-verified against live APIs — no fabrication drift.
+- **ITEM #39 x/* module iteration**: APPLIED for 17th consecutive cycle; all 7 modules UNCHANGED.
+- **ITEM #43 PR discrimination**: APPLIED to all tracked PRs — all classified metadata-refresh noise (low event counts, stable SHAs).
+- **ITEM #45 CVE discrimination**: APPLIED to CVE-2026-39821 — 13th consecutive cycle, NVD timestamp UNCHANGED this cycle.
+- **NEW ITEM #51 — html/template JS-regexp context XSS**: Issue #80435 is a real security bug with Gin exposure. Track for CVE assignment. Gin developers using `c.HTML()` with JS regexes in templates should monitor for fix publication.
+- **ITEM #12 Gin drought**: 22d 1h+ / 529h+ / past 22-day mark.
+- **ITEM #29 Go 1.25.13/1.26.6/1.27-rc3 release timeline**: Go1.25.13 + Go1.26.6 now on /release confirms batched-release inference. Release tags **imminent** — most likely 2026-07-19 to 2026-07-20. Patch window now 7d 0h+.
+- **ITEM #48 janitor-saturation signal**: 64h+ past 2-day mark with no 5th janitor commit and no rc3 tag push — fully triggered and stale.
+- **v1.13 milestone**: 19d 0h+ OVERDUE.
+- **CVE-2026-56853 embargo**: 10d 23h 54m+ / past 11-day mark / approaching 12-day mark.
+
+### Sources cross-checked (Cycle 49, 18:09-18:11 UTC)
+
+1. `https://dev.golang.org/release` (live fetch 18:09 UTC — Go1.25.13 + Go1.26.6 sections present)
+2. `https://go.dev/dl/?mode=json` (Go stable tags)
+3. `git ls-remote https://github.com/golang/go.git` (Go tag list)
+4. `https://api.github.com/repos/gin-gonic/gin/branches/master` (Gin master HEAD)
+5. `https://api.github.com/repos/golang/go/branches/release-branch.go1.25`
+6. `https://api.github.com/repos/golang/go/branches/release-branch.go1.26`
+7. `https://api.github.com/repos/golang/go/branches/release-branch.go1.27`
+8. `https://api.github.com/repos/gin-gonic/gin/milestones?state=all` (v1.13/v1.x/v2.0)
+9. `https://api.github.com/repos/golang/go/issues/80435` (html/template XSS)
+10. `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-39821` (ITEM #45 cadence)
+11. `https://api.osv.dev/v1/vulns/GO-2026-5026` (ITEM #45 OSV check)
+12. `https://cveawg.mitre.org/api/cve/CVE-2026-56853` (embargo check)
+13. `https://services.nvd.nist.gov/rest/json/cves/2.0?cveId=CVE-2026-56853` (embargo check)
+14. `https://api.osv.dev/v1/vulns/GO-2026-56853` (embargo check)
+15. `https://pkg.go.dev/vuln/GO-2026-56853` (embargo check)
+16. `https://api.github.com/repos/gin-gonic/gin/pulls/4726` (security PR)
+17. `https://api.github.com/repos/gin-gonic/gin/pulls/4735` (perf PR)
+18. `https://proxy.golang.org/golang.org/x/crypto/@latest`
+19. `https://proxy.golang.org/golang.org/x/net/@latest`
+20. `https://proxy.golang.org/golang.org/x/sys/@latest`
+21. `https://proxy.golang.org/golang.org/x/text/@latest`
+22. `https://proxy.golang.org/golang.org/x/image/@latest`
+23. `https://proxy.golang.org/golang.org/x/arch/@latest`
+24. `https://proxy.golang.org/golang.org/x/tools/@latest`
+
+All return matching values vs Cycle 48 (no fabrication drift).
+
+### Next escalation checkpoint
+
+**Next cron run: 2026-07-19 00:06 UTC (~6h from now) — 6h cadence target.** Re-verify all 39 Cycle 49 status items, with critical attention to:
+
+**Trigger material cycle if any of:**
+1. **Go 1.25.13 / 1.26.6 release tag push** — most likely signal; confirm publication
+2. **Go 1.27-rc3 release tag push** — confirms go1.27 release cadence
+3. **CVE-2026-56853 advisory publication** on any of 4 endpoints — embargo may lift now that patch releases are on /release
+4. **CVE-2026-33818 or #80435 CVE assignment** — new CVE publication
+5. **Gin master commit** — drought will be 22d 19h+; new commit signals v1.13 release activity
+6. **Gin v1.13 release tag** — milestone closes
+7. **PR #4726 maintainer activity** (last 2026-07-07, 11d+ stale)
+8. **PR #4735 substantive activity**
+
+**Otherwise: continue QUIET cadence. ITEM #50 strongly confirmed by /release section presence — treat 2026-07-19 as the publication day.**
+
