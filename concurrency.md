@@ -431,6 +431,155 @@ func checkCause(ctx context.Context) {
 }
 ```
 
+## iter.Seq Pipelines — Range-Over-Func (Go 1.23+)
+
+Go 1.23 introduced **range-over-func**, and the standard library `iter` package gives you two key types:
+
+- `iter.Seq[V]` — `func(yield func(V) bool)` — a sequence of values
+- `iter.Seq2[K, V]` — `func(yield func(K, V) bool)` — a key/value sequence
+
+This replaces the most common source of leaks in Go 1.22 and earlier code: **goroutines that outlive the consumer**. With iter, the producer is a *pull-based coroutine* — it only advances when the consumer asks for the next value. When the consumer `break`s, `yield` returns `false`, and the producer can clean up.
+
+### Pull-based pipeline (no leaks, no channels needed)
+
+```go
+import "iter"
+
+// Generate IDs 1..n on demand — no slice allocated up-front
+func generateIDs(n int) iter.Seq[int] {
+    return func(yield func(int) bool) {
+        for i := 1; i <= n; i++ {
+            if !yield(i) {
+                return // consumer broke early — exit cleanly
+            }
+        }
+    }
+}
+
+// Filter — also iter.Seq, so it composes
+func onlyEven[V int | int64](src iter.Seq[V]) iter.Seq[V] {
+    return func(yield func(V) bool) {
+        for v := range src {
+            if v%2 == 0 && !yield(v) {
+                return
+            }
+        }
+    }
+}
+
+// Consumer: the pipeline terminates the moment we break
+func firstThreeEven(n int) []int {
+    var out []int
+    for id := range onlyEven(generateIDs(n)) {
+        out = append(out, id)
+        if len(out) == 3 {
+            break // producer's yield returns false → generateIDs exits immediately
+        }
+    }
+    return out
+}
+```
+
+### Database rows as iter.Seq
+
+```go
+// iterateRows streams query results without buffering all rows in memory.
+// Backing the connection close inside the generator prevents leaks.
+func iterateRows(ctx context.Context, db *sql.DB, query string) iter.Seq2[int, string] {
+    return func(yield func(int, string) bool) {
+        rows, err := db.QueryContext(ctx, query)
+        if err != nil {
+            return // error propagated via log; consumer doesn't see it
+        }
+        defer rows.Close() // runs when yield returns false OR sequence ends
+        var id int
+        var name string
+        for rows.Next() {
+            rows.Scan(&id, &name)
+            if !yield(id, name) {
+                return
+            }
+        }
+    }
+}
+
+// In a Gin handler:
+func listUsersHandler(c *gin.Context) {
+    c.Writer.Header().Set("Content-Type", "application/x-ndjson")
+    enc := json.NewEncoder(c.Writer)
+    for id, name := range iterateRows(c.Request.Context(), db, "SELECT id, name FROM users") {
+        if err := enc.Encode(map[string]any{"id": id, "name": name}); err != nil {
+            return // client disconnected — defer rows.Close() runs
+        }
+        c.Writer.Flush()
+    }
+}
+```
+
+### Paginated API client as iter.Seq2
+
+```go
+func paginate(ctx context.Context, baseURL string) iter.Seq2[int, []byte] {
+    return func(yield func(int, []byte) bool) {
+        cursor := ""
+        for i := 0; ; i++ {
+            url := fmt.Sprintf("%s?cursor=%s", baseURL, cursor)
+            req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
+            resp, err := http.DefaultClient.Do(req)
+            if err != nil {
+                return
+            }
+            body, _ := io.ReadAll(resp.Body)
+            resp.Body.Close()
+            if !yield(i, body) {
+                return
+            }
+            cursor = parseCursor(body)
+            if cursor == "" {
+                return
+            }
+        }
+    }
+}
+```
+
+### Why this matters vs channels
+
+| Channels | iter.Seq |
+|---|---|
+| Goroutine starts immediately on send — leaks if consumer abandons | Producer runs only on demand — no goroutine leak |
+| Buffer or unbuffered choice affects backpressure | No buffer — implicit backpressure via `yield` returning `false` |
+| Need `close()` + receive `ok` pattern | `for ... range` just stops |
+| Channels-of-channels for pipelines = complex | Pipeline = function composition |
+
+### When to use channels instead
+
+- **Fan-out** to multiple consumers — channels
+- **Cross-goroutine signals / cancellation** — channels / `sync.Cond`
+- **Single producer → single consumer, pull-based, possibly early-exit** — `iter.Seq`
+- **Database / HTTP streaming** — `iter.Seq` (saves a buffer)
+
+### Go 1.27 note
+
+Go 1.27 introduces **generic methods** (a method may declare its own type parameters). Combined with `iter.Seq`, you can write tightly-typed pipeline operators:
+
+```go
+// Go 1.27+ — typed pipeline operator with its own type parameter
+func Map[V, R any](src iter.Seq[V], fn func(V) R) iter.Seq[R] {
+    return func(yield func(R) bool) {
+        for v := range src {
+            if !yield(fn(v)) {
+                return
+            }
+        }
+    }
+}
+```
+
+In Go 1.26 and earlier, `Map` had to be a free function; in 1.27 you can attach it to a `Pipeline[V]` type for cleaner method-chain syntax. Interface-types-with-generic-methods are explicitly disallowed by the language — keep operators as free functions or methods on concrete types, not interfaces.
+
+**Sources**: [Go 1.23 release notes — range-over-func](https://go.dev/doc/go1.23#language), [pkg.go.dev/iter](https://pkg.go.dev/iter), [Go 1.27 release notes — generic methods](https://go.dev/doc/go1.27).
+
 ## slices and maps (Go 1.21+) — Concurrent-Friendly Patterns
 
 Go 1.21+ added `maps` and `slices` packages with thread-safe copy utilities:

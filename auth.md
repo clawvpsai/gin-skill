@@ -6,6 +6,7 @@
 package auth
 
 import (
+    "fmt"
     "net/http"
     "strings"
     "time"
@@ -39,19 +40,33 @@ func GenerateToken(userID int, email string) (string, error) {
 }
 
 func ValidateToken(tokenString string) (*Claims, error) {
-    token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-        return JWTSecret, nil
-    })
-    
+    // jwt/v5 v5.3+ — explicit ParseOption-based validation
+    // Replaces the v4-era callback with composable, testable, well-typed options.
+    token, err := jwt.ParseWithClaims(
+        tokenString,
+        &Claims{},
+        func(token *jwt.Token) (interface{}, error) {
+            // Explicit signing-method allowlist — defends against alg-confusion attacks
+            // (e.g. an attacker swapping HS256 for "none" or RS256).
+            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+                return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+            }
+            return JWTSecret, nil
+        },
+        jwt.WithValidMethods([]string{"HS256"}),  // pin allowed algorithms
+        jwt.WithIssuer("myapp"),                  // reject tokens from other issuers
+        jwt.WithLeeway(30*time.Second),           // tolerate small clock skew
+        jwt.WithExpirationRequired(),             // tokens MUST have an exp claim
+    )
     if err != nil {
         return nil, err
     }
-    
-    if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-        return claims, nil
+
+    claims, ok := token.Claims.(*Claims)
+    if !ok || !token.Valid {
+        return nil, jwt.ErrSignatureInvalid
     }
-    
-    return nil, jwt.ErrSignatureInvalid
+    return claims, nil
 }
 
 // JWT Middleware
@@ -90,6 +105,32 @@ func ProtectedHandler(c *gin.Context) {
     c.JSON(200, gin.H{"user_id": userID})
 }
 ```
+
+## JWT v5.3+ ParseOption Cheatsheet
+
+`jwt/v5` (currently **v5.3.1**) replaced v4's bag of `Parser` struct fields and global `Parse*` flags with composable **functional options** passed to `ParseWithClaims` / `ParseUnverified`. The options below are the ones that matter for production Gin services:
+
+| Option | Purpose | Use when |
+|---|---|---|
+| `jwt.WithValidMethods([]string{"HS256"})` | Pin allowed signing algorithms | **Always.** Defends against `alg:none` and HS/RS confusion attacks. |
+| `jwt.WithIssuer("myapp")` | Reject tokens whose `iss` ≠ expected | Multi-issuer systems, OAuth ID-token validation |
+| `jwt.WithAudience("api.myapp")` | Reject tokens whose `aud` ≠ expected | Multi-audience APIs, OAuth resource servers |
+| `jwt.WithSubject("user:12345")` | Reject tokens whose `sub` ≠ expected | Token binding to a specific principal |
+| `jwt.WithLeeway(30*time.Second)` | Tolerate clock skew on `exp`/`nbf`/`iat` | Distributed systems where clocks aren't perfectly synced |
+| `jwt.WithExpirationRequired()` | Reject tokens missing `exp` | **Always for access tokens.** Refuse infinite-lived tokens. |
+| `jwt.WithIssuedAt()` | Validate `iat` is sensible (not future, not stale) | High-security APIs |
+| `jwt.WithStrictDecoding()` | Strict base64 decoding (no padding, no whitespace) | Strict JWT producers (RFC 7515 §2) |
+| `jwt.WithPaddingAllowed()` | Accept base64 with padding | Interop with non-strict producers (legacy IdPs) |
+
+**Anti-patterns that v5 explicitly removed:**
+
+- ❌ Overriding `Claims.Valid()` for app-specific checks — replaced by the **`ClaimsValidator` interface** (define `func (c MyClaims) Validate() error`). Standard validation now always runs; custom validation is *appended*, never replaces it. This closes a long-standing foot-gun where a bad `Valid()` override silently disabled signature checking.
+- ❌ The v4 `StandardClaims` struct — **removed** in v5. Use `jwt.RegisteredClaims` (and embed it in your custom claims).
+- ❌ `jwt.Parser` field assignment — replaced by the functional options above.
+
+**Migrating from v4 → v5**: see the official [`MIGRATION_GUIDE.md`](https://github.com/golang-jwt/jwt/blob/main/MIGRATION_GUIDE.md). Most code is a 5-minute swap of `jwt.StandardClaims` → `jwt.RegisteredClaims` + `jwt.ParseWithClaims(..., keyFunc, jwt.WithValidMethods(...), jwt.WithIssuer(...))`.
+
+**Sources**: [pkg.go.dev/github.com/golang-jwt/jwt/v5](https://pkg.go.dev/github.com/golang-jwt/jwt/v5), [v5.0.0 release notes](https://github.com/golang-jwt/jwt/releases/tag/v5.0.0), [v5.3.1 docs](https://pkg.go.dev/github.com/golang-jwt/jwt/v5?tab=versions).
 
 ## JWT Refresh Token Pattern
 

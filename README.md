@@ -61,7 +61,7 @@ go list -m github.com/gin-gonic/gin
 | Route order matters | First match wins — specific routes BEFORE generic |
 | Binding tags use `binding:""` | Gin uses go-playground/validator internally but with `SetTagName("binding")` — NOT `validate:""` |
 | Use `c.Copy()` for context after async work | Original context may be cancelled |
-| Never use `jwt/v4` | Deprecated — always use `jwt/v5` |
+| Never use `jwt/v4` | Deprecated — use `jwt/v5` v5.3+ with `ParseOption`s (`WithValidMethods`, `WithIssuer`) |
 
 ---
 
@@ -69,12 +69,16 @@ go list -m github.com/gin-gonic/gin
 
 | Version | Status | Key Features |
 |---|---|---|
-| **Go 1.26** | ✅ Latest (2026) | Improved toolchain, slices/maps packages |
-| Go 1.26.5 / 1.25.12 | ✅ Patch (2026-07-07) | CVE-2026-39822 + CVE-2026-42505 fixes — **pin `go.mod` toolchain** |
-| Go 1.27rc2 | ⚠️ RC2 (2026-07-07) | Tagged before CVE-2026-56853 fix — **avoid h2c production** |
-| Go 1.25 | Previous stable | Toolchain refinements |
-| Go 1.24 | Minimum for Gin v1.12 | Generic type aliases, math/rand/v2 |
-| **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseEscapedPath option
+| **Go 1.27** | 🟡 RC (Aug 2026) | Generic methods, `encoding/json/v2`, `crypto/mldsa` (PQ), `uuid` package, MLKEM1024 TLS |
+| **Go 1.26.5 / 1.25.12** | ✅ Patch (2026-07-08) | CVE-2026-39822 + CVE-2026-42505 fixes — **pin `go.mod` toolchain** |
+| **Go 1.27rc2** | ⚠️ RC2 (2026-07-08) | Tagged before CVE-2026-56853 fix — **avoid h2c production** |
+| Go 1.26 | Stable | Improved toolchain, slices/maps packages, goroutine leak profile (opt-in) |
+| Go 1.25 | Previous stable | `testing/synctest` (GA), range-over-int (GA) |
+| Go 1.24 | Minimum for Gin v1.12 | Generic type aliases, `t.Context()`, math/rand/v2 |
+| **Gin v1.12** | ✅ Latest (Feb 2026) | BSON, ProtoBuf, HTTP/3 via QUIC, UseEscapedPath option |
+| **Gin v1.13** | 🟡 Milestone (66.7%) | 12 open / 24 closed — due 2026-06-30, OVERDUE |
+| **golang-jwt/jwt v5.3.1** | ✅ Latest (Jan 2026) | `ParseOption` API, `ClaimsValidator` interface, `WithValidMethods` (alg-confusion defense) |
+| **golang-jwt/jwt v4** | ❌ Deprecated | Do not use — security vulnerabilities, EOL |
 
 ---
 
